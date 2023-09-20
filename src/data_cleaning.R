@@ -1,4 +1,4 @@
-library(dtplyr)
+
 
 #' AEMET Open data cleaning
 #'
@@ -14,14 +14,14 @@ library(dtplyr)
 DataCleaning <- function(data) {
   dataClean <- data |>
     dtplyr::lazy_dt() |>
-    dtplyr::select(fecha, prec) |>
-    dtplyr::mutate(dia = format(fecha, "%d")) |>
-    dtplyr::mutate(mes = format(fecha, "%m")) |>
-    dtplyr::mutate(ano = format(fecha, "%Y")) |>
-    dtplyr::mutate(pcp = (ifelse(prec == "Ip", "0,0", prec))) |> # 'Ip' means precipitacion < 0.1mm
-    dtplyr::mutate(pcp = gsub(",", ".", pcp)) |> # Change commas with dots, necessary for numeric
+    dplyr::select(fecha, prec) |>
+    dplyr::mutate(dia = format(fecha, "%d")) |>
+    dplyr::mutate(mes = format(fecha, "%m")) |>
+    dplyr::mutate(ano = format(fecha, "%Y")) |>
+    dplyr::mutate(pcp = (ifelse(prec == "Ip", "0,0", prec))) |> # 'Ip' means precipitacion < 0.1mm
+    dplyr::mutate(pcp = gsub(",", ".", pcp)) |> # Change commas with dots, necessary for numeric
     # conversion
-    dtplyr::mutate(pcp = as.numeric(pcp))
+    dplyr::mutate(pcp = as.numeric(pcp))
 
   return(dataClean)
 }
