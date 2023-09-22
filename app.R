@@ -4,6 +4,10 @@
 # - documentar funcion PlotCumPcpPcts
 # - documentar funcion PlotCumPcp
 # - revisar expand grafico 1, mucho espacio en blanco arriba
+# - comentar el codigo de plot_season_pcp.R porque tiene telita
+# - documentar funcion SeasonPcpPlot
+# - salto de linea caption grafico interactivo
+# - docu max_date plot_cum_pcp_pcts
 
 library(shiny)
 library(shinythemes)
@@ -16,12 +20,14 @@ library(dplyr, warn.conflicts = FALSE)
 library(tidyr)
 library(ggplot2)
 library(ggthemes)
-library(plotly)
+library(ggh4x)
+library(stringr)
 
 # Code outside 'ui' and 'server' only runs once when app is launched
 source(here::here("src", "data_cleaning.R"))
 source(here::here("src", "plot_cum_pcp_pcts.R"))
 source(here::here("src", "plot_cum_pcp.R"))
+source(here::here("src", "plot_season_pcp.R"))
 
 # Parameters
 station <- 3195
@@ -32,6 +38,7 @@ selected_year <- 2023
 #              install = TRUE)
 
 # data <- aemet_daily_period(station = station, start = ref_start_year, end = ref_end_year)
+max_date <- max(data$fecha)
 
 # Define UI ----
 # fluidPage creates a display that automatically adjusts to the dimensions of your user’s
@@ -49,7 +56,7 @@ ui <- shiny::fluidPage(
         column(
           6,
           shiny::textInput(
-            inputId = "date",
+            inputId = "year",
             label = "Año de estudio",
             value = lubridate::year(Sys.Date())
           )
@@ -81,7 +88,8 @@ ui <- shiny::fluidPage(
         label = "Gráfico",
         choices = c(
           "1. Precip. diaria acumulada" = "1",
-          "2. Precip. diaria acumulada (interactivo)" = "2"
+          "2. Precip. diaria acumulada (interactivo)" = "2",
+          "3. Precip. estacional" = "3"
         )
       )
     ),
@@ -100,14 +108,22 @@ server <- function(input, output) {
     # Draw plot
     switch(type,
       "1" = CumPcpPctsPlot(
-        data = DataCleaning(data), selected_year = input$date,
+        data = DataCleaning(data), selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
-        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2])
+        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+        max_date = max_date
       ),
       "2" = CumPcpPlot(
-        data = DataCleaning(data), selected_year = input$date,
+        data = DataCleaning(data), selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
-        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2])
+        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+        max_date = max_date
+      ),
+      "3" = SeasonPcpPlot(
+        data = DataCleaning(data), selected_year = input$year,
+        ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
+        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+        max_date = max_date
       )
     )
   })

@@ -7,7 +7,7 @@
 #' @returns An R clean dataset
 #' @examples
 #' DataCleaning(data)
-CumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_year) {
+CumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
   # Calculate historical percentiles for reference period
   reference_pcts_pcp <- data |>
     dplyr::filter(fecha >= as.Date(paste0(ref_start_year, "-01-01")) &
@@ -94,17 +94,16 @@ CumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_year) {
     ggplot2::labs(
       x = "", y = "", title = paste0("Precipitación en Madrid - Retiro ", selected_year),
       subtitle = paste0(
-        "Precipitación diaria acumulada comparada con valores históricos (",
+        "Precipitación diaria acumulada comparada con percentiles históricos (",
         ref_start_year, "-", ref_end_year, ")"
       ),
       caption = paste0(
-        "Actualizado: ", max(data$fecha, na.rm = TRUE),
-        ", Fuente: AEMET Open Data, Elab. propia (@Pcontreras95)"
+        "Actualizado: ", max_date, ", Fuente: AEMET Open Data, Elab. propia (@Pcontreras95)"
       )
     ) +
     ggplot2::theme(
-      plot.title = element_text(hjust = 1, face = "bold", family = "sans", size = 35),
-      plot.subtitle = element_text(hjust = 1, size = 25)
+      plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),
+      plot.subtitle = ggplot2::element_text(hjust = 1, size = 25)
     ) +
     ggplot2::annotate(
       geom = "text", x = max(plot_data$fecha, na.rm = TRUE), y = max(plot_data$cumq100pcp),
