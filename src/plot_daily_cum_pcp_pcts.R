@@ -1,13 +1,17 @@
-#' Plot cumulative sum precipitation along with historical precipitation percentiles
+#' Plot cumulative daily sum precipitation along with historical precipitation percentiles
 #'
-#' Plots cumulative sum precipitation in selected year with historical precipitation percentiles
-#' based on a reference period defined by 'ref_start_year' and 'ref_end_year'
+#' Plots cumulative daily sum precipitation in selected year along with historical precipitation
+#' percentiles based on a reference period defined by 'ref_start_year' and 'ref_end_year'
 #'
-#' @param data An R dataset
-#' @returns An R clean dataset
+#' @param data An R dataset with AEMET Open data
+#' @param selected_year Year of study
+#' @param ref_start_year Start year of reference period
+#' @param ref_end_year End year of reference period
+#' @param max_date Max date of data
+#' @returns A ggplot2 plot
 #' @examples
-#' DataCleaning(data)
-CumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
+#' CumPcpPctsPlot(data, 2023, 1981, 2010, "2023-09-24")
+DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
   # Calculate historical percentiles for reference period
   reference_pcts_pcp <- data |>
     dplyr::filter(fecha >= as.Date(paste0(ref_start_year, "-01-01")) &
@@ -82,7 +86,7 @@ CumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_year, ma
         by = "month"
       )),
       labels = format(seq(ymd("2023-01-01"), ymd("2023-12-31"), by = "month"), "%b"),
-      limits = c(as.numeric(ymd("2023-01-01")), as.numeric(ymd("2024-02-09"))),
+      limits = c(as.numeric(ymd("2023-01-01")), as.numeric(ymd("2024-02-20"))),
       expand = expansion(mult = c(0.02, 0))
     ) +
     ggplot2::scale_y_continuous(
@@ -98,7 +102,7 @@ CumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_year, ma
         ref_start_year, "-", ref_end_year, ")"
       ),
       caption = paste0(
-        "Actualizado: ", max_date, ", Fuente: AEMET Open Data, Elab. propia (@Pcontreras95)"
+        "Actualizado: ", max_date, ", Fuente: AEMET OpenData, Elab. propia (@Pcontreras95)"
       )
     ) +
     ggplot2::theme(

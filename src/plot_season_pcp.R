@@ -1,6 +1,21 @@
+#' Plot cumulative monthly sum precipitation along with historical and seasonal precipitation 
+#' values
+#'
+#' Plots cumulative monthly sum precipitation in selected year along with historical and
+#' seasonal precipitation values based on a reference period defined by 'ref_start_year' 
+#' and 'ref_end_year'
+#'
+#' @param data An R dataset with AEMET Open data
+#' @param selected_year Year of study
+#' @param ref_start_year Start year of reference period
+#' @param ref_end_year End year of reference period
+#' @param max_date Max date of data
+#' @returns A ggplot2 plot
+#' @examples 
+#' SeasonPcpPlot(data, 2023, 1981, 2010, '2023-09-24')
 SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
   # Calculate mean historical precipitation in each month
-  mean_monthly_pcp <- data |>
+  reference_mean_monthly_pcp <- data |>
     dplyr::filter(fecha >= as.Date(paste0(ref_start_year, "-01-01")) &
       fecha <= as.Date(paste0(ref_end_year, "-12-31"))) |>
     dplyr::group_by(mes) |>
@@ -11,7 +26,7 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
     dplyr::select(-sumpcp)
 
   # Calculate min and max historical precipitation in each month
-  pcts_monthly_pcp <- data |>
+  reference_maxmin_monthly_pcp <- data |>
     dplyr::filter(fecha >= as.Date(paste0(ref_start_year, "-01-01")) &
       fecha <= as.Date(paste0(ref_end_year, "-12-31"))) |>
     dplyr::group_by(ano, mes) |>
@@ -19,13 +34,13 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
     dplyr::arrange(ano, mes) |>
     dplyr::group_by(mes) |>
     dplyr::summarise(
-      q00pcp = round(quantile(sumpcp, probs = 0.00, na.rm = TRUE), 1),
-      q100pcp = round(quantile(sumpcp, probs = 1, na.rm = TRUE), 1)
+      min = round(min(sumpcp, na.rm = TRUE), 1),
+      max = round(max(sumpcp, na.rm = TRUE), 1)
     ) |>
     dplyr::arrange(mes)
 
   # Calculate median historical precipitation for each season
-  pcts_season_pcp <- data |>
+  reference_pcts_season_pcp <- data |>
     dplyr::filter(fecha >= as.Date(paste0(ref_start_year, "-01-01")) &
       fecha <= as.Date(paste0(ref_end_year, "-12-31"))) |>
     dplyr::mutate(season = dplyr::case_when(
@@ -105,15 +120,16 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
   plot_data <- qpcR:::cbind.na(plot_data, selected_year_monthly_pcp) |>
     dtplyr::lazy_dt() |>
     dplyr::select(mes, season, seasoncumsumpcp, sumpcp) |>
-    dplyr::left_join(mean_monthly_pcp, by = "mes") |>
-    dplyr::left_join(pcts_monthly_pcp, by = "mes") |>
-    dplyr::left_join(pcts_season_pcp, by = "mes") |>
+    dplyr::left_join(reference_mean_monthly_pcp, by = "mes") |>
+    dplyr::left_join(reference_maxmin_monthly_pcp, by = "mes") |>
+    dplyr::left_join(reference_pcts_season_pcp, by = "mes") |>
     dplyr::mutate(row = as.character(row_number())) |>
     dplyr::mutate(season2 = rep(1:5, each = 3)) |>
     dplyr::as_tibble()
 
-  p <- ggplot(data = plot_data, aes(x = row)) +
-    ggh4x::geom_box(aes(ymin = q00pcp, ymax = q100pcp, width = 0.9),
+  # Draw the plot
+  p <- ggplot2::ggplot(data = plot_data, aes(x = row)) +
+    ggh4x::geom_box(aes(ymin = min, ymax = max, width = 0.9),
       fill = "white",
       color = "black"
     ) +
@@ -121,19 +137,19 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
     ggplot2::geom_errorbar(aes(
       y = meanpcp, ymin = meanpcp, ymax = meanpcp,
       color = "Media mensual histórica"
-    ), lty = "dashed") +
+    ), linetype = "dashed") +
     ggplot2::geom_errorbar(aes(
       y = seasonmedianpcp, ymin = seasonmedianpcp, ymax = seasonmedianpcp,
       color = "Mediana estacional histórica"
-    ), lty = "dashed") +
+    ), linetype = "dashed") +
     ggplot2::geom_errorbar(aes(
-      y = q100pcp, ymin = q100pcp, ymax = q100pcp,
+      y = max, ymin = max, ymax = max,
       color = "Máximo mensual histórico"
-    ), lty = "solid") +
+    ), linetype = "solid") +
     ggplot2::geom_errorbar(aes(
-      y = q00pcp, ymin = q00pcp, ymax = q00pcp,
+      y = min, ymin = min, ymax = min,
       color = "Mínimo mensual histórico"
-    ), lty = "solid") +
+    ), linetype = "solid") +
     ggplot2::geom_line(aes(
       y = seasoncumsumpcp, group = season2,
       color = "Precip. estacional acumulada"
@@ -183,10 +199,10 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
     ggplot2::scale_y_continuous(
       labels = function(x) paste0(x, "mm"),
       breaks = seq(
-        from = 0, to = max(max(plot_data$q100pcp), max(plot_data$seasoncumsumpcp, na.rm = TRUE))
+        from = 0, to = max(max(plot_data$max), max(plot_data$seasoncumsumpcp, na.rm = TRUE))
         + 100, by = 50
       ),
-      limits = c(0, max(plot_data$q100pcp) + 50)
+      limits = c(0, max(plot_data$max) + 50)
     ) + # expand = c(0, 20, 0, 50)
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
@@ -196,7 +212,7 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
         ref_start_year, "-", ref_end_year, ")"
       ),
       caption = paste0(
-        "Actualizado: ", max_date, ", Fuente: AEMET, Elab. propia (@Pcontreras95)"
+        "Actualizado: ", max_date, ", Fuente: AEMET OpenData, Elab. propia (@Pcontreras95)"
       ),
       color = NULL, fill = NULL
     ) +

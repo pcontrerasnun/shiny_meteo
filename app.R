@@ -1,13 +1,11 @@
 # TODO:
-# - poner bien caption fecha dato actualizado
-# - grafico percentiles histórico se sale de margen etiqueta de max
-# - documentar funcion PlotCumPcpPcts
-# - documentar funcion PlotCumPcp
 # - revisar expand grafico 1, mucho espacio en blanco arriba
 # - comentar el codigo de plot_season_pcp.R porque tiene telita
-# - documentar funcion SeasonPcpPlot
-# - salto de linea caption grafico interactivo
-# - docu max_date plot_cum_pcp_pcts
+# - repensar colores grafico 3
+# - cambiar nombre gráfico 2, lo de interactivo no es vd a menos que lo decidas poner
+# - en grafico 2 añadir etiqueta media histórica año - año y etiqueta año seleccionado
+# - nuevo gráfico num de dias de lluvia por mes vs historico
+
 
 library(shiny)
 library(shinythemes)
@@ -25,9 +23,10 @@ library(stringr)
 
 # Code outside 'ui' and 'server' only runs once when app is launched
 source(here::here("src", "data_cleaning.R"))
-source(here::here("src", "plot_cum_pcp_pcts.R"))
-source(here::here("src", "plot_cum_pcp.R"))
+source(here::here("src", "plot_daily_cum_pcp_pcts.R"))
+source(here::here("src", "plot_daily_cum_pcp.R"))
 source(here::here("src", "plot_season_pcp.R"))
+source(here::here("src", "plot_monthly_ranking_pcp.R"))
 
 # Parameters
 station <- 3195
@@ -89,7 +88,8 @@ ui <- shiny::fluidPage(
         choices = c(
           "1. Precip. diaria acumulada" = "1",
           "2. Precip. diaria acumulada (interactivo)" = "2",
-          "3. Precip. estacional" = "3"
+          "3. Precip. estacional" = "3",
+          "4. Precip. mensual (ranking)" = "4"
         )
       )
     ),
@@ -107,19 +107,25 @@ server <- function(input, output) {
 
     # Draw plot
     switch(type,
-      "1" = CumPcpPctsPlot(
+      "1" = DailyCumPcpPctsPlot(
         data = DataCleaning(data), selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "2" = CumPcpPlot(
+      "2" = DailyCumPcpPlot(
         data = DataCleaning(data), selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
       "3" = SeasonPcpPlot(
+        data = DataCleaning(data), selected_year = input$year,
+        ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
+        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+        max_date = max_date
+      ),
+      "4" = MonthlyRankingPcpPlot(
         data = DataCleaning(data), selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),

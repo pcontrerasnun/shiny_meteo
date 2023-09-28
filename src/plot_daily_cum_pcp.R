@@ -1,4 +1,17 @@
-CumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
+#' Plot cumulative daily sum precipitation along with historical precipitation mean
+#'
+#' Plots cumulative daily sum precipitation in selected year along with historical precipitation
+#' mean based on a reference period defined by 'ref_start_year' and 'ref_end_year'
+#'
+#' @param data An R dataset with AEMET Open data
+#' @param selected_year Year of study
+#' @param ref_start_year Start year of reference period
+#' @param ref_end_year End year of reference period
+#' @param max_date Max date of data
+#' @returns A ggplot2 plot
+#' @examples 
+#' CumPcpPlot(data, 2023, 1981, 2010, '2023-09-24')
+DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
   # Calculate historical mean for reference period
   reference_mean_pcp <- data |>
     dplyr::filter(fecha >= as.Date(paste0(ref_start_year, "-01-01")) &
@@ -53,7 +66,7 @@ CumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_da
         ref_start_year, "-", ref_end_year, ")"
       ),
       caption = paste0(
-        "Actualizado: ", max_date, ", Fuente: AEMET, Elab. propia (@Pcontreras95)"
+        "Actualizado: ", max_date, ", Fuente: AEMET OpenData, Elab. propia (@Pcontreras95)"
       )
     ) +
     ggplot2::theme(

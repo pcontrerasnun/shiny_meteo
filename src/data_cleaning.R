@@ -1,5 +1,3 @@
-
-
 #' AEMET Open data cleaning
 #'
 #' It basically makes column 'prec' as numeric instead of character (new column is named 'pcp')
@@ -7,7 +5,7 @@
 #' From all the columns in the dataset that the AEMET API returns, it selects only the ones that
 #' are going to be used.
 #'
-#' @param data An R dataset
+#' @param data An R dataset with AEMET Open data
 #' @returns An R clean dataset
 #' @examples
 #' DataCleaning(data)
