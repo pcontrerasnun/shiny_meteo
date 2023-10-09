@@ -9,8 +9,8 @@
 #' @param ref_end_year End year of reference period
 #' @param max_date Max date of data
 #' @returns A ggplot2 plot
-#' @examples 
-#' CumPcpPlot(data, 2023, 1981, 2010, '2023-09-24')
+#' @examples
+#' DailyCumPcpPlot(data, 2023, 1981, 2010, "2023-09-24")
 DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
   # Calculate historical mean for reference period
   reference_mean_pcp <- data |>
@@ -51,12 +51,19 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
       breaks = as.numeric(seq(ymd("2023-01-01"), ymd("2023-12-31"), by = "month")),
       labels = format(seq(ymd("2023-01-01"), ymd("2023-12-31"), by = "month"), "%b"),
       limits = c(as.numeric(ymd("2023-01-01")), as.numeric(ymd("2023-12-31"))),
-      expand = ggplot2::expansion(mult = c(0.02, 0.02))
+      expand = ggplot2::expansion(mult = c(0.04, 0.05))
     ) +
     ggplot2::scale_y_continuous(
       labels = function(x) paste0(x, "mm"),
-      breaks = seq(from = 0, to = max(plot_data$cummeanpcp) + 400, by = 100),
-      expand = c(0, 20, 0, 100)
+      breaks = seq(from = 0, to = max(
+        max(plot_data$cumsumpcp, na.rm = TRUE),
+        max(plot_data$cummeanpcp, na.rm = TRUE)
+      ) + 100, by = 100),
+      limits = c(0, max(
+        max(plot_data$cumsumpcp, na.rm = TRUE),
+        max(plot_data$cummeanpcp, na.rm = TRUE)
+      ) + 100),
+      expand = c(0, 20, 0, 0)
     ) +
     ggthemes::theme_hc(base_size = 15) +
     labs(
@@ -72,6 +79,78 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
     ggplot2::theme(
       plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),
       plot.subtitle = ggplot2::element_text(hjust = 1, size = 25), legend.position = "none"
+    ) +
+    ggplot2::geom_point(data = plot_data |> filter(!is.na(cumsumpcp)) |> slice_tail(n = 1)) +
+    ggplot2::annotate(
+      geom = "text", x = plot_data[mlr3misc::which_max(plot_data$cumsumpcp,
+        ties_method = "last",
+        na_rm = TRUE
+      ), ]$fecha,
+      y = max(plot_data$cumsumpcp, na.rm = TRUE),
+      label = paste0("Precip. ", max(plot_data$cumsumpcp, na.rm = TRUE), "mm"),
+      vjust = 2
+    )
+
+  # If there has been superavit of rain during the year
+  if (max(plot_data$diffmean, na.rm = TRUE) > 0) {
+    p <- p +
+      ggplot2::annotate(
+        geom = "point", x = plot_data[which.max(plot_data$diffmean), ]$fecha,
+        y = plot_data[which.max(plot_data$diffmean), ]$cumsumpcp,
+        shape = 21, fill = "#2c7bb6", size = 2, stroke = 1
+      ) +
+      ggplot2::annotate(
+        geom = "text", x = plot_data[which.max(plot_data$diffmean), ]$fecha,
+        y = plot_data[which.max(plot_data$diffmean), ]$cumsumpcp,
+        label = paste(
+          "+", plot_data[which.max(plot_data$diffmean), ]$diffmean,
+          "*mm~vs.~italic(mean)"
+        ), parse = TRUE, vjust = -1
+      )
+  }
+
+  # If there has been deficit of rain during the year
+  if (min(plot_data$diffmean, na.rm = TRUE) < 0) {
+    p <- p +
+      ggplot2::annotate(
+        geom = "point", x = plot_data[which.min(plot_data$diffmean), ]$fecha,
+        y = plot_data[which.min(plot_data$diffmean), ]$cumsumpcp,
+        shape = 21, fill = "#d7191c", size = 2, stroke = 1
+      ) +
+      ggplot2::annotate(
+        geom = "text", x = plot_data[which.min(plot_data$diffmean), ]$fecha,
+        y = plot_data[which.min(plot_data$diffmean), ]$cumsumpcp,
+        label = paste(
+          plot_data[which.min(plot_data$diffmean), ]$diffmean,
+          "*mm~vs.~italic(mean)"
+        ), parse = TRUE, vjust = 2
+      )
+  }
+
+  # Superavit/deficit at the end of the year
+  if (plot_data[mlr3misc::which_max(plot_data$cumsumpcp,
+    ties_method = "last",
+    na_rm = TRUE
+  ), ]$diffmean > 0) {
+    sign <- "+"
+  } else {
+    sign <- "-"
+  }
+  
+  p <- p +
+    ggplot2::geom_point(data = plot_data |> filter(!is.na(cumsumpcp)) |> slice_tail(n = 1)) +
+    ggplot2::annotate(
+      geom = "text", x = plot_data[mlr3misc::which_max(plot_data$cumsumpcp,
+        ties_method = "last",
+        na_rm = TRUE
+      ), ]$fecha,
+      y = c(max(plot_data$cumsumpcp, na.rm = TRUE), 0.96 * max(plot_data$cumsumpcp, na.rm = TRUE)),
+      label = c(paste0("Precip. ", max(plot_data$cumsumpcp, na.rm = TRUE), "mm"),
+                paste0("(", sign, plot_data[mlr3misc::which_max(plot_data$cumsumpcp,
+                                                                ties_method = "last",
+                                                                na_rm = TRUE
+                ), ]$diffmean, "mm )")),
+      vjust = 2
     )
 
   return(p)

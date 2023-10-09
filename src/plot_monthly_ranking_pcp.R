@@ -1,3 +1,17 @@
+#' Plot cumulated precipiation in each month along with min, max and median historical
+#' precipitation for each month and ranking of selected year
+#'
+#' Plots precipitation in each month in selected year along with historical monthly max, min and 
+#' mean precipitation (historical period starts at ref_start_year' and ends at 'ref_end_year')
+#'
+#' @param data An R dataset with AEMET Open data
+#' @param selected_year Year of study
+#' @param ref_start_year Start year of reference period
+#' @param ref_end_year End year of reference period
+#' @param max_date Max date of data
+#' @returns A ggplot2 plot
+#' @examples
+#' MonthlyRankingPcpPlot(data, 2023, 1981, 2010, "2023-09-24")
 MonthlyRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
   # Calculate each month's rank
   reference_monthly_pcp <- data |>
@@ -50,21 +64,21 @@ MonthlyRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_y
       data = reference_stats_monthly_pcp,
       aes(
         y = meanpcp, ymin = meanpcp, ymax = meanpcp,
-        color = "Media mensual histórica"
+        color = "Precip. media mensual histórica"
       ), linetype = "dashed"
     ) +
     ggplot2::geom_errorbar(
       data = reference_stats_monthly_pcp,
       aes(
         y = maxpcp, ymin = maxpcp, ymax = maxpcp,
-        color = "Máximo mensual histórico"
+        color = "Precip. máxima mensual histórica"
       ), linetype = "solid", linewidth = 1
     ) +
     ggplot2::geom_errorbar(
       data = reference_stats_monthly_pcp,
       aes(
         y = minpcp, ymin = minpcp, ymax = minpcp,
-        color = "Mínimo mensual histórico"
+        color = "Precip. mínima mensual histórica"
       ), linetype = "solid", linewidth = 1
     ) +
     ggplot2::scale_x_discrete(
@@ -76,11 +90,12 @@ MonthlyRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_y
       )
     ) +
     ggplot2::scale_color_manual(
-      breaks = c("Media mensual histórica", "Máximo mensual histórico", "Mínimo mensual histórico"),
+      breaks = c("Precip. media mensual histórica", "Precip. máxima mensual histórica", 
+                 "Precip. mínima mensual histórica"),
       values = c(
-        "Media mensual histórica" = "black",
-        "Máximo mensual histórico" = "#4daf4a",
-        "Mínimo mensual histórico" = "#d7191c"
+        "Precip. media mensual histórica" = "black",
+        "Precip. máxima mensual histórica" = "#4daf4a",
+        "Precip. mínima mensual histórica" = "#d7191c"
       )
     ) +
     ggplot2::scale_fill_manual(
@@ -93,10 +108,13 @@ MonthlyRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_y
     ggplot2::scale_y_continuous(
       labels = function(x) paste0(x, "mm"),
       breaks = seq(
-        from = 0, to = max(selected_year_monthly_pcp$sumpcp, na.rm = TRUE)
-        + 100, by = 50
+        from = 0, 
+        to = max(max(selected_year_monthly_pcp$sumpcp, na.rm = TRUE), 
+                 reference_stats_monthly_pcp$maxpcp)
+        + 50, by = 25
       ),
-      limits = c(0, max(selected_year_monthly_pcp$sumpcp) + 50)
+      limits = c(0, max(max(selected_year_monthly_pcp$sumpcp, na.rm = TRUE), 
+                        reference_stats_monthly_pcp$maxpcp) + 50)
     ) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
@@ -118,7 +136,7 @@ MonthlyRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_y
         fill = "white", color = "black",
         linewidth = 0.75
       ),
-      legend.position = c(0.1, 0.85),
+      legend.position = c(0.115, 0.85),
       legend.spacing = ggplot2::unit(0, "cm"),
       legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
       legend.text = ggtext::element_markdown()
@@ -128,7 +146,7 @@ MonthlyRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_y
       override.aes = list(linetype = c("dotted", "solid", "solid"))
     )) 
 
-  # Add position of selected year
+  # Add position in ranking of selected year
   for (month in unique(selected_year_monthly_pcp$mes)) {
     p <- p + ggplot2::annotate(
       geom = "text", x = subset(selected_year_monthly_pcp, mes == month)$mes,

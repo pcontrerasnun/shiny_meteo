@@ -1,10 +1,17 @@
 # TODO:
-# - revisar expand grafico 1, mucho espacio en blanco arriba
-# - comentar el codigo de plot_season_pcp.R porque tiene telita
-# - repensar colores grafico 3
-# - cambiar nombre gráfico 2, lo de interactivo no es vd a menos que lo decidas poner
 # - en grafico 2 añadir etiqueta media histórica año - año y etiqueta año seleccionado
-# - nuevo gráfico num de dias de lluvia por mes vs historico
+# - fill = NA en grafico 4?
+# - revisar mediana estacional historica grafico 3
+# - revisar medias mensuales grafico 4
+# - revisar si se usa cumsum en otro grafico, cuidado con los NA
+# - grafico torrencialidad lluvia: mm totales/24h
+# - añadir en grafico 1 +/- final con respecto a históric
+# - active style para todos scripts
+# - gráfico de ranking estaciones
+# - grafico lluvia anual todo histoico y recta de minimos cuadrados
+# - borrar codigo comentado de ggrepel y geom_point en grafico 1
+# - en gráfico estacional falta leyendo pcp estacional acumulada
+# - revisar +49.7 etiqueta diffmean 2023 porq no es verdad
 
 
 library(shiny)
@@ -17,16 +24,19 @@ library(dtplyr)
 library(dplyr, warn.conflicts = FALSE)
 library(tidyr)
 library(ggplot2)
+#library(ggrepel)
 library(ggthemes)
 library(ggh4x)
 library(stringr)
+library(mlr3misc)
 
 # Code outside 'ui' and 'server' only runs once when app is launched
 source(here::here("src", "data_cleaning.R"))
-source(here::here("src", "plot_daily_cum_pcp_pcts.R"))
+source(here::here("src", "plot_daily_cum_pcts_pcp.R"))
 source(here::here("src", "plot_daily_cum_pcp.R"))
-source(here::here("src", "plot_season_pcp.R"))
+source(here::here("src", "plot_seasonly_pcp.R"))
 source(here::here("src", "plot_monthly_ranking_pcp.R"))
+source(here::here("src", "plot_monthly_intensity_pcp.R"))
 
 # Parameters
 station <- 3195
@@ -46,7 +56,7 @@ ui <- shiny::fluidPage(
   theme = shinythemes::shinytheme("spacelab"),
 
   # Application title
-  shiny::titlePanel("AEMET Open Data"),
+  shiny::titlePanel("AEMET OpenData"),
 
   # Sidebar panel
   shiny::sidebarLayout(
@@ -86,10 +96,11 @@ ui <- shiny::fluidPage(
         inputId = "plot",
         label = "Gráfico",
         choices = c(
-          "1. Precip. diaria acumulada" = "1",
-          "2. Precip. diaria acumulada (interactivo)" = "2",
+          "1. Precip. diaria acumulada vs. percentiles" = "1",
+          "2. Precip. diaria acumulada vs. media" = "2",
           "3. Precip. estacional" = "3",
-          "4. Precip. mensual (ranking)" = "4"
+          "4. Precip. mensual (ranking)" = "4",
+          "5. Intensidad precip." = "5"
         )
       )
     ),
@@ -126,6 +137,12 @@ server <- function(input, output) {
         max_date = max_date
       ),
       "4" = MonthlyRankingPcpPlot(
+        data = DataCleaning(data), selected_year = input$year,
+        ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
+        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+        max_date = max_date
+      ),
+      "5" = IntensityPcpPlot(
         data = DataCleaning(data), selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
