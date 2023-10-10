@@ -41,7 +41,28 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
     # 2023 since it doesn't have 29th Feb, it doesn't matter what year we choose but it can't be
     # a leap year
     dplyr::as_tibble()
+  
+  # For annotating points
+  annotate_data <- rbind(plot_data |> filter(!is.na(cumsumpcp)) |> slice_tail(n = 1), # Current pcp
+                         subset(plot_data, diffmean == min(diffmean[diffmean < 0], na.rm = TRUE)), # Max deficit
+                         subset(plot_data, diffmean == max(diffmean[diffmean > 0], na.rm = TRUE))) # Max superavit
+  
+  if (annotate_data[mlr3misc::which_max(annotate_data$cumsumpcp, ties_method = "last"), ]$diffmean > 0) {
+    sign <- "+"
+  } else {
+    sign <- "-"
+  }
+  
+  annotate_labels <- data.frame(
+    label = c(
+      paste0("'Precip. ", max(annotate_data$cumsumpcp), "mm\n(", sign, 
+            annotate_data[mlr3misc::which_max(annotate_data$cumsumpcp, ties_method = "last"), ]$diffmean, "mm)'"),
+      paste(min(annotate_data$diffmean), "*mm~vs.~italic(mean)"),
+      paste("+", max(annotate_data$diffmean), "*mm~vs.~italic(mean)")
+    )
+  )
 
+  # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = fecha, y = cumsumpcp)) +
     ggplot2::geom_segment(aes(xend = fecha, yend = cummeanpcp, color = diffmean), linewidth = 1.2) +
     ggplot2::scale_color_gradient2(high = "#2c7bb6", mid = "white", low = "#d7191c") +
@@ -80,78 +101,9 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
       plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),
       plot.subtitle = ggplot2::element_text(hjust = 1, size = 25), legend.position = "none"
     ) +
-    ggplot2::geom_point(data = plot_data |> filter(!is.na(cumsumpcp)) |> slice_tail(n = 1)) +
-    ggplot2::annotate(
-      geom = "text", x = plot_data[mlr3misc::which_max(plot_data$cumsumpcp,
-        ties_method = "last",
-        na_rm = TRUE
-      ), ]$fecha,
-      y = max(plot_data$cumsumpcp, na.rm = TRUE),
-      label = paste0("Precip. ", max(plot_data$cumsumpcp, na.rm = TRUE), "mm"),
-      vjust = 2
-    )
-
-  # If there has been superavit of rain during the year
-  if (max(plot_data$diffmean, na.rm = TRUE) > 0) {
-    p <- p +
-      ggplot2::annotate(
-        geom = "point", x = plot_data[which.max(plot_data$diffmean), ]$fecha,
-        y = plot_data[which.max(plot_data$diffmean), ]$cumsumpcp,
-        shape = 21, fill = "#2c7bb6", size = 2, stroke = 1
-      ) +
-      ggplot2::annotate(
-        geom = "text", x = plot_data[which.max(plot_data$diffmean), ]$fecha,
-        y = plot_data[which.max(plot_data$diffmean), ]$cumsumpcp,
-        label = paste(
-          "+", plot_data[which.max(plot_data$diffmean), ]$diffmean,
-          "*mm~vs.~italic(mean)"
-        ), parse = TRUE, vjust = -1
-      )
-  }
-
-  # If there has been deficit of rain during the year
-  if (min(plot_data$diffmean, na.rm = TRUE) < 0) {
-    p <- p +
-      ggplot2::annotate(
-        geom = "point", x = plot_data[which.min(plot_data$diffmean), ]$fecha,
-        y = plot_data[which.min(plot_data$diffmean), ]$cumsumpcp,
-        shape = 21, fill = "#d7191c", size = 2, stroke = 1
-      ) +
-      ggplot2::annotate(
-        geom = "text", x = plot_data[which.min(plot_data$diffmean), ]$fecha,
-        y = plot_data[which.min(plot_data$diffmean), ]$cumsumpcp,
-        label = paste(
-          plot_data[which.min(plot_data$diffmean), ]$diffmean,
-          "*mm~vs.~italic(mean)"
-        ), parse = TRUE, vjust = 2
-      )
-  }
-
-  # Superavit/deficit at the end of the year
-  if (plot_data[mlr3misc::which_max(plot_data$cumsumpcp,
-    ties_method = "last",
-    na_rm = TRUE
-  ), ]$diffmean > 0) {
-    sign <- "+"
-  } else {
-    sign <- "-"
-  }
-  
-  p <- p +
-    ggplot2::geom_point(data = plot_data |> filter(!is.na(cumsumpcp)) |> slice_tail(n = 1)) +
-    ggplot2::annotate(
-      geom = "text", x = plot_data[mlr3misc::which_max(plot_data$cumsumpcp,
-        ties_method = "last",
-        na_rm = TRUE
-      ), ]$fecha,
-      y = c(max(plot_data$cumsumpcp, na.rm = TRUE), 0.96 * max(plot_data$cumsumpcp, na.rm = TRUE)),
-      label = c(paste0("Precip. ", max(plot_data$cumsumpcp, na.rm = TRUE), "mm"),
-                paste0("(", sign, plot_data[mlr3misc::which_max(plot_data$cumsumpcp,
-                                                                ties_method = "last",
-                                                                na_rm = TRUE
-                ), ]$diffmean, "mm )")),
-      vjust = 2
-    )
+    ggplot2::geom_point(data = annotate_data, fill = c("black", "#d7191c", "#2c7bb6"), 
+                        size = 2, stroke = 1, shape = 21) +
+    ggrepel::geom_text_repel(data = annotate_data, aes(label = annotate_labels$label), parse = TRUE)
 
   return(p)
 }

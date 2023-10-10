@@ -144,20 +144,21 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
       geom = "text", x = max(plot_data$fecha, na.rm = TRUE), y = max(plot_data$cumq00pcp),
       label = paste("Extrem.~seco~(italic(min))"),
       parse = TRUE, family = "sans", hjust = -0.05, vjust = 0.5
-    ) +
-    ggplot2::geom_point(data = plot_data |> filter(!is.na(cumsumpcp)) |> slice_tail(n = 1)) +
+    ) 
+#    ggplot2::geom_point(data = plot_data |> filter(!is.na(cumsumpcp)) |> slice_tail(n = 1)) +
 #    https://github.com/slowkow/ggrepel/issues/153
 #    ggrepel::geom_text_repel(data = plot_data |> filter(!is.na(cumsumpcp)) |> slice_tail(n = 1),
 #                             aes(label = paste0("Precip. ", max(plot_data$cumsumpcp, na.rm = TRUE),
 #                                                "mm"))) 
-    ggplot2::annotate(geom = "text", x = plot_data[mlr3misc::which_max(plot_data$cumsumpcp, 
-                                                                       ties_method = "last",
-                                                                       na_rm = TRUE), ]$fecha,
-                      y = max(plot_data$cumsumpcp, na.rm = TRUE),
-                      label = paste0("Precip. ", max(plot_data$cumsumpcp, na.rm = TRUE), "mm"),
-                      hjust = -0.1)
+#    ggplot2::annotate(geom = "text", x = plot_data[mlr3misc::which_max(plot_data$cumsumpcp, 
+#                                                                       ties_method = "last",
+#                                                                       na_rm = TRUE), ]$fecha,
+#                      y = max(plot_data$cumsumpcp, na.rm = TRUE),
+#                      label = paste0("Precip. ", max(plot_data$cumsumpcp, na.rm = TRUE), "mm"),
+#                      hjust = -0.1)
 
   # If there has been superavit of rain during the year
+  # In plot_daily_cum_pcp.R a different approach can be found for plotting these points with ggrepel
   if (max(plot_data$diffmedian, na.rm = TRUE) > 0) {
     p <- p +
       ggplot2::annotate(
@@ -177,10 +178,12 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
 #    ggplot2::geom_point(data = plot_data[which.max(plot_data$diffmedian), ], shape = 21, 
 #                        fill = "#2c7bb6", size = 2, stroke = 1) +
 #    ggrepel::geom_text_repel(data = plot_data[which.max(plot_data$diffmedian), ],
-#                               aes(label = paste("+", plot_data[which.max(plot_data$diffmedian), ]$diffmedian, "*mm~vs.~italic(P)[50]"), parse = TRUE), vjust = -1) 
+#                               aes(label = paste("+", plot_data[which.max(plot_data$diffmedian), ]$diffmedian, 
+#    "*mm~vs.~italic(P)[50]"), parse = TRUE), vjust = -1) 
   }
 
   # If there has been deficit of rain during the year
+  # In plot_daily_cum_pcp.R a different approach can be found for plotting these points with ggrepel
   if (min(plot_data$diffmedian, na.rm = TRUE) < 0) {
     p <- p +
       ggplot2::annotate(
