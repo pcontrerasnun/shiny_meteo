@@ -68,6 +68,9 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
     ggplot2::scale_color_gradient2(high = "#2c7bb6", mid = "white", low = "#d7191c") +
     ggplot2::geom_line(linewidth = 0.85, lineend = "round") +
     ggplot2::geom_line(aes(y = cummeanpcp)) +
+    ggplot2::geom_point(data = annotate_data, fill = c("black", "#d7191c", "#2c7bb6"), 
+                        size = 2, stroke = 1, shape = 21) +
+    ggrepel::geom_text_repel(data = annotate_data, aes(label = annotate_labels$label), parse = TRUE) +
     ggplot2::scale_x_continuous(
       breaks = as.numeric(seq(ymd("2023-01-01"), ymd("2023-12-31"), by = "month")),
       labels = format(seq(ymd("2023-01-01"), ymd("2023-12-31"), by = "month"), "%b"),
@@ -87,7 +90,7 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
       expand = c(0, 20, 0, 0)
     ) +
     ggthemes::theme_hc(base_size = 15) +
-    labs(
+    ggplot2::labs(
       x = "", y = "", title = paste0("Precipitación en Madrid - Retiro ", selected_year),
       subtitle = paste0(
         "Precipitación acumulada comparada con media histórica (",
@@ -100,10 +103,7 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
     ggplot2::theme(
       plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),
       plot.subtitle = ggplot2::element_text(hjust = 1, size = 25), legend.position = "none"
-    ) +
-    ggplot2::geom_point(data = annotate_data, fill = c("black", "#d7191c", "#2c7bb6"), 
-                        size = 2, stroke = 1, shape = 21) +
-    ggrepel::geom_text_repel(data = annotate_data, aes(label = annotate_labels$label), parse = TRUE)
+    )
 
   return(p)
 }

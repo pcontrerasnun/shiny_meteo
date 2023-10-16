@@ -11,7 +11,10 @@
 # - grafico lluvia anual todo histoico y recta de minimos cuadrados
 # - borrar codigo comentado de ggrepel y geom_point en grafico 1
 # - en gráfico estacional falta leyendo pcp estacional acumulada
-# - revisar +49.7 etiqueta diffmean 2023 porq no es verdad
+# - añadir gráfico 2 no solo +/- cantidad total con respecto historico si no tbn %
+# - terminar y documentar grafico intensidad pcp
+# - nuevo gráfico: torrecialidad estacional evolucion para ver si está aumentando
+# - docu funcion dataCleaning: añadir a la docu que tbn coge last 4 days
 
 
 library(shiny)
@@ -36,7 +39,7 @@ source(here::here("src", "plot_daily_cum_pcts_pcp.R"))
 source(here::here("src", "plot_daily_cum_pcp.R"))
 source(here::here("src", "plot_seasonly_pcp.R"))
 source(here::here("src", "plot_monthly_ranking_pcp.R"))
-source(here::here("src", "plot_monthly_intensity_pcp.R"))
+source(here::here("src", "plot_seasonly_intensity_pcp.R"))
 
 # Parameters
 station <- 3195
@@ -47,6 +50,7 @@ selected_year <- 2023
 #              install = TRUE)
 
 # data <- aemet_daily_period(station = station, start = ref_start_year, end = ref_end_year)
+data_clean <- dataCleaning(data)
 max_date <- max(data$fecha)
 
 # Define UI ----
@@ -119,31 +123,31 @@ server <- function(input, output) {
     # Draw plot
     switch(type,
       "1" = DailyCumPcpPctsPlot(
-        data = DataCleaning(data), selected_year = input$year,
+        data = data_clean, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
       "2" = DailyCumPcpPlot(
-        data = DataCleaning(data), selected_year = input$year,
+        data = data_clean, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
       "3" = SeasonPcpPlot(
-        data = DataCleaning(data), selected_year = input$year,
+        data = data_clean, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
       "4" = MonthlyRankingPcpPlot(
-        data = DataCleaning(data), selected_year = input$year,
+        data = data_clean, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
       "5" = IntensityPcpPlot(
-        data = DataCleaning(data), selected_year = input$year,
+        data = data_clean, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date

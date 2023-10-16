@@ -10,9 +10,35 @@
 #' @examples
 #' DataCleaning(data)
 DataCleaning <- function(data) {
-  dataClean <- data |>
+  # Join last 4 days of that data that general API doesn't provide
+  path <- file.path('~/Escritorio/aemet/')
+  files <- list.files(path, pattern = "\\.csv$")
+  
+  last_data <- data.frame()
+  
+  for (i in files) {
+    tmp <- read.csv(paste0(path, i))
+    last_data <- rbind(last_data, tmp)
+  }
+  
+  last_data_clean <- last_data |> 
+    dplyr::select(-X) |> 
+    dplyr::distinct() |> 
+    dplyr::arrange(fint) |> 
+    dplyr::mutate(fecha = lubridate::ymd_hms(fint)) |> 
+    dplyr::mutate(fecha = fecha - lubridate::hours(7)) |> 
+    dplyr::mutate(fecha = format(fecha, '%Y-%m-%d')) |> 
+    dplyr::group_by(fecha) |> 
+    dplyr::summarise(prec = sum(prec)) |> 
+    dplyr::ungroup()
+  
+  data_clean <- data |>
     dtplyr::lazy_dt() |>
-    dplyr::select(fecha, prec) |>
+    dplyr::select(fecha, prec) |> 
+    dplyr::as_tibble() |> 
+    rbind(last_data_clean) |> 
+    dplyr::distinct(fecha, .keep_all = TRUE) |> # remove duplicated rows, keep last
+    dtplyr::lazy_dt() |>
     dplyr::mutate(dia = format(fecha, "%d")) |>
     dplyr::mutate(mes = format(fecha, "%m")) |>
     dplyr::mutate(ano = format(fecha, "%Y")) |>
@@ -21,5 +47,5 @@ DataCleaning <- function(data) {
     # conversion
     dplyr::mutate(pcp = as.numeric(pcp))
 
-  return(dataClean)
+  return(data_clean)
 }
