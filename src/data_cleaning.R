@@ -4,13 +4,16 @@
 #' and creates useful auxiliar columns for further analyses such as ano, mes and dia.
 #' From all the columns in the dataset that the AEMET API returns, it selects only the ones that
 #' are going to be used.
+#' 
+#' Additionaly, function gets data for last four days (which are not available in general
+#' AEMET function) from local storage and adds them to historical data
 #'
 #' @param data An R dataset with AEMET Open data
 #' @returns An R clean dataset
 #' @examples
 #' DataCleaning(data)
 DataCleaning <- function(data) {
-  # Join last 4 days of that data that general API doesn't provide
+  # Join last 4 days of data that general API doesn't provide
   path <- file.path('~/Escritorio/aemet/')
   files <- list.files(path, pattern = "\\.csv$")
   
@@ -32,11 +35,12 @@ DataCleaning <- function(data) {
     dplyr::summarise(prec = sum(prec)) |> 
     dplyr::ungroup()
   
+  # Clean historical data and join with last 4 days data
   data_clean <- data |>
     dtplyr::lazy_dt() |>
     dplyr::select(fecha, prec) |> 
     dplyr::as_tibble() |> 
-    rbind(last_data_clean) |> 
+    rbind(last_data_clean) |> # join last 4 days data
     dplyr::distinct(fecha, .keep_all = TRUE) |> # remove duplicated rows, keep last
     dtplyr::lazy_dt() |>
     dplyr::mutate(dia = format(fecha, "%d")) |>

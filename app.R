@@ -1,20 +1,17 @@
 # TODO:
-# - en grafico 2 añadir etiqueta media histórica año - año y etiqueta año seleccionado
-# - fill = NA en grafico 4?
-# - revisar mediana estacional historica grafico 3
-# - revisar medias mensuales grafico 4
-# - revisar si se usa cumsum en otro grafico, cuidado con los NA
-# - grafico torrencialidad lluvia: mm totales/24h
-# - añadir en grafico 1 +/- final con respecto a históric
+
+
+
 # - active style para todos scripts
 # - gráfico de ranking estaciones
 # - grafico lluvia anual todo histoico y recta de minimos cuadrados
-# - borrar codigo comentado de ggrepel y geom_point en grafico 1
-# - en gráfico estacional falta leyendo pcp estacional acumulada
-# - añadir gráfico 2 no solo +/- cantidad total con respecto historico si no tbn %
 # - terminar y documentar grafico intensidad pcp
 # - nuevo gráfico: torrecialidad estacional evolucion para ver si está aumentando
 # - docu funcion dataCleaning: añadir a la docu que tbn coge last 4 days
+# - nuevo gráfico, lluvias anuales formando campana gauss e indicando donde está año seleccionado en distrib
+# - en grafico anual, en eje x añadir "mm"
+# - doc función YearlyPcpPlot
+# - arreglar 1972 vs 1931-1960 gráfico 2
 
 
 library(shiny)
@@ -40,6 +37,7 @@ source(here::here("src", "plot_daily_cum_pcp.R"))
 source(here::here("src", "plot_seasonly_pcp.R"))
 source(here::here("src", "plot_monthly_ranking_pcp.R"))
 source(here::here("src", "plot_seasonly_intensity_pcp.R"))
+source(here::here("src", "plot_yearly_pcp.R"))
 
 # Parameters
 station <- 3195
@@ -50,7 +48,7 @@ selected_year <- 2023
 #              install = TRUE)
 
 # data <- aemet_daily_period(station = station, start = ref_start_year, end = ref_end_year)
-data_clean <- dataCleaning(data)
+data_clean <- DataCleaning(data)
 max_date <- max(data$fecha)
 
 # Define UI ----
@@ -104,7 +102,8 @@ ui <- shiny::fluidPage(
           "2. Precip. diaria acumulada vs. media" = "2",
           "3. Precip. estacional" = "3",
           "4. Precip. mensual (ranking)" = "4",
-          "5. Intensidad precip." = "5"
+          "5. Torrencialidad precip." = "5",
+          "6. Precip. anual" = "6"
         )
       )
     ),
@@ -147,6 +146,12 @@ server <- function(input, output) {
         max_date = max_date
       ),
       "5" = IntensityPcpPlot(
+        data = data_clean, selected_year = input$year,
+        ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
+        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+        max_date = max_date
+      ),
+      "6" = YearlyPcpPlot(
         data = data_clean, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),

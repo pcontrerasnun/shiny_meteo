@@ -122,12 +122,12 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
                  "P80" = "#e0f3f8", "P60" = "white", "P40" = "#fee090", "P20" = "#fdae61",
                  "P00" = "#f46d43"), 
       labels = c(
-        "Precip. mensual acumulada" =
-          glue::glue("<span style = 'color: #2c7bb6; '>Precip. mensual acumulada</span>"),
+        "Precip. estacional acumulada" =
+          glue::glue("<span style = 'color: #2c7bb6; '>Precip. estacional acumulada</span>"),
         "P00" = "Estación extrem. seca", "P20" = "Estación muy seca", "P40" = "Estación seca",
         "P80" = "Estación húmeda", "P100" = "Estación muy húmeda", "P60" = "Estación normal"
       ),
-      breaks = c("P100", "P80", "P60", "P40", "P20", "P00", "Precip. mensual acumulada") # to order
+      breaks = c("P100", "P80", "P60", "P40", "P20", "P00", "Precip. estacional acumulada") # to order
     ) +
     ggplot2::scale_x_discrete(
       limits = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"),
@@ -142,9 +142,9 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
       labels = function(x) paste0(x, "mm"),
       breaks = seq(
         from = 0, to = max(max(plot_data$cumq100pcp), max(plot_data$seasoncumsumpcp, na.rm = TRUE))
-        + 250, by = 25
+        + 125, by = 25
       ),
-      limits = c(0, max(max(plot_data$cumq100pcp), max(plot_data$seasoncumsumpcp, na.rm = TRUE) + 250))
+      limits = c(0, max(max(plot_data$cumq100pcp), max(plot_data$seasoncumsumpcp, na.rm = TRUE)) + 125)
     ) + # expand = c(0, 20, 0, 50)
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(

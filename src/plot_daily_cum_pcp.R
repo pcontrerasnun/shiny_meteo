@@ -45,7 +45,8 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
   # For annotating points
   annotate_data <- rbind(plot_data |> filter(!is.na(cumsumpcp)) |> slice_tail(n = 1), # Current pcp
                          subset(plot_data, diffmean == min(diffmean[diffmean < 0], na.rm = TRUE)), # Max deficit
-                         subset(plot_data, diffmean == max(diffmean[diffmean > 0], na.rm = TRUE))) # Max superavit
+                         subset(plot_data, diffmean == max(diffmean[diffmean > 0], na.rm = TRUE))) |> # Max superavit
+    dplyr::mutate(percentage = round(diffmean / cummeanpcp * 100))
   
   if (annotate_data[mlr3misc::which_max(annotate_data$cumsumpcp, ties_method = "last"), ]$diffmean > 0) {
     sign <- "+"
@@ -56,7 +57,8 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
   annotate_labels <- data.frame(
     label = c(
       paste0("'Precip. ", max(annotate_data$cumsumpcp), "mm\n(", sign, 
-            annotate_data[mlr3misc::which_max(annotate_data$cumsumpcp, ties_method = "last"), ]$diffmean, "mm)'"),
+            annotate_data[mlr3misc::which_max(annotate_data$cumsumpcp, ties_method = "last"), ]$diffmean, 
+            "mm, ", sign, annotate_data[which.max(annotate_data$fecha), ]$percentage, "%)'"),
       paste(min(annotate_data$diffmean), "*mm~vs.~italic(mean)"),
       paste("+", max(annotate_data$diffmean), "*mm~vs.~italic(mean)")
     )
@@ -93,7 +95,7 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
     ggplot2::labs(
       x = "", y = "", title = paste0("Precipitación en Madrid - Retiro ", selected_year),
       subtitle = paste0(
-        "Precipitación acumulada comparada con media histórica (",
+        "Precipitación diaria acumulada comparada con media histórica (",
         ref_start_year, "-", ref_end_year, ")"
       ),
       caption = paste0(
