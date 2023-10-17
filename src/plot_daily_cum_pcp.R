@@ -13,7 +13,7 @@
 #' DailyCumPcpPlot(data, 2023, 1981, 2010, "2023-09-24")
 DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
   # Calculate historical mean for reference period
-  reference_mean_pcp <- data |>
+  reference_mean_pcp <- data_clean |>
     dplyr::filter(fecha >= as.Date(paste0(ref_start_year, "-01-01")) &
       fecha <= as.Date(paste0(ref_end_year, "-12-31"))) |>
     dplyr::group_by(dia, mes) |>
@@ -26,7 +26,7 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
     )
 
   # Calculate cumulative sum precipitation for selected year
-  selected_year_pcp <- data |>
+  selected_year_pcp <- data_clean |>
     dplyr::filter(fecha >= as.Date(paste0(selected_year, "-01-01")) &
       fecha <= as.Date(paste0(selected_year, "-12-31"))) |>
     dplyr::mutate(cumsumpcp = cumsum(tidyr::replace_na(pcp, 0)))
@@ -51,7 +51,7 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
   if (annotate_data[mlr3misc::which_max(annotate_data$cumsumpcp, ties_method = "last"), ]$diffmean > 0) {
     sign <- "+"
   } else {
-    sign <- "-"
+    sign <- ""
   }
   
   annotate_labels <- data.frame(
@@ -59,10 +59,21 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
       paste0("'Precip. ", max(annotate_data$cumsumpcp), "mm\n(", sign, 
             annotate_data[mlr3misc::which_max(annotate_data$cumsumpcp, ties_method = "last"), ]$diffmean, 
             "mm, ", sign, annotate_data[which.max(annotate_data$fecha), ]$percentage, "%)'"),
-      paste(min(annotate_data$diffmean), "*mm~vs.~italic(mean)"),
-      paste("+", max(annotate_data$diffmean), "*mm~vs.~italic(mean)")
+      if (sum(annotate_data$diffmean < 0) > 0) { # Only create label if there has been deficit
+      paste(min(annotate_data$diffmean), "*mm~vs.~italic(mean)")},
+      if (sum(annotate_data$diffmean > 0) > 0) { # Only create label if there has been superavit
+      paste("+", max(annotate_data$diffmean), "*mm~vs.~italic(mean)")}
     )
   )
+  
+  # Data points colors
+  if (any(annotate_data$diffmean < 0) && any(annotate_data$diffmean > 0)) {
+    colors <- c("black", "#d7191c", "#2c7bb6")
+  } else if (any(annotate_data$diffmean < 0)) {
+    colors <- c("black", "#d7191c")
+  } else if (any(annotate_data$diffmean > 0)) {
+    colors <- c("black", "#2c7bb6")
+  }
 
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = fecha, y = cumsumpcp)) +
@@ -70,7 +81,7 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
     ggplot2::scale_color_gradient2(high = "#2c7bb6", mid = "white", low = "#d7191c") +
     ggplot2::geom_line(linewidth = 0.85, lineend = "round") +
     ggplot2::geom_line(aes(y = cummeanpcp)) +
-    ggplot2::geom_point(data = annotate_data, fill = c("black", "#d7191c", "#2c7bb6"), 
+    ggplot2::geom_point(data = annotate_data, fill = colors, 
                         size = 2, stroke = 1, shape = 21) +
     ggrepel::geom_text_repel(data = annotate_data, aes(label = annotate_labels$label), parse = TRUE) +
     ggplot2::scale_x_continuous(

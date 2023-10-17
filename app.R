@@ -5,13 +5,9 @@
 # - active style para todos scripts
 # - gráfico de ranking estaciones
 # - grafico lluvia anual todo histoico y recta de minimos cuadrados
-# - terminar y documentar grafico intensidad pcp
 # - nuevo gráfico: torrecialidad estacional evolucion para ver si está aumentando
-# - docu funcion dataCleaning: añadir a la docu que tbn coge last 4 days
-# - nuevo gráfico, lluvias anuales formando campana gauss e indicando donde está año seleccionado en distrib
-# - en grafico anual, en eje x añadir "mm"
-# - doc función YearlyPcpPlot
-# - arreglar 1972 vs 1931-1960 gráfico 2
+# - documentar funcion YearlyPcpPlot
+# - en gráifco anual, añadir de alguna forma valor media
 
 
 library(shiny)
@@ -49,7 +45,7 @@ selected_year <- 2023
 
 # data <- aemet_daily_period(station = station, start = ref_start_year, end = ref_end_year)
 data_clean <- DataCleaning(data)
-max_date <- max(data$fecha)
+max_date <- max(as_tibble(data_clean$fecha))
 
 # Define UI ----
 # fluidPage creates a display that automatically adjusts to the dimensions of your user’s

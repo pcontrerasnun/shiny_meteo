@@ -1,7 +1,7 @@
 
 
 YearlyPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
-  reference_anual_total_pcp <- data_clean |>
+  reference_anual_total_pcp <- data |>
     dplyr::filter((fecha >= as.Date(paste0(ref_start_year, "-01-01")) &
                      fecha <= as.Date(paste0(ref_end_year, "-12-31"))) |
                     (fecha >= as.Date(paste0(as.numeric(selected_year), "-01-01")) &
@@ -22,12 +22,13 @@ YearlyPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
   # Join data
   plot_data = cbind(df_points, reference_anual_total_pcp)
   
+  # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = sumpcp)) +
     ggplot2::geom_histogram(breaks = h$breaks, color = "black", fill = "white") +
     ggplot2::geom_label(aes(x = x, y = y, label = ano)) +
     ggplot2::geom_label(data = plot_data[which(plot_data$ano == as.character(selected_year)), ],
                         aes(x = x, y = y, label = ano), color = "red", fontface = "bold") +
-    ggplot2::scale_x_continuous(breaks = h$breaks) +
+    ggplot2::scale_x_continuous(labels = function(x) paste0(x, "mm"), breaks = h$breaks) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
       x = "", y = "", title = paste0("Precipitación en Madrid - Retiro ", selected_year),
