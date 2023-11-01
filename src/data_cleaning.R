@@ -6,7 +6,7 @@
 #' are going to be used.
 #' 
 #' Additionaly, function gets data for last four days (which are not available in general
-#' AEMET function) from local storage and adds them to historical data
+#' AEMET API) from local storage and adds them to historical data
 #'
 #' @param data An R dataset with AEMET Open data
 #' @returns An R clean dataset
@@ -49,7 +49,8 @@ DataCleaning <- function(data) {
     dplyr::mutate(pcp = (ifelse(prec == "Ip", "0,0", prec))) |> # 'Ip' means precipitacion < 0.1mm
     dplyr::mutate(pcp = gsub(",", ".", pcp)) |> # Change commas with dots, necessary for numeric
     # conversion
-    dplyr::mutate(pcp = as.numeric(pcp))
+    dplyr::mutate(pcp = as.numeric(pcp)) |> 
+    as_tibble()
 
   return(data_clean)
 }

@@ -1,13 +1,15 @@
 # TODO:
-
-
-
 # - active style para todos scripts
 # - gráfico de ranking estaciones
 # - grafico lluvia anual todo histoico y recta de minimos cuadrados
 # - nuevo gráfico: torrecialidad estacional evolucion para ver si está aumentando
 # - documentar funcion YearlyPcpPlot
-# - en gráifco anual, añadir de alguna forma valor media
+# - en gráfico anual, añadir curva distrib normal con valores media y desv tipica
+# - en grafico anual, que años dentro de barras estén de mayor a menor
+# - en gráfico anual, pintar en eje X desviaciones típicias
+# - en gráfico estacional, añadir +- mm y +- % mm
+# - cambiar todo a inglés
+# - versiones librerias, rproj?
 
 
 library(shiny)
@@ -37,15 +39,15 @@ source(here::here("src", "plot_yearly_pcp.R"))
 
 # Parameters
 station <- 3195
-ref_start_year <- 1920
-ref_end_year <- 2023
+ref_start_year <- 1991
+ref_end_year <- 2020
 selected_year <- 2023
 # aemet_api_key('eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJwY29udHJlcjk1QGdtYWlsLmNvbSIsImp0aSI6ImQ0ODYzZWIzLWRmOWQtNDg4YS04OGFmLTU2NTlmZWE3MDBkNyIsImlzcyI6IkFFTUVUIiwiaWF0IjoxNjIzMTc0ODAwLCJ1c2VySWQiOiJkNDg2M2ViMy1kZjlkLTQ4OGEtODhhZi01NjU5ZmVhNzAwZDciLCJyb2xlIjoiIn0.YTDbbuMFmA-ygIvjqwqRbCEt2JRlE9V05iYZjhmX9lA',
 #              install = TRUE)
 
 # data <- aemet_daily_period(station = station, start = ref_start_year, end = ref_end_year)
 data_clean <- DataCleaning(data)
-max_date <- max(as_tibble(data_clean$fecha))
+max_date <- max(as_tibble(data_clean)$fecha, na.rm = TRUE)
 
 # Define UI ----
 # fluidPage creates a display that automatically adjusts to the dimensions of your user’s
@@ -64,7 +66,7 @@ ui <- shiny::fluidPage(
           6,
           shiny::textInput(
             inputId = "year",
-            label = "Año de estudio",
+            label = "Year of study",
             value = lubridate::year(Sys.Date())
           )
         ),
@@ -72,7 +74,7 @@ ui <- shiny::fluidPage(
           6,
           shiny::selectInput(
             inputId = "ref_period",
-            label = "Periodo de referencia",
+            label = "Reference period",
             choices = c(
               "1991-2020" = "1991-2020",
               "1981-2010" = "1981-2010",
@@ -92,7 +94,7 @@ ui <- shiny::fluidPage(
       ),
       shiny::selectInput(
         inputId = "plot",
-        label = "Gráfico",
+        label = "Metric",
         choices = c(
           "1. Precip. diaria acumulada vs. percentiles" = "1",
           "2. Precip. diaria acumulada vs. media" = "2",
@@ -101,6 +103,10 @@ ui <- shiny::fluidPage(
           "5. Torrencialidad precip." = "5",
           "6. Precip. anual" = "6"
         )
+      ),
+      shiny::actionButton(
+        inputId = "updatePlot",
+        label = "Paint!"
       )
     ),
     shiny::mainPanel(
@@ -111,12 +117,10 @@ ui <- shiny::fluidPage(
 
 # Define server logic ----
 server <- function(input, output) {
-  output$plot <- shiny::renderPlot({
-    # Get plot selected by user
-    type <- input$plot
+  plot <- eventReactive(input$updatePlot, { # Do not change plot until button is pressed
 
     # Draw plot
-    switch(type,
+    switch(input$plot,
       "1" = DailyCumPcpPctsPlot(
         data = data_clean, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
@@ -154,6 +158,10 @@ server <- function(input, output) {
         max_date = max_date
       )
     )
+  })
+
+  output$plot <- shiny::renderPlot({
+    plot()
   })
 }
 

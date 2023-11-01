@@ -37,7 +37,7 @@ YearlyPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
         ref_start_year, "-", ref_end_year, ")"
       ),
       caption = paste0(
-        "Actualizado: ", max_date, ", Fuente: AEMET OpenData, Elab. propia (@Pcontreras95)"
+        "Updated: ", max_date, ", Source: AEMET OpenData, Graph: @Pcontreras95 (Twitter)"
       )
     ) +
     ggplot2::theme(

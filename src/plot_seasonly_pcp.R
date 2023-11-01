@@ -16,6 +16,7 @@
 SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
   # Calculate cumulative historical precipitation percentiles for each season
   reference_cumpcts_season_pcp <- data |>
+    dtplyr::lazy_dt() |>
     dplyr::filter(fecha >= as.Date(paste0(ref_start_year, "-01-01")) &
       fecha <= as.Date(paste0(ref_end_year, "-12-31"))) |>
     dplyr::mutate(season = dplyr::case_when(
@@ -68,6 +69,7 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
 
   # Calculate cumulated precipitation across the seasons of the selected year
   selected_year_season_cumpcp <- data |>
+    dtplyr::lazy_dt() |>
     dplyr::filter(fecha >= as.Date(paste0(as.numeric(selected_year) - 1, "-12-01")) &
       fecha < as.Date(paste0(as.numeric(selected_year) + 1, "-03-01"))) |>
     dplyr::mutate(season = dplyr::case_when(
@@ -87,12 +89,11 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
     dplyr::mutate(ano_season = as.numeric(ano) - as.numeric(season_aux)) |>
     dplyr::mutate(mes = stringr::str_replace(mes, "12", "00")) |> # to put December first
     dplyr::group_by(mes, season, ano_season) |>
-    dplyr::summarise(sumpcp = sum(pcp, na.rm = TRUE)) |>
+    dplyr::summarise(sumpcp = sum(pcp, na.rm = TRUE), .groups = "keep") |>
     dplyr::arrange(ano_season, season, mes) |>
     dplyr::group_by(season, ano_season) |>
-    dplyr::summarise(seasoncumsumpcp = cumsum(sumpcp)) |>
+    dplyr::reframe(seasoncumsumpcp = cumsum(sumpcp)) |> # reframe = summarise
     dplyr::arrange(ano_season, season) |>
-    dplyr::ungroup() |>
     dplyr::select(-season)
 
   # Join final data
@@ -102,7 +103,7 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
   )
 
   # Draw the plot
-  p <- ggplot2::ggplot(data = plot_data, aes(x = row)) +
+  p <- ggplot2::ggplot(data = plot_data, aes(x = row), na.rm = TRUE) +
     ggh4x::geom_box(aes(ymin = 0, ymax = cumq00pcp, fill = "P00", width = 0.9), alpha = 0.5) +
     ggh4x::geom_box(aes(ymin = cumq00pcp, ymax = cumq20pcp, fill = "P20", width = 0.9), alpha = 0.5) +
     ggh4x::geom_box(aes(ymin = cumq20pcp, ymax = cumq40pcp, fill = "P40", width = 0.9), alpha = 0.5) +
@@ -154,7 +155,7 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
         ref_start_year, "-", ref_end_year, ")"
       ),
       caption = paste0(
-        "Actualizado: ", max_date, ", Fuente: AEMET OpenData, Elab. propia (@Pcontreras95)"
+        "Updated: ", max_date, ", Source: AEMET OpenData, Graph: @Pcontreras95 (Twitter)"
       ),
       color = NULL, fill = NULL
     ) +

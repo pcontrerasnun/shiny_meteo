@@ -13,11 +13,12 @@
 #' DailyCumPcpPlot(data, 2023, 1981, 2010, "2023-09-24")
 DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
   # Calculate historical mean for reference period
-  reference_mean_pcp <- data_clean |>
+  reference_mean_pcp <- data |>
+    dtplyr::lazy_dt() |>
     dplyr::filter(fecha >= as.Date(paste0(ref_start_year, "-01-01")) &
       fecha <= as.Date(paste0(ref_end_year, "-12-31"))) |>
     dplyr::group_by(dia, mes) |>
-    dplyr::summarise(sumpcp = sum(pcp, na.rm = TRUE), n = n()) |>
+    dplyr::summarise(sumpcp = sum(pcp, na.rm = TRUE), n = n(), .groups = "keep") |>
     dplyr::ungroup() |>
     dplyr::arrange(mes, dia) |>
     dplyr::mutate(
@@ -26,7 +27,8 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
     )
 
   # Calculate cumulative sum precipitation for selected year
-  selected_year_pcp <- data_clean |>
+  selected_year_pcp <- data |>
+    dtplyr::lazy_dt() |>
     dplyr::filter(fecha >= as.Date(paste0(selected_year, "-01-01")) &
       fecha <= as.Date(paste0(selected_year, "-12-31"))) |>
     dplyr::mutate(cumsumpcp = cumsum(tidyr::replace_na(pcp, 0)))
@@ -77,10 +79,11 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
 
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = fecha, y = cumsumpcp)) +
-    ggplot2::geom_segment(aes(xend = fecha, yend = cummeanpcp, color = diffmean), linewidth = 1.2) +
+    ggplot2::geom_segment(aes(xend = fecha, yend = cummeanpcp, color = diffmean), linewidth = 1.2,
+                          na.rm = TRUE) +
     ggplot2::scale_color_gradient2(high = "#2c7bb6", mid = "white", low = "#d7191c") +
-    ggplot2::geom_line(linewidth = 0.85, lineend = "round") +
-    ggplot2::geom_line(aes(y = cummeanpcp)) +
+    ggplot2::geom_line(linewidth = 0.85, lineend = "round", na.rm = TRUE) +
+    ggplot2::geom_line(aes(y = cummeanpcp), na.rm = TRUE) +
     ggplot2::geom_point(data = annotate_data, fill = colors, 
                         size = 2, stroke = 1, shape = 21) +
     ggrepel::geom_text_repel(data = annotate_data, aes(label = annotate_labels$label), parse = TRUE) +
@@ -110,7 +113,7 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
         ref_start_year, "-", ref_end_year, ")"
       ),
       caption = paste0(
-        "Actualizado: ", max_date, ", Fuente: AEMET OpenData, Elab. propia (@Pcontreras95)"
+        "Updated: ", max_date, ", Source: AEMET OpenData, Graph: @Pcontreras95 (Twitter)"
       )
     ) +
     ggplot2::theme(

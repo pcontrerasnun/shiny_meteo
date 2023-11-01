@@ -14,6 +14,7 @@
 DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
   # Calculate historical percentiles for reference period
   reference_pcts_pcp <- data |>
+    dtplyr::lazy_dt() |>
     dplyr::filter(fecha >= as.Date(paste0(ref_start_year, "-01-01")) &
       fecha <= as.Date(paste0(ref_end_year, "-12-31"))) |>
     dplyr::group_by(ano) |>
@@ -29,12 +30,14 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
       cumq60pcp = round(quantile(cumsumpcp, probs = 0.60, na.rm = TRUE), 1),
       cumq80pcp = round(quantile(cumsumpcp, probs = 0.80, na.rm = TRUE), 1),
       cumq95pcp = round(quantile(cumsumpcp, probs = 0.95, na.rm = TRUE), 1),
-      cumq100pcp = round(quantile(cumsumpcp, probs = 1, na.rm = TRUE), 1)
+      cumq100pcp = round(quantile(cumsumpcp, probs = 1, na.rm = TRUE), 1),
+      .groups = "keep"
     ) |>
     dplyr::arrange(mes, dia)
 
   # Calculate cumulative sum precipitation for selected year
   selected_year_pcp <- data |>
+    dtplyr::lazy_dt() |>
     dplyr::filter(fecha >= as.Date(paste0(selected_year, "-01-01")) &
       fecha <= as.Date(paste0(selected_year, "-12-31"))) |>
     dplyr::mutate(cumsumpcp = cumsum(tidyr::replace_na(pcp, 0)))
@@ -45,7 +48,7 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
       dia, mes, cumq00pcp, cumq05pcp, cumq20pcp, cumq40pcp, cumq50pcp,
       cumq60pcp, cumq80pcp, cumq95pcp, cumq100pcp, cumsumpcp
     ) |>
-    dplyr::mutate(diffmedian = cumsumpcp - cumq50pcp) |>
+    dplyr::mutate(diffmedian = cumsumpcp - cumq50pcp) |> 
     dplyr::mutate(fecha = as.Date(paste0(dia, "-", mes, "2023"), format = "%d-%m%Y")) |> # We choose
     # 2023 since it doesn't have 29th Feb, it doesn't matter what year we choose but it can't be
     # a leap year
@@ -77,7 +80,7 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
       fill = "#2c7bb6", linetype = "51", lineend = "round", linejoin = "round"
     ) +
     #  geom_line(aes(y = cumq50pcp)) +
-    ggplot2::geom_line(linewidth = 0.85, lineend = "round") +
+    ggplot2::geom_line(linewidth = 0.85, lineend = "round", na.rm = TRUE) +
     #  ggplot2::geom_ribbon_pattern(aes(x = fecha, ymin = cumq50pcp, ymax = cumsumpcp),
     #                               pattern = 'gradient', na.rm = TRUE, pattern_fill  = '#377eb8',
     #                               pattern_fill2 = '#e41a1c') +
@@ -103,7 +106,7 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
         ref_start_year, "-", ref_end_year, ")"
       ),
       caption = paste0(
-        "Actualizado: ", max_date, ", Fuente: AEMET OpenData, Elab. propia (@Pcontreras95)"
+        "Updated: ", max_date, ", Source: AEMET OpenData, Graph: @Pcontreras95"
       )
     ) +
     ggplot2::theme(

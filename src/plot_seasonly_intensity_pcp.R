@@ -14,6 +14,7 @@
 #' IntensityPcpPlot(data, 2023, 1981, 2010, "2023-09-24")
 IntensityPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
   selected_year_season_intensity_pcp <- data |>
+    dtplyr::lazy_dt() |>
     dplyr::filter(fecha >= as.Date(paste0(as.numeric(selected_year), "-01-01")) &
       fecha <= as.Date(paste0(as.numeric(selected_year), "-12-31"))) |>
     dplyr::mutate(season = dplyr::case_when(
@@ -28,6 +29,7 @@ IntensityPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, 
     dplyr::as_tibble()
 
   reference_season_intensity_pcp <- data |>
+    dtplyr::lazy_dt() |>
     dplyr::filter(fecha >= as.Date(paste0(ref_start_year, "-01-01")) &
       fecha <= as.Date(paste0(ref_end_year, "-12-31"))) |>
     dplyr::mutate(season = dplyr::case_when(
@@ -44,8 +46,10 @@ IntensityPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, 
     )) |>
     dtplyr::lazy_dt() |>
     dplyr::mutate(ano_season = as.numeric(ano) - season_aux) |>
-    dplyr::group_by(ano_season, season) |>
-    dplyr::summarise(sumpcp = sum(pcp, na.rm = TRUE), maxpcp = max(pcp, na.rm = TRUE)) |>
+    dplyr::group_by(ano_season, season) |> 
+    dplyr::summarise(sumpcp = sum(pcp, na.rm = TRUE), maxpcp = suppressWarnings(max(pcp, na.rm = TRUE)),
+                     .groups = "keep") |> # for some seasons (for example, spring 1928 Madrid Retiro)
+    # there is no pcp data so calculating the max of no data returns a warning
     dplyr::mutate(intensity = maxpcp / sumpcp * 100) |>
     #    dplyr::group_by(season) |>
     #    dplyr::summarise(
@@ -61,9 +65,9 @@ IntensityPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, 
   )
 
   p <- ggplot2::ggplot(data = reference_season_intensity_pcp, aes(x = season, y = intensity)) +
-    ggplot2::geom_violin(aes(fill = season), alpha = 0.5) +
+    ggplot2::geom_violin(aes(fill = season), alpha = 0.5, na.rm = TRUE) +
     ggplot2::scale_fill_manual(values = c("#b2df8a", "#e31a1c", "#ff7f00", "#a6cee3")) +
-    ggplot2::geom_boxplot(width = 0.1, color = "black", alpha = 0.2) +
+    ggplot2::geom_boxplot(width = 0.1, color = "black", alpha = 0.2, na.rm = TRUE) +
     ggplot2::geom_point(data = selected_year_season_intensity_pcp) +
     ggplot2::annotate(
       x = selected_year_season_intensity_pcp$season,
@@ -84,7 +88,7 @@ IntensityPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, 
         ref_start_year, "-", ref_end_year, ")"
       ),
       caption = paste0(
-        "Actualizado: ", max_date, ", Fuente: AEMET OpenData, Elab. propia (@Pcontreras95)"
+        "Updated: ", max_date, ", Source: AEMET OpenData, Graph: @Pcontreras95 (Twitter)"
       )
     ) +
     ggplot2::theme(
