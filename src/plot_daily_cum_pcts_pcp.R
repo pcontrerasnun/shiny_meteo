@@ -15,12 +15,12 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
   # Calculate historical percentiles for reference period
   reference_pcts_pcp <- data |>
     dtplyr::lazy_dt() |>
-    dplyr::filter(fecha >= as.Date(paste0(ref_start_year, "-01-01")) &
-      fecha <= as.Date(paste0(ref_end_year, "-12-31"))) |>
-    dplyr::group_by(ano) |>
+    dplyr::filter(date >= as.Date(paste0(ref_start_year, "-01-01")) &
+      date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
+    dplyr::group_by(year) |>
     dplyr::mutate(cumsumpcp = cumsum(pcp)) |>
-    dplyr::arrange(ano, mes, dia) |>
-    dplyr::group_by(dia, mes) |>
+    dplyr::arrange(year, month, day) |>
+    dplyr::group_by(day, month) |>
     dplyr::summarise(
       cumq00pcp = round(quantile(cumsumpcp, probs = 0.00, na.rm = TRUE), 1),
       cumq05pcp = round(quantile(cumsumpcp, probs = 0.05, na.rm = TRUE), 1),
@@ -33,29 +33,29 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
       cumq100pcp = round(quantile(cumsumpcp, probs = 1, na.rm = TRUE), 1),
       .groups = "keep"
     ) |>
-    dplyr::arrange(mes, dia)
+    dplyr::arrange(month, day)
 
   # Calculate cumulative sum precipitation for selected year
   selected_year_pcp <- data |>
     dtplyr::lazy_dt() |>
-    dplyr::filter(fecha >= as.Date(paste0(selected_year, "-01-01")) &
-      fecha <= as.Date(paste0(selected_year, "-12-31"))) |>
+    dplyr::filter(date >= as.Date(paste0(selected_year, "-01-01")) &
+      date <= as.Date(paste0(selected_year, "-12-31"))) |>
     dplyr::mutate(cumsumpcp = cumsum(tidyr::replace_na(pcp, 0)))
 
-  # Join previous two datasets and create new columns 'diffmedian' and 'fecha'
-  plot_data <- left_join(reference_pcts_pcp, selected_year_pcp, by = c("dia", "mes")) |>
+  # Join previous two datasets and create new columns 'diffmedian' and 'date'
+  plot_data <- left_join(reference_pcts_pcp, selected_year_pcp, by = c("day", "month")) |>
     dplyr::select(
-      dia, mes, cumq00pcp, cumq05pcp, cumq20pcp, cumq40pcp, cumq50pcp,
+      day, month, cumq00pcp, cumq05pcp, cumq20pcp, cumq40pcp, cumq50pcp,
       cumq60pcp, cumq80pcp, cumq95pcp, cumq100pcp, cumsumpcp
     ) |>
     dplyr::mutate(diffmedian = cumsumpcp - cumq50pcp) |> 
-    dplyr::mutate(fecha = as.Date(paste0(dia, "-", mes, "2023"), format = "%d-%m%Y")) |> # We choose
+    dplyr::mutate(date = as.Date(paste0(day, "-", month, "2023"), format = "%d-%m%Y")) |> # We choose
     # 2023 since it doesn't have 29th Feb, it doesn't matter what year we choose but it can't be
     # a leap year
     dplyr::as_tibble()
 
   # Draw the plot
-  p <- ggplot2::ggplot(data = plot_data, aes(x = fecha, y = cumsumpcp)) +
+  p <- ggplot2::ggplot(data = plot_data, aes(x = date, y = cumsumpcp)) +
     ggplot2::geom_ribbon(aes(ymin = cumq00pcp, ymax = cumq20pcp),
       alpha = 0.3,
       color = "#d7191c", fill = "#d7191c", linetype = "51", lineend = "round",
@@ -81,7 +81,7 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
     ) +
     #  geom_line(aes(y = cumq50pcp)) +
     ggplot2::geom_line(linewidth = 0.85, lineend = "round", na.rm = TRUE) +
-    #  ggplot2::geom_ribbon_pattern(aes(x = fecha, ymin = cumq50pcp, ymax = cumsumpcp),
+    #  ggplot2::geom_ribbon_pattern(aes(x = date, ymin = cumq50pcp, ymax = cumsumpcp),
     #                               pattern = 'gradient', na.rm = TRUE, pattern_fill  = '#377eb8',
     #                               pattern_fill2 = '#e41a1c') +
     ggplot2::scale_x_continuous(
@@ -89,7 +89,7 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
         by = "month"
       )),
       labels = format(seq(ymd("2023-01-01"), ymd("2023-12-31"), by = "month"), "%b"),
-      limits = c(as.numeric(ymd("2023-01-01")), as.numeric(ymd("2024-02-20"))),
+      limits = c(as.numeric(ymd("2023-01-01")), as.numeric(ymd("2024-02-10"))),
       expand = expansion(mult = c(0.02, 0))
     ) +
     ggplot2::scale_y_continuous(
@@ -100,13 +100,13 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
     ) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "", title = paste0("Precipitación en Madrid - Retiro ", selected_year),
+      x = "", y = "", title = paste0("Precipitation in Madrid - Retiro ", selected_year),
       subtitle = paste0(
-        "Precipitación diaria acumulada comparada con percentiles históricos (",
+        "Cumulative daily precipitation vs. historical percentiles (",
         ref_start_year, "-", ref_end_year, ")"
       ),
       caption = paste0(
-        "Updated: ", max_date, ", Source: AEMET OpenData, Graph: @Pcontreras95"
+        "Updated: ", max_date, ", Source: AEMET OpenData, Graph: @Pcontreras95 (Twitter)"
       )
     ) +
     ggplot2::theme(
@@ -114,38 +114,38 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
       plot.subtitle = ggplot2::element_text(hjust = 1, size = 25)
     ) +
     ggplot2::annotate(
-      geom = "text", x = max(plot_data$fecha, na.rm = TRUE), y = max(plot_data$cumq100pcp),
-      label = paste("Extrem.~h\u00famedo~(italic(max))"),
+      geom = "text", x = max(plot_data$date, na.rm = TRUE), y = max(plot_data$cumq100pcp),
+      label = paste("Extrem.~wet~(italic(max))"),
       parse = TRUE, family = "sans", hjust = -0.05, vjust = 0.5
     ) +
     ggplot2::annotate(
-      geom = "text", x = max(plot_data$fecha, na.rm = TRUE), y = max(plot_data$cumq80pcp),
-      label = paste("Muy~h\u00famedo~(italic(P)[80])"),
+      geom = "text", x = max(plot_data$date, na.rm = TRUE), y = max(plot_data$cumq80pcp),
+      label = paste("Very~wet~(italic(P)[80])"),
       parse = TRUE, family = "sans", hjust = -0.05, vjust = 0.5
     ) +
     ggplot2::annotate(
-      geom = "text", x = max(plot_data$fecha, na.rm = TRUE), y = max(plot_data$cumq60pcp),
-      label = paste("H\u00famedo~(italic(P)[60])"),
+      geom = "text", x = max(plot_data$date, na.rm = TRUE), y = max(plot_data$cumq60pcp),
+      label = paste("Wet~(italic(P)[60])"),
       parse = TRUE, family = "sans", hjust = -0.05, vjust = 0.5
     ) +
     ggplot2::annotate(
-      geom = "text", x = max(plot_data$fecha, na.rm = TRUE), y = max(plot_data$cumq50pcp),
+      geom = "text", x = max(plot_data$date, na.rm = TRUE), y = max(plot_data$cumq50pcp),
       label = paste("Normal~(italic(P)[50])"),
       parse = TRUE, family = "sans", hjust = -0.05, vjust = 0.5
     ) +
     ggplot2::annotate(
-      geom = "text", x = max(plot_data$fecha, na.rm = TRUE), y = max(plot_data$cumq40pcp),
-      label = paste("Seco~(italic(P)[40])"),
+      geom = "text", x = max(plot_data$date, na.rm = TRUE), y = max(plot_data$cumq40pcp),
+      label = paste("Dry~(italic(P)[40])"),
       parse = TRUE, family = "sans", hjust = -0.05, vjust = 0.5
     ) +
     ggplot2::annotate(
-      geom = "text", x = max(plot_data$fecha, na.rm = TRUE), y = max(plot_data$cumq20pcp),
-      label = paste("Muy~seco~(italic(P)[20])"),
+      geom = "text", x = max(plot_data$date, na.rm = TRUE), y = max(plot_data$cumq20pcp),
+      label = paste("Very~dry~(italic(P)[20])"),
       parse = TRUE, family = "sans", hjust = -0.05, vjust = 0.5
     ) +
     ggplot2::annotate(
-      geom = "text", x = max(plot_data$fecha, na.rm = TRUE), y = max(plot_data$cumq00pcp),
-      label = paste("Extrem.~seco~(italic(min))"),
+      geom = "text", x = max(plot_data$date, na.rm = TRUE), y = max(plot_data$cumq00pcp),
+      label = paste("Extrem.~dry~(italic(min))"),
       parse = TRUE, family = "sans", hjust = -0.05, vjust = 0.5
     ) 
 #    ggplot2::geom_point(data = plot_data |> filter(!is.na(cumsumpcp)) |> slice_tail(n = 1)) +
@@ -155,7 +155,7 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
 #                                                "mm"))) 
 #    ggplot2::annotate(geom = "text", x = plot_data[mlr3misc::which_max(plot_data$cumsumpcp, 
 #                                                                       ties_method = "last",
-#                                                                       na_rm = TRUE), ]$fecha,
+#                                                                       na_rm = TRUE), ]$date,
 #                      y = max(plot_data$cumsumpcp, na.rm = TRUE),
 #                      label = paste0("Precip. ", max(plot_data$cumsumpcp, na.rm = TRUE), "mm"),
 #                      hjust = -0.1)
@@ -165,12 +165,12 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
   if (max(plot_data$diffmedian, na.rm = TRUE) > 0) {
     p <- p +
       ggplot2::annotate(
-        geom = "point", x = plot_data[which.max(plot_data$diffmedian), ]$fecha,
+        geom = "point", x = plot_data[which.max(plot_data$diffmedian), ]$date,
         y = plot_data[which.max(plot_data$diffmedian), ]$cumsumpcp,
         shape = 21, fill = "#2c7bb6", size = 2, stroke = 1
       ) +
       ggplot2::annotate(
-        geom = "text", x = plot_data[which.max(plot_data$diffmedian), ]$fecha,
+        geom = "text", x = plot_data[which.max(plot_data$diffmedian), ]$date,
         y = plot_data[which.max(plot_data$diffmedian), ]$cumsumpcp,
         label = paste(
           "+", plot_data[which.max(plot_data$diffmedian), ]$diffmedian,
@@ -190,12 +190,12 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
   if (min(plot_data$diffmedian, na.rm = TRUE) < 0) {
     p <- p +
       ggplot2::annotate(
-        geom = "point", x = plot_data[which.min(plot_data$diffmedian), ]$fecha,
+        geom = "point", x = plot_data[which.min(plot_data$diffmedian), ]$date,
         y = plot_data[which.min(plot_data$diffmedian), ]$cumsumpcp,
         shape = 21, fill = "#d7191c", size = 2, stroke = 1
       ) +
       ggplot2::annotate(
-        geom = "text", x = plot_data[which.min(plot_data$diffmedian), ]$fecha,
+        geom = "text", x = plot_data[which.min(plot_data$diffmedian), ]$date,
         y = plot_data[which.min(plot_data$diffmedian), ]$cumsumpcp,
         label = paste(
           plot_data[which.min(plot_data$diffmedian), ]$diffmedian,

@@ -17,29 +17,29 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
   # Calculate cumulative historical precipitation percentiles for each season
   reference_cumpcts_season_pcp <- data |>
     dtplyr::lazy_dt() |>
-    dplyr::filter(fecha >= as.Date(paste0(ref_start_year, "-01-01")) &
-      fecha <= as.Date(paste0(ref_end_year, "-12-31"))) |>
+    dplyr::filter(date >= as.Date(paste0(ref_start_year, "-01-01")) &
+      date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
     dplyr::mutate(season = dplyr::case_when(
-      mes %in% c("12", "01", "02") ~ "4-invierno",
-      mes %in% c("03", "04", "05") ~ "1-primavera",
-      mes %in% c("06", "07", "08") ~ "2-verano",
-      mes %in% c("09", "10", "11") ~ "3-otoño"
+      month %in% c("12", "01", "02") ~ "4-winter",
+      month %in% c("03", "04", "05") ~ "1-spring",
+      month %in% c("06", "07", "08") ~ "2-summer",
+      month %in% c("09", "10", "11") ~ "3-autumn"
     )) |>
     dplyr::as_tibble() |>
     # We calculate number of days to 1st of March (depends if year is leap or not)
     dplyr::mutate(season_aux = dplyr::case_when(
-      lubridate::leap_year(fecha) == TRUE & lubridate::yday(fecha) <= 60 ~ 1,
-      lubridate::leap_year(fecha) == FALSE & lubridate::yday(fecha) <= 59 ~ 1,
+      lubridate::leap_year(date) == TRUE & lubridate::yday(date) <= 60 ~ 1,
+      lubridate::leap_year(date) == FALSE & lubridate::yday(date) <= 59 ~ 1,
       TRUE ~ 0,
     )) |>
     dtplyr::lazy_dt() |>
     # Put year of Jan and Feb as year - 1 to be part of winter season of previous year
-    dplyr::mutate(ano_season = as.numeric(ano) - season_aux) |>
-    dplyr::group_by(ano_season, season) |>
+    dplyr::mutate(year_season = as.numeric(year) - season_aux) |>
+    dplyr::group_by(year_season, season) |>
     dplyr::mutate(cumsumpcp = cumsum(ifelse(is.na(pcp), 0, pcp))) |>
     # We keep only data for last day of month
-    dplyr::filter(lubridate::day(fecha) == lubridate::days_in_month(fecha)) |>
-    dplyr::group_by(mes) |>
+    dplyr::filter(lubridate::day(date) == lubridate::days_in_month(date)) |>
+    dplyr::group_by(month) |>
     dplyr::summarise(
       cumq00pcp = round(quantile(cumsumpcp, probs = 0.00, na.rm = TRUE), 1),
       cumq20pcp = round(quantile(cumsumpcp, probs = 0.20, na.rm = TRUE), 1),
@@ -50,50 +50,50 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
       cumq100pcp = round(quantile(cumsumpcp, probs = 1, na.rm = TRUE), 1)
         ) |>
     dplyr::ungroup() |>
-    dplyr::mutate(mes = dplyr::case_when(
-      mes %in% "12" ~ "00", # to put December first
-      TRUE ~ mes
+    dplyr::mutate(month = dplyr::case_when(
+      month %in% "12" ~ "00", # to put December first
+      TRUE ~ month
     )) |>
     as_tibble() |>
-    dplyr::arrange(mes) |>
+    dplyr::arrange(month) |>
     # Only way to use working dataset as parameter
     do({
       df <- .
       dplyr::bind_rows(df, head(df, n = 3))
     }) |>
-    dplyr::mutate(mes = dplyr::case_when(
-      mes %in% "00" ~ "12", # rename December correctly
-      TRUE ~ mes
+    dplyr::mutate(month = dplyr::case_when(
+      month %in% "00" ~ "12", # rename December correctly
+      TRUE ~ month
     )) |>
     dplyr::mutate(row = as.character(row_number()))
 
   # Calculate cumulated precipitation across the seasons of the selected year
   selected_year_season_cumpcp <- data |>
     dtplyr::lazy_dt() |>
-    dplyr::filter(fecha >= as.Date(paste0(as.numeric(selected_year) - 1, "-12-01")) &
-      fecha < as.Date(paste0(as.numeric(selected_year) + 1, "-03-01"))) |>
+    dplyr::filter(date >= as.Date(paste0(as.numeric(selected_year) - 1, "-12-01")) &
+      date < as.Date(paste0(as.numeric(selected_year) + 1, "-03-01"))) |>
     dplyr::mutate(season = dplyr::case_when(
-      mes %in% c("12", "01", "02") ~ "4-invierno",
-      mes %in% c("03", "04", "05") ~ "1-primavera",
-      mes %in% c("06", "07", "08") ~ "2-verano",
-      mes %in% c("09", "10", "11") ~ "3-otoño"
+      month %in% c("12", "01", "02") ~ "4-invierno",
+      month %in% c("03", "04", "05") ~ "1-spring",
+      month %in% c("06", "07", "08") ~ "2-summer",
+      month %in% c("09", "10", "11") ~ "3-autumn"
     )) |>
     dplyr::as_tibble() |>
     # We calculate number of days to 1st of March (depends if year is leap or not)
     dplyr::mutate(season_aux = dplyr::case_when(
-      lubridate::leap_year(fecha) == TRUE & lubridate::yday(fecha) <= 60 ~ 1,
-      lubridate::leap_year(fecha) == FALSE & lubridate::yday(fecha) <= 59 ~ 1,
+      lubridate::leap_year(date) == TRUE & lubridate::yday(date) <= 60 ~ 1,
+      lubridate::leap_year(date) == FALSE & lubridate::yday(date) <= 59 ~ 1,
       TRUE ~ 0,
     )) |>
     # Put year of Jan and Feb as year - 1 to be part of winter season of previous year
-    dplyr::mutate(ano_season = as.numeric(ano) - as.numeric(season_aux)) |>
-    dplyr::mutate(mes = stringr::str_replace(mes, "12", "00")) |> # to put December first
-    dplyr::group_by(mes, season, ano_season) |>
+    dplyr::mutate(year_season = as.numeric(year) - as.numeric(season_aux)) |>
+    dplyr::mutate(month = stringr::str_replace(month, "12", "00")) |> # to put December first
+    dplyr::group_by(month, season, year_season) |>
     dplyr::summarise(sumpcp = sum(pcp, na.rm = TRUE), .groups = "keep") |>
-    dplyr::arrange(ano_season, season, mes) |>
-    dplyr::group_by(season, ano_season) |>
+    dplyr::arrange(year_season, season, month) |>
+    dplyr::group_by(season, year_season) |>
     dplyr::reframe(seasoncumsumpcp = cumsum(sumpcp)) |> # reframe = summarise
-    dplyr::arrange(ano_season, season) |>
+    dplyr::arrange(year_season, season) |>
     dplyr::select(-season)
 
   # Join final data
@@ -110,33 +110,33 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
     ggh4x::geom_box(aes(ymin = cumq40pcp, ymax = cumq60pcp, fill = "P60", width = 0.9), alpha = 0.5) +
     ggh4x::geom_box(aes(ymin = cumq60pcp, ymax = cumq80pcp, fill = "P80", width = 0.9), alpha = 0.5) +
     ggh4x::geom_box(aes(ymin = cumq80pcp, ymax = cumq100pcp, fill = "P100", width = 0.9), alpha = 0.5) +
-    ggplot2::geom_col(aes(y = seasoncumsumpcp, fill = "Precip. estacional acumulada")) +
-    ggplot2::geom_col(aes(y = cumq50pcp, color = "Precip. mediana estacional acumulada histórica"),
+    ggplot2::geom_col(aes(y = seasoncumsumpcp, fill = "Cumulative seasonal precip.")) +
+    ggplot2::geom_col(aes(y = cumq50pcp, color = "Historical cumulative seasonal median precip."),
       fill = NA, linewidth = 1
     ) +
     ggplot2::scale_color_manual(
-      breaks = c("Precip. mediana estacional acumulada histórica"),
-      values = c("Precip. mediana estacional acumulada histórica" = "#d7191c")
+      breaks = c("Historical cumulative seasonal median precip."),
+      values = c("Historical cumulative seasonal median precip." = "#d7191c")
     ) +
     ggplot2::scale_fill_manual(
-      values = c("Precip. estacional acumulada" = "#2c7bb6", "P100" = "#abd9e9",
+      values = c("Cumulative seasonal precip." = "#2c7bb6", "P100" = "#abd9e9",
                  "P80" = "#e0f3f8", "P60" = "white", "P40" = "#fee090", "P20" = "#fdae61",
                  "P00" = "#f46d43"), 
       labels = c(
-        "Precip. estacional acumulada" =
-          glue::glue("<span style = 'color: #2c7bb6; '>Precip. estacional acumulada</span>"),
-        "P00" = "Estación extrem. seca", "P20" = "Estación muy seca", "P40" = "Estación seca",
-        "P80" = "Estación húmeda", "P100" = "Estación muy húmeda", "P60" = "Estación normal"
+        "Cumulative seasonal precip." =
+          glue::glue("<span style = 'color: #2c7bb6; '>Cumulative seasonal precip.</span>"),
+        "P00" = "Extrem. dry season", "P20" = "Very dry season", "P40" = "Dry season",
+        "P80" = "Wet season", "P100" = "Very wet season", "P60" = "Normal season"
       ),
-      breaks = c("P100", "P80", "P60", "P40", "P20", "P00", "Precip. estacional acumulada") # to order
+      breaks = c("P100", "P80", "P60", "P40", "P20", "P00", "Cumulative seasonal precip.") # to order
     ) +
     ggplot2::scale_x_discrete(
       limits = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"),
       labels = c(
-        paste0("dic", (as.numeric(selected_year) - 1) %% 100), "ene", "feb", "mar", "abr",
-        "may", "jun", "jul", "ago", "sep", "oct", "nov",
-        "dic", paste0("ene", (as.numeric(selected_year) + 1) %% 100),
-        paste0("feb", (as.numeric(selected_year) + 1) %% 100)
+        paste0("Dec", (as.numeric(selected_year) - 1) %% 100), "Jan", "Feb", "Mar", "Apr", "May", 
+        "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", 
+        paste0("Jan", (as.numeric(selected_year) + 1) %% 100),
+        paste0("Feb", (as.numeric(selected_year) + 1) %% 100)
       )
     ) +
     ggplot2::scale_y_continuous(
@@ -149,9 +149,9 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
     ) + # expand = c(0, 20, 0, 50)
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "", title = paste0("Precipitación en Madrid - Retiro ", selected_year),
+      x = "", y = "", title = paste0("Precipitation in Madrid - Retiro ", selected_year),
       subtitle = paste0(
-        "Precipitación estacional acumulada comparada con valores históricos (",
+        "Cumulative seasonal precipitation vs. historical values (",
         ref_start_year, "-", ref_end_year, ")"
       ),
       caption = paste0(

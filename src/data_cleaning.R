@@ -6,7 +6,7 @@
 #' are going to be used.
 #' 
 #' Additionaly, function gets data for last four days (which are not available in general
-#' AEMET API) from local storage and adds them to historical data
+#' AEMET API) from local storage and integrates them into historical data
 #'
 #' @param data An R dataset with AEMET Open data
 #' @returns An R clean dataset
@@ -27,9 +27,9 @@ DataCleaning <- function(data) {
   last_data_clean <- last_data |> 
     dplyr::select(-X) |> 
     dplyr::distinct() |> 
-    dplyr::arrange(fint) |> 
+    dplyr::arrange(fint) |> # UTC
     dplyr::mutate(fecha = lubridate::ymd_hms(fint)) |> 
-    dplyr::mutate(fecha = fecha - lubridate::hours(7)) |> 
+    dplyr::mutate(fecha = fecha - lubridate::hours(7)) |> # Transform data from 00-24 to 07-07
     dplyr::mutate(fecha = format(fecha, '%Y-%m-%d')) |> 
     dplyr::group_by(fecha) |> 
     dplyr::summarise(prec = sum(prec)) |> 
@@ -40,16 +40,18 @@ DataCleaning <- function(data) {
     dtplyr::lazy_dt() |>
     dplyr::select(fecha, prec) |> 
     dplyr::as_tibble() |> 
-    rbind(last_data_clean) |> # join last 4 days data
-    dplyr::distinct(fecha, .keep_all = TRUE) |> # remove duplicated rows, keep last
+    rbind(last_data_clean) |> # Join last 4 days data
+    dplyr::distinct(fecha, .keep_all = TRUE) |> # Remove duplicated rows, keep last
     dtplyr::lazy_dt() |>
-    dplyr::mutate(dia = format(fecha, "%d")) |>
-    dplyr::mutate(mes = format(fecha, "%m")) |>
-    dplyr::mutate(ano = format(fecha, "%Y")) |>
+    dplyr::mutate(day = format(fecha, "%d")) |>
+    dplyr::mutate(month = format(fecha, "%m")) |>
+    dplyr::mutate(year = format(fecha, "%Y")) |>
+    dplyr::rename(date = fecha) |> 
     dplyr::mutate(pcp = (ifelse(prec == "Ip", "0,0", prec))) |> # 'Ip' means precipitacion < 0.1mm
     dplyr::mutate(pcp = gsub(",", ".", pcp)) |> # Change commas with dots, necessary for numeric
     # conversion
     dplyr::mutate(pcp = as.numeric(pcp)) |> 
+    dplyr::select(-prec) |> 
     as_tibble()
 
   return(data_clean)

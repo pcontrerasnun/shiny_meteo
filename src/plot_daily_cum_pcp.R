@@ -15,12 +15,12 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
   # Calculate historical mean for reference period
   reference_mean_pcp <- data |>
     dtplyr::lazy_dt() |>
-    dplyr::filter(fecha >= as.Date(paste0(ref_start_year, "-01-01")) &
-      fecha <= as.Date(paste0(ref_end_year, "-12-31"))) |>
-    dplyr::group_by(dia, mes) |>
+    dplyr::filter(date >= as.Date(paste0(ref_start_year, "-01-01")) &
+      date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
+    dplyr::group_by(day, month) |>
     dplyr::summarise(sumpcp = sum(pcp, na.rm = TRUE), n = n(), .groups = "keep") |>
     dplyr::ungroup() |>
-    dplyr::arrange(mes, dia) |>
+    dplyr::arrange(month, day) |>
     dplyr::mutate(
       meanpcp = sumpcp / n,
       cummeanpcp = round(cumsum(ifelse(is.na(meanpcp), 0, meanpcp)), 1)
@@ -29,19 +29,19 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
   # Calculate cumulative sum precipitation for selected year
   selected_year_pcp <- data |>
     dtplyr::lazy_dt() |>
-    dplyr::filter(fecha >= as.Date(paste0(selected_year, "-01-01")) &
-      fecha <= as.Date(paste0(selected_year, "-12-31"))) |>
+    dplyr::filter(date >= as.Date(paste0(selected_year, "-01-01")) &
+      date <= as.Date(paste0(selected_year, "-12-31"))) |>
     dplyr::mutate(cumsumpcp = cumsum(tidyr::replace_na(pcp, 0)))
 
-  # Join previous two datasets and create new columns 'diffmean' and 'fecha'
-  plot_data <- left_join(reference_mean_pcp, selected_year_pcp, by = c("dia", "mes")) |>
+  # Join previous two datasets and create new columns 'diffmean' and 'date'
+  plot_data <- left_join(reference_mean_pcp, selected_year_pcp, by = c("day", "month")) |>
     dplyr::select(
-      dia, mes, cummeanpcp, cumsumpcp
+      day, month, cummeanpcp, cumsumpcp
     ) |>
     mutate(diffmean = cumsumpcp - cummeanpcp) |>
-    dplyr::mutate(fecha = as.Date(paste0(dia, "-", mes, "2023"), format = "%d-%m%Y")) |> # We choose
+    dplyr::mutate(date = as.Date(paste0(day, "-", month, "2023"), format = "%d-%m%Y")) |> # We choose
     # 2023 since it doesn't have 29th Feb, it doesn't matter what year we choose but it can't be
-    # a leap year
+    # a leap year, otherwise it will plot NA values for 29th Feb
     dplyr::as_tibble()
   
   # For annotating points
@@ -50,6 +50,7 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
                          subset(plot_data, diffmean == max(diffmean[diffmean > 0], na.rm = TRUE))) |> # Max superavit
     dplyr::mutate(percentage = round(diffmean / cummeanpcp * 100))
   
+  # If there is superavit
   if (annotate_data[mlr3misc::which_max(annotate_data$cumsumpcp, ties_method = "last"), ]$diffmean > 0) {
     sign <- "+"
   } else {
@@ -58,9 +59,9 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
   
   annotate_labels <- data.frame(
     label = c(
-      paste0("'Precip. ", max(annotate_data$cumsumpcp), "mm\n(", sign, 
-            annotate_data[mlr3misc::which_max(annotate_data$cumsumpcp, ties_method = "last"), ]$diffmean, 
-            "mm, ", sign, annotate_data[which.max(annotate_data$fecha), ]$percentage, "%)'"),
+      paste0("'Precip. ", max(annotate_data$cumsumpcp), "mm\n(", sign, # Current precip.
+            annotate_data[mlr3misc::which_max(annotate_data$cumsumpcp, ties_method = "last"), ]$diffmean, # absolute diff
+            "mm, ", sign, annotate_data[which.max(annotate_data$date), ]$percentage, "%)'"), # % diff
       if (sum(annotate_data$diffmean < 0) > 0) { # Only create label if there has been deficit
       paste(min(annotate_data$diffmean), "*mm~vs.~italic(mean)")},
       if (sum(annotate_data$diffmean > 0) > 0) { # Only create label if there has been superavit
@@ -70,16 +71,16 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
   
   # Data points colors
   if (any(annotate_data$diffmean < 0) && any(annotate_data$diffmean > 0)) {
-    colors <- c("black", "#d7191c", "#2c7bb6")
+    colors <- c("black", "#d7191c", "#2c7bb6") # If superavit and deficit exist in same year
   } else if (any(annotate_data$diffmean < 0)) {
-    colors <- c("black", "#d7191c")
+    colors <- c("black", "#d7191c") # If only there has been deficit
   } else if (any(annotate_data$diffmean > 0)) {
-    colors <- c("black", "#2c7bb6")
+    colors <- c("black", "#2c7bb6") # If only there has been superavit
   }
 
   # Draw the plot
-  p <- ggplot2::ggplot(data = plot_data, aes(x = fecha, y = cumsumpcp)) +
-    ggplot2::geom_segment(aes(xend = fecha, yend = cummeanpcp, color = diffmean), linewidth = 1.2,
+  p <- ggplot2::ggplot(data = plot_data, aes(x = date, y = cumsumpcp)) +
+    ggplot2::geom_segment(aes(xend = date, yend = cummeanpcp, color = diffmean), linewidth = 1.2,
                           na.rm = TRUE) +
     ggplot2::scale_color_gradient2(high = "#2c7bb6", mid = "white", low = "#d7191c") +
     ggplot2::geom_line(linewidth = 0.85, lineend = "round", na.rm = TRUE) +
@@ -107,9 +108,9 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
     ) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "", title = paste0("Precipitación en Madrid - Retiro ", selected_year),
+      x = "", y = "", title = paste0("Precipitation in Madrid - Retiro ", selected_year),
       subtitle = paste0(
-        "Precipitación diaria acumulada comparada con media histórica (",
+        "Cumulative daily precipitation vs. historical mean (",
         ref_start_year, "-", ref_end_year, ")"
       ),
       caption = paste0(

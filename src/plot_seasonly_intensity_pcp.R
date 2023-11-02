@@ -15,13 +15,13 @@
 IntensityPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
   selected_year_season_intensity_pcp <- data |>
     dtplyr::lazy_dt() |>
-    dplyr::filter(fecha >= as.Date(paste0(as.numeric(selected_year), "-01-01")) &
-      fecha <= as.Date(paste0(as.numeric(selected_year), "-12-31"))) |>
+    dplyr::filter(date >= as.Date(paste0(as.numeric(selected_year), "-01-01")) &
+      date <= as.Date(paste0(as.numeric(selected_year), "-12-31"))) |>
     dplyr::mutate(season = dplyr::case_when(
-      mes %in% c("12", "01", "02") ~ "4-invierno",
-      mes %in% c("03", "04", "05") ~ "1-primavera",
-      mes %in% c("06", "07", "08") ~ "2-verano",
-      mes %in% c("09", "10", "11") ~ "3-otoño"
+      month %in% c("12", "01", "02") ~ "4-winter",
+      month %in% c("03", "04", "05") ~ "1-spring",
+      month %in% c("06", "07", "08") ~ "2-summer",
+      month %in% c("09", "10", "11") ~ "3-autumn"
     )) |>
     dplyr::group_by(season) |>
     dplyr::summarise(sumpcp = sum(pcp, na.rm = TRUE), maxpcp = max(pcp, na.rm = TRUE)) |>
@@ -30,23 +30,23 @@ IntensityPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, 
 
   reference_season_intensity_pcp <- data |>
     dtplyr::lazy_dt() |>
-    dplyr::filter(fecha >= as.Date(paste0(ref_start_year, "-01-01")) &
-      fecha <= as.Date(paste0(ref_end_year, "-12-31"))) |>
+    dplyr::filter(date >= as.Date(paste0(ref_start_year, "-01-01")) &
+      date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
     dplyr::mutate(season = dplyr::case_when(
-      mes %in% c("12", "01", "02") ~ "4-invierno",
-      mes %in% c("03", "04", "05") ~ "1-primavera",
-      mes %in% c("06", "07", "08") ~ "2-verano",
-      mes %in% c("09", "10", "11") ~ "3-otoño"
+      month %in% c("12", "01", "02") ~ "4-winter",
+      month %in% c("03", "04", "05") ~ "1-spring",
+      month %in% c("06", "07", "08") ~ "2-summer",
+      month %in% c("09", "10", "11") ~ "3-autumn"
     )) |>
     dplyr::as_tibble() |>
     dplyr::mutate(season_aux = dplyr::case_when(
-      lubridate::leap_year(fecha) == TRUE & lubridate::yday(fecha) <= 60 ~ 1,
-      lubridate::leap_year(fecha) == FALSE & lubridate::yday(fecha) <= 59 ~ 1,
+      lubridate::leap_year(date) == TRUE & lubridate::yday(date) <= 60 ~ 1,
+      lubridate::leap_year(date) == FALSE & lubridate::yday(date) <= 59 ~ 1,
       TRUE ~ 0,
     )) |>
     dtplyr::lazy_dt() |>
-    dplyr::mutate(ano_season = as.numeric(ano) - season_aux) |>
-    dplyr::group_by(ano_season, season) |> 
+    dplyr::mutate(year_season = as.numeric(year) - season_aux) |>
+    dplyr::group_by(year_season, season) |> 
     dplyr::summarise(sumpcp = sum(pcp, na.rm = TRUE), maxpcp = suppressWarnings(max(pcp, na.rm = TRUE)),
                      .groups = "keep") |> # for some seasons (for example, spring 1928 Madrid Retiro)
     # there is no pcp data so calculating the max of no data returns a warning
@@ -76,15 +76,15 @@ IntensityPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, 
       label = selected_year,
       family = "sans", hjust = -0.35, vjust = 0
     ) +
-    ggplot2::scale_x_discrete(limits = c("4-invierno", "1-primavera", "2-verano", "3-otoño"),
-                             labels = c(paste0("invierno ", (as.numeric(selected_year) - 1) %% 100,
+    ggplot2::scale_x_discrete(limits = c("4-winter", "1-spring", "2-summer", "3-autumn"),
+                             labels = c(paste0("winter ", (as.numeric(selected_year) - 1) %% 100,
                                         "/", as.numeric(selected_year) %% 100), 
-                                        "primavera", "verano", "otoño")) +
+                                        "spring", "summer", "autumn")) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "", title = paste0("Precipitación en Madrid - Retiro ", selected_year),
+      x = "", y = "", title = paste0("Precipitation in Madrid - Retiro ", selected_year),
       subtitle = paste0(
-        "Torrencialidad de la precipitación estacional comparada con valores históricos (",
+        "Seasonal precipitation intensity vs. historical values (",
         ref_start_year, "-", ref_end_year, ")"
       ),
       caption = paste0(

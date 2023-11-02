@@ -10,9 +10,13 @@
 # - en gráfico estacional, añadir +- mm y +- % mm
 # - cambiar todo a inglés
 # - versiones librerias, rproj?
+# - algunos meses siguen en español
+# - add leyenda en grafico 2, linea media historica dotted y linea fija acyual
+# - añadir cabecera doc al archivo app.R
 
 
 library(shiny)
+library(shinyjs)
 library(shinythemes)
 library(lubridate)
 library(roxygen2)
@@ -37,22 +41,46 @@ source(here::here("src", "plot_monthly_ranking_pcp.R"))
 source(here::here("src", "plot_seasonly_intensity_pcp.R"))
 source(here::here("src", "plot_yearly_pcp.R"))
 
+# For 'Loading message' purposes
+appCSS <- "
+#loading-content {
+  position: absolute;
+  background: #000000;
+  opacity: 0.9;
+  z-index: 100;
+  left: 0;
+  right: 0;
+  height: 100%;
+  text-align: center;
+  color: #FFFFFF;
+}
+"
 # Parameters
 station <- 3195
-ref_start_year <- 1991
-ref_end_year <- 2020
+ref_start_year <- 1920
+ref_end_year <- 2023
 selected_year <- 2023
 # aemet_api_key('eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJwY29udHJlcjk1QGdtYWlsLmNvbSIsImp0aSI6ImQ0ODYzZWIzLWRmOWQtNDg4YS04OGFmLTU2NTlmZWE3MDBkNyIsImlzcyI6IkFFTUVUIiwiaWF0IjoxNjIzMTc0ODAwLCJ1c2VySWQiOiJkNDg2M2ViMy1kZjlkLTQ4OGEtODhhZi01NjU5ZmVhNzAwZDciLCJyb2xlIjoiIn0.YTDbbuMFmA-ygIvjqwqRbCEt2JRlE9V05iYZjhmX9lA',
 #              install = TRUE)
 
-# data <- aemet_daily_period(station = station, start = ref_start_year, end = ref_end_year)
+data <- aemet_daily_period(station = station, start = ref_start_year, end = ref_end_year)
 data_clean <- DataCleaning(data)
-max_date <- max(as_tibble(data_clean)$fecha, na.rm = TRUE)
+max_date <- max(as_tibble(data_clean)$date, na.rm = TRUE)
 
 # Define UI ----
 # fluidPage creates a display that automatically adjusts to the dimensions of your user’s
 # browser window
 ui <- shiny::fluidPage(
+  # For 'Loading message' purposes
+  useShinyjs(),
+  inlineCSS(appCSS),
+
+  # Loading message
+  div(
+    id = "loading-content",
+    h2("Loading...")
+  ),
+  
   theme = shinythemes::shinytheme("spacelab"),
 
   # Application title
@@ -85,8 +113,8 @@ ui <- shiny::fluidPage(
               "1931-1960" = "1931-1960",
               "1921-1950" = "1921-1950",
               "All available data" = paste0(
-                min(lubridate::year(data$fecha)), "-",
-                max(lubridate::year(data$fecha))
+                min(lubridate::year(data_clean$date)), "-",
+                max(lubridate::year(data_clean$date))
               )
             )
           )
@@ -96,12 +124,12 @@ ui <- shiny::fluidPage(
         inputId = "plot",
         label = "Metric",
         choices = c(
-          "1. Precip. diaria acumulada vs. percentiles" = "1",
-          "2. Precip. diaria acumulada vs. media" = "2",
-          "3. Precip. estacional" = "3",
-          "4. Precip. mensual (ranking)" = "4",
-          "5. Torrencialidad precip." = "5",
-          "6. Precip. anual" = "6"
+          "1. Cumulative daily precip. vs. percentiles" = "1",
+          "2. Cumulative daily precip. vs. avg" = "2",
+          "3. Seasonal precip." = "3",
+          "4. Monthly precip. (ranking)" = "4",
+          "5. Precip. intensity" = "5",
+          "6. Annual precip." = "6"
         )
       ),
       shiny::actionButton(
@@ -163,6 +191,9 @@ server <- function(input, output) {
   output$plot <- shiny::renderPlot({
     plot()
   })
+
+  # Hide the loading message when the rest of the server function has executed
+  hide(id = "loading-content", anim = TRUE, animType = "fade")
 }
 
 # Run the app ----

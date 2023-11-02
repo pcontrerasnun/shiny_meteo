@@ -16,73 +16,73 @@ MonthlyRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_y
   # Calculate each month's rank
   reference_monthly_pcp <- data |>
     dtplyr::lazy_dt() |>
-    dplyr::filter((fecha >= as.Date(paste0(ref_start_year, "-01-01")) &
-      fecha <= as.Date(paste0(ref_end_year, "-12-31"))) |
-      (fecha >= as.Date(paste0(as.numeric(selected_year), "-01-01")) &
-        fecha <= as.Date(paste0(as.numeric(selected_year), "-12-31")))) |>
-    dplyr::group_by(ano, mes) |>
+    dplyr::filter((date >= as.Date(paste0(ref_start_year, "-01-01")) &
+      date <= as.Date(paste0(ref_end_year, "-12-31"))) |
+      (date >= as.Date(paste0(as.numeric(selected_year), "-01-01")) &
+        date <= as.Date(paste0(as.numeric(selected_year), "-12-31")))) |>
+    dplyr::group_by(year, month) |>
     dplyr::summarise(sumpcp = sum(pcp, na.rm = TRUE), .groups = "keep") |>
     dplyr::ungroup() |>
-    dplyr::group_by(mes) |>
+    dplyr::group_by(month) |>
     dplyr::mutate(rango = rank(-sumpcp, ties.method = "first")) |>
-    dplyr::arrange(mes, rango) |>
+    dplyr::arrange(month, rango) |>
     dplyr::as_tibble()
 
   # Calculate min, mean and max historical precipitation in each month
   reference_stats_monthly_pcp <- data |>
     dtplyr::lazy_dt() |>
-    dplyr::filter(fecha >= as.Date(paste0(ref_start_year, "-01-01")) &
-      fecha <= as.Date(paste0(ref_end_year, "-12-31"))) |>
-    dplyr::group_by(ano, mes) |>
+    dplyr::filter(date >= as.Date(paste0(ref_start_year, "-01-01")) &
+      date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
+    dplyr::group_by(year, month) |>
     dplyr::mutate(sumpcp = sum(pcp)) |>
-    dplyr::arrange(ano, mes) |>
-    dplyr::group_by(mes) |>
+    dplyr::arrange(year, month) |>
+    dplyr::group_by(month) |>
     dplyr::summarise(
       minpcp = round(min(sumpcp, na.rm = TRUE), 1),
       maxpcp = round(max(sumpcp, na.rm = TRUE), 1),
       meanpcp = round(mean(sumpcp, na.rm = TRUE), 1),
       .groups = "keep"
     ) |>
-    dplyr::arrange(mes) |>
+    dplyr::arrange(month) |>
     dplyr::as_tibble()
 
   # Calculated cumulated precipitacion in each month of selected year
   selected_year_monthly_pcp <- data |>
     dtplyr::lazy_dt() |>
-    dplyr::filter(fecha >= as.Date(paste0(as.numeric(selected_year), "-01-01")) &
-      fecha <= as.Date(paste0(as.numeric(selected_year), "-12-31"))) |>
-    dplyr::group_by(mes, ano) |>
+    dplyr::filter(date >= as.Date(paste0(as.numeric(selected_year), "-01-01")) &
+      date <= as.Date(paste0(as.numeric(selected_year), "-12-31"))) |>
+    dplyr::group_by(month, year) |>
     dplyr::summarise(sumpcp = sum(pcp, na.rm = TRUE), .groups = "keep") |>
-    dplyr::arrange(ano, mes) |>
+    dplyr::arrange(year, month) |>
     dplyr::ungroup() |>
     dplyr::as_tibble()
 
   # Draw the plot
-  p <- ggplot2::ggplot(data = selected_year_monthly_pcp, aes(x = mes)) +
+  p <- ggplot2::ggplot(data = selected_year_monthly_pcp, aes(x = month)) +
     ggh4x::geom_box(data = reference_stats_monthly_pcp, aes(
       ymin = minpcp, ymax = maxpcp,
       width = 0.9
     ), fill = "white", color = "black") +
-    ggplot2::geom_col(aes(y = sumpcp, fill = "Precip. mensual acumulada")) +
+    ggplot2::geom_col(aes(y = sumpcp, fill = "Cumulative monthly precip.")) +
     ggplot2::geom_errorbar(
       data = reference_stats_monthly_pcp,
       aes(
         y = meanpcp, ymin = meanpcp, ymax = meanpcp,
-        color = "Precip. media mensual histórica"
+        color = "Historical monthly avg precip."
       ), linetype = "dashed"
     ) +
     ggplot2::geom_errorbar(
       data = reference_stats_monthly_pcp,
       aes(
         y = maxpcp, ymin = maxpcp, ymax = maxpcp,
-        color = "Precip. máxima mensual histórica"
+        color = "Historical monthly max precip."
       ), linetype = "solid", linewidth = 1
     ) +
     ggplot2::geom_errorbar(
       data = reference_stats_monthly_pcp,
       aes(
         y = minpcp, ymin = minpcp, ymax = minpcp,
-        color = "Precip. mínima mensual histórica"
+        color = "Historical monthly min precip."
       ), linetype = "solid", linewidth = 1
     ) +
     ggplot2::scale_x_discrete(
@@ -90,23 +90,23 @@ MonthlyRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_y
         "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"
       ),
       labels = c(
-        "ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
       )
     ) +
     ggplot2::scale_color_manual(
-      breaks = c("Precip. media mensual histórica", "Precip. máxima mensual histórica", 
-                 "Precip. mínima mensual histórica"),
+      breaks = c("Historical monthly avg precip.", "Historical monthly max precip.", 
+                 "Historical monthly min precip."),
       values = c(
-        "Precip. media mensual histórica" = "black",
-        "Precip. máxima mensual histórica" = "#4daf4a",
-        "Precip. mínima mensual histórica" = "#d7191c"
+        "Historical monthly avg precip." = "black",
+        "Historical monthly max precip." = "#4daf4a",
+        "Historical monthly min precip." = "#d7191c"
       )
     ) +
     ggplot2::scale_fill_manual(
-      values = c("Precip. mensual acumulada" = "#2c7bb6"),
+      values = c("Cumulative monthly precip." = "#2c7bb6"),
       labels = c(
-        "Precip. mensual acumulada" =
-          glue::glue("<span style = 'color: #2c7bb6; '>Precip. mensual acumulada</span>")
+        "Cumulative monthly precip." =
+          glue::glue("<span style = 'color: #2c7bb6; '>Cumulative monthly precip.</span>")
       )
     ) +
     ggplot2::scale_y_continuous(
@@ -122,9 +122,9 @@ MonthlyRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_y
     ) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "", title = paste0("Precipitación en Madrid - Retiro ", selected_year),
+      x = "", y = "", title = paste0("Precipitation in Madrid - Retiro ", selected_year),
       subtitle = paste0(
-        "Precipitación mensual acumulada comparada con valores históricos (",
+        "Cumulative monthly precipitation vs. historical values (",
         ref_start_year, "-", ref_end_year, ")"
       ),
       caption = paste0(
@@ -153,32 +153,32 @@ MonthlyRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_y
   # Add position in ranking of selected year
   for (month in unique(selected_year_monthly_pcp$mes)) {
     p <- p + ggplot2::annotate(
-      geom = "text", x = subset(selected_year_monthly_pcp, mes == month)$mes,
+      geom = "text", x = subset(selected_year_monthly_pcp, month == month)$month,
       y = max(
-        subset(selected_year_monthly_pcp, mes == month)$sumpcp,
-        subset(reference_stats_monthly_pcp, mes == month)$maxpcp
+        subset(selected_year_monthly_pcp, month == month)$sumpcp,
+        subset(reference_stats_monthly_pcp, month == month)$maxpcp
       ),
       label = paste0(
-        subset(reference_monthly_pcp, mes == month & ano == selected_year)$rango, "º ",
+        subset(reference_monthly_pcp, month == month & year == selected_year)$rango, "º ",
         selected_year, " ",
-        subset(selected_year_monthly_pcp, mes == month)$sumpcp, "mm"
+        subset(selected_year_monthly_pcp, month == month)$sumpcp, "mm"
       ),
       family = "sans", size = 3.25, hjust = 0.5, vjust = 3
     )
   }
 
   # Add podium of years with most precipitation
-  for (month in unique(selected_year_monthly_pcp$mes)) {
+  for (month in unique(selected_year_monthly_pcp$month)) {
     for (rank in 1:3) {
       p <- p + ggplot2::annotate(
-        geom = "text", x = subset(reference_monthly_pcp, mes == month & rango == rank)$mes,
+        geom = "text", x = subset(reference_monthly_pcp, month == month & rango == rank)$month,
         y = max(
-          subset(selected_year_monthly_pcp, mes == month)$sumpcp,
-          subset(reference_stats_monthly_pcp, mes == month)$maxpcp
+          subset(selected_year_monthly_pcp, month == month)$sumpcp,
+          subset(reference_stats_monthly_pcp, month == month)$maxpcp
         ),
         label = paste0(
-          rank, "º ", subset(reference_monthly_pcp, mes == month & rango == rank)$ano,
-          " ", subset(reference_monthly_pcp, mes == month & rango == rank)$sumpcp, "mm"
+          rank, "º ", subset(reference_monthly_pcp, month == month & rango == rank)$year,
+          " ", subset(reference_monthly_pcp, month == month & rango == rank)$sumpcp, "mm"
         ),
         family = "sans", size = 3.5, hjust = 0.5, vjust = -0.5 * (-rank) * 3 - 5
       )
