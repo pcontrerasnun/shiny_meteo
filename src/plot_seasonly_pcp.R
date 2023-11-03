@@ -19,6 +19,8 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(ref_start_year, "-01-01")) &
       date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
+    dplyr::filter((date < as.Date(paste0(selected_year, "-01-01")) | # Not include year of study in calculations
+      date > as.Date(paste0(selected_year, "-12-31")))) |>
     dplyr::mutate(season = dplyr::case_when(
       month %in% c("12", "01", "02") ~ "4-winter",
       month %in% c("03", "04", "05") ~ "1-spring",
@@ -54,8 +56,8 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
       month %in% "12" ~ "00", # to put December first
       TRUE ~ month
     )) |>
-    as_tibble() |>
     dplyr::arrange(month) |>
+    dplyr::as_tibble() |> 
     # Only way to use working dataset as parameter
     do({
       df <- .
@@ -103,14 +105,15 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
   )
 
   # Draw the plot
-  p <- ggplot2::ggplot(data = plot_data, aes(x = row), na.rm = TRUE) +
+  p <- ggplot2::ggplot(data = plot_data, aes(x = row)) +
     ggh4x::geom_box(aes(ymin = 0, ymax = cumq00pcp, fill = "P00", width = 0.9), alpha = 0.5) +
     ggh4x::geom_box(aes(ymin = cumq00pcp, ymax = cumq20pcp, fill = "P20", width = 0.9), alpha = 0.5) +
     ggh4x::geom_box(aes(ymin = cumq20pcp, ymax = cumq40pcp, fill = "P40", width = 0.9), alpha = 0.5) +
     ggh4x::geom_box(aes(ymin = cumq40pcp, ymax = cumq60pcp, fill = "P60", width = 0.9), alpha = 0.5) +
     ggh4x::geom_box(aes(ymin = cumq60pcp, ymax = cumq80pcp, fill = "P80", width = 0.9), alpha = 0.5) +
     ggh4x::geom_box(aes(ymin = cumq80pcp, ymax = cumq100pcp, fill = "P100", width = 0.9), alpha = 0.5) +
-    ggplot2::geom_col(aes(y = seasoncumsumpcp, fill = "Cumulative seasonal precip.")) +
+    # https://github.com/tidyverse/ggplot2/issues/3532
+    ggplot2::geom_col(aes(y = seasoncumsumpcp, fill = "Cumulative seasonal precip."), na.rm = TRUE) +
     ggplot2::geom_col(aes(y = cumq50pcp, color = "Historical cumulative seasonal median precip."),
       fill = NA, linewidth = 1
     ) +
@@ -128,10 +131,10 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
         "P00" = "Extrem. dry season", "P20" = "Very dry season", "P40" = "Dry season",
         "P80" = "Wet season", "P100" = "Very wet season", "P60" = "Normal season"
       ),
-      breaks = c("P100", "P80", "P60", "P40", "P20", "P00", "Cumulative seasonal precip.") # to order
+      breaks = c("P100", "P80", "P60", "P40", "P20", "P00", "Cumulative seasonal precip.") # To give order
     ) +
     ggplot2::scale_x_discrete(
-      limits = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"),
+      limits = plot_data$row,
       labels = c(
         paste0("Dec", (as.numeric(selected_year) - 1) %% 100), "Jan", "Feb", "Mar", "Apr", "May", 
         "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", 

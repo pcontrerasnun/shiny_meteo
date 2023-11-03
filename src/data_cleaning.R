@@ -54,5 +54,5 @@ DataCleaning <- function(data) {
     dplyr::select(-prec) |> 
     as_tibble()
 
-  return(data_clean)
+  return(list(data_clean, tail(last_data$fint, 1)))
 }

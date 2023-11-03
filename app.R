@@ -11,8 +11,14 @@
 # - cambiar todo a inglés
 # - versiones librerias, rproj?
 # - algunos meses siguen en español
-# - add leyenda en grafico 2, linea media historica dotted y linea fija acyual
+# - add leyenda en grafico 2, linea media historica dotted y linea fija actual
 # - añadir cabecera doc al archivo app.R
+# - En updated poner hora UTC
+# - doc MonthlyPcpPlot
+# - crear un dataframe de lluvia y otro para temp y eliminar del de lluvia años 1928 y 1938?
+# - añadir very wet season (p80-p100), wet season (P60-P80)...
+# - tener en cuenta dato selected_year a la hora de calcular max/min in season ranking plot?
+# - doc SeasonRankingPcpPlot
 
 
 library(shiny)
@@ -31,30 +37,19 @@ library(ggthemes)
 library(ggh4x)
 library(stringr)
 library(mlr3misc)
+library(MASS)
 
 # Code outside 'ui' and 'server' only runs once when app is launched
 source(here::here("src", "data_cleaning.R"))
 source(here::here("src", "plot_daily_cum_pcts_pcp.R"))
 source(here::here("src", "plot_daily_cum_pcp.R"))
 source(here::here("src", "plot_seasonly_pcp.R"))
+source(here::here("src", "plot_seasonly_ranking_pcp.R"))
+source(here::here("src", "plot_monthly_pcp.R"))
 source(here::here("src", "plot_monthly_ranking_pcp.R"))
 source(here::here("src", "plot_seasonly_intensity_pcp.R"))
 source(here::here("src", "plot_yearly_pcp.R"))
 
-# For 'Loading message' purposes
-appCSS <- "
-#loading-content {
-  position: absolute;
-  background: #000000;
-  opacity: 0.9;
-  z-index: 100;
-  left: 0;
-  right: 0;
-  height: 100%;
-  text-align: center;
-  color: #FFFFFF;
-}
-"
 # Parameters
 station <- 3195
 ref_start_year <- 1920
@@ -63,24 +58,14 @@ selected_year <- 2023
 # aemet_api_key('eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJwY29udHJlcjk1QGdtYWlsLmNvbSIsImp0aSI6ImQ0ODYzZWIzLWRmOWQtNDg4YS04OGFmLTU2NTlmZWE3MDBkNyIsImlzcyI6IkFFTUVUIiwiaWF0IjoxNjIzMTc0ODAwLCJ1c2VySWQiOiJkNDg2M2ViMy1kZjlkLTQ4OGEtODhhZi01NjU5ZmVhNzAwZDciLCJyb2xlIjoiIn0.YTDbbuMFmA-ygIvjqwqRbCEt2JRlE9V05iYZjhmX9lA',
 #              install = TRUE)
 
-data <- aemet_daily_period(station = station, start = ref_start_year, end = ref_end_year)
-data_clean <- DataCleaning(data)
-max_date <- max(as_tibble(data_clean)$date, na.rm = TRUE)
+#data <- aemet_daily_period(station = station, start = ref_start_year, end = ref_end_year)
+data_clean <- DataCleaning(data)[[1]]
+max_date <- paste(DataCleaning(data)[[2]], "UTC")
 
 # Define UI ----
 # fluidPage creates a display that automatically adjusts to the dimensions of your user’s
 # browser window
 ui <- shiny::fluidPage(
-  # For 'Loading message' purposes
-  useShinyjs(),
-  inlineCSS(appCSS),
-
-  # Loading message
-  div(
-    id = "loading-content",
-    h2("Loading...")
-  ),
-  
   theme = shinythemes::shinytheme("spacelab"),
 
   # Application title
@@ -127,9 +112,11 @@ ui <- shiny::fluidPage(
           "1. Cumulative daily precip. vs. percentiles" = "1",
           "2. Cumulative daily precip. vs. avg" = "2",
           "3. Seasonal precip." = "3",
-          "4. Monthly precip. (ranking)" = "4",
-          "5. Precip. intensity" = "5",
-          "6. Annual precip." = "6"
+          "4. Seasonal precip. (ranking)" = "4",
+          "5. Monthly precip." = "5",
+          "6. Monthly precip. (ranking)" = "6",
+          "7. Precip. intensity" = "7",
+          "8. Annual precip." = "8"
         )
       ),
       shiny::actionButton(
@@ -167,19 +154,31 @@ server <- function(input, output) {
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "4" = MonthlyRankingPcpPlot(
+      "4" = SeasonRankingPcpPlot(
         data = data_clean, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "5" = IntensityPcpPlot(
+      "5" = MonthlyPcpPlot(
         data = data_clean, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "6" = YearlyPcpPlot(
+      "6" = MonthlyRankingPcpPlot(
+        data = data_clean, selected_year = input$year,
+        ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
+        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+        max_date = max_date
+      ),
+      "7" = IntensityPcpPlot(
+        data = data_clean, selected_year = input$year,
+        ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
+        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+        max_date = max_date
+      ),
+      "8" = YearlyPcpPlot(
         data = data_clean, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
@@ -192,8 +191,6 @@ server <- function(input, output) {
     plot()
   })
 
-  # Hide the loading message when the rest of the server function has executed
-  hide(id = "loading-content", anim = TRUE, animType = "fade")
 }
 
 # Run the app ----
