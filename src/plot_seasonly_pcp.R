@@ -98,11 +98,17 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
     dplyr::arrange(year_season, season) |>
     dplyr::select(-season)
 
-  # Join final data
+  # Join final data and create new columns with diff vs P50
   plot_data <- qpcR:::cbind.na(
     reference_cumpcts_season_pcp,
     selected_year_season_cumpcp
-  )
+  ) |> 
+    dplyr::mutate(diffq50pcp = round(seasoncumsumpcp - cumq50pcp, 1)) |>
+    dplyr::mutate(diffq50pcp_x = ifelse(diffq50pcp > 0, paste0("x", round(seasoncumsumpcp / cumq50pcp, 1)), 
+                                 paste0("/", round(cumq50pcp / seasoncumsumpcp, 1)))) |> 
+    dplyr::mutate(diffq50pcp_x = ifelse(diffq50pcp_x == "/Inf", "-", diffq50pcp_x)) |> # Replace Inf with -
+    dplyr::mutate(diffq50pcp_x = ifelse(diffq50pcp_x %in% c("/1", "x1"), "=", diffq50pcp_x)) |> # Replace /1 and x1 with =
+    dplyr::mutate(diffq50pcp = ifelse(diffq50pcp > 0, paste0("+", diffq50pcp), diffq50pcp))
 
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = row)) +
@@ -117,6 +123,9 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
     ggplot2::geom_col(aes(y = cumq50pcp, color = "Historical cumulative seasonal median precip."),
       fill = NA, linewidth = 1
     ) +
+    ggplot2::geom_text(aes(y = seasoncumsumpcp, label = paste(diffq50pcp, "*mm~vs.~italic(P)[50]")), 
+                       parse = TRUE, vjust = -2.5, na.rm = TRUE, size = 3.5) +
+    ggplot2::geom_text(aes(y = seasoncumsumpcp, label = diffq50pcp_x), vjust = -1.5, na.rm = TRUE, size = 3.5) +
     ggplot2::scale_color_manual(
       breaks = c("Historical cumulative seasonal median precip."),
       values = c("Historical cumulative seasonal median precip." = "#d7191c")
@@ -158,7 +167,7 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
         ref_start_year, "-", ref_end_year, ")"
       ),
       caption = paste0(
-        "Updated: ", max_date, ", Source: AEMET OpenData, Graph: @Pcontreras95 (Twitter)"
+        "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"
       ),
       color = NULL, fill = NULL
     ) +
@@ -166,11 +175,8 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
       plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),
       plot.subtitle = ggplot2::element_text(hjust = 1, size = 25),
       legend.background = ggplot2::element_blank(),
-      legend.box.background = ggplot2::element_rect(
-        fill = "white", color = "black",
-        linewidth = 0.75
-      ),
-      legend.position = c(0.1475, 0.85),
+      legend.box.background = ggplot2::element_rect(fill = "white", color = "black", linewidth = 0.75),
+      legend.position = c(0.125, 0.85),
       legend.spacing = ggplot2::unit(0, "cm"),
       legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
       legend.text = ggtext::element_markdown()

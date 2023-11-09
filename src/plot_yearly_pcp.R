@@ -7,9 +7,7 @@ YearlyPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
     dplyr::filter((date >= as.Date(paste0(ref_start_year, "-01-01")) &
                      date <= as.Date(paste0(ref_end_year, "-12-31"))) |
                     (date >= as.Date(paste0(as.numeric(selected_year), "-01-01")) &
-                       date <= as.Date(paste0(as.numeric(selected_year), "-12-31")))) |>
-    dplyr::filter((year != '1928') & (year != '1938')) |> # WARNING: only for Madrid Retiro. Removing
-    # due to very little data
+                       date <= as.Date(paste0(as.numeric(selected_year), "-12-31")))) |> # Also include year of study
     dplyr::group_by(year) |> 
     dplyr::summarise(sumpcp = sum(pcp, na.rm = TRUE)) |> 
     dplyr::as_tibble() |> 
@@ -46,7 +44,7 @@ YearlyPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
   
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = sumpcp)) +
-    ggplot2::geom_histogram(aes(y = ..density..), breaks = h$breaks, color = "black", fill = "white") +
+    ggplot2::geom_histogram(aes(y = after_stat(density)), breaks = h$breaks, color = "black", fill = "white") +
     ggplot2::geom_line(data = data_distr, aes(x = x, y = y)) +
     ggplot2::geom_label(aes(x = x, y = y, label = year)) +
     # Highlight year of study
@@ -55,16 +53,16 @@ YearlyPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
     ggplot2::scale_x_continuous(labels = function(x) paste0(x, "mm"), breaks = h$breaks) +
     ggplot2::annotate(geom = "text", x = mean(h$breaks), y = 0.0035,
                       label = paste("Gamma(alpha==", round(shape_fit, 2), ", lambda==", round(rate_fit, 2), ")"), 
-                      parse = TRUE, hjust = -0.05, vjust = 0.5) +
+                      parse = TRUE, hjust = -0.05, vjust = 0.5, size = 5.5) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
       x = "", y = "", title = paste0("Precipitation in Madrid - Retiro ", selected_year),
       subtitle = paste0(
-        "Cumulative annual precipitation vs. historical values (",
+        "Annual precipitation vs. historical values (",
         ref_start_year, "-", ref_end_year, ")"
       ),
       caption = paste0(
-        "Updated: ", max_date, ", Source: AEMET OpenData, Graph: @Pcontreras95 (Twitter)"
+        "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"
       )
     ) +
     ggplot2::theme(

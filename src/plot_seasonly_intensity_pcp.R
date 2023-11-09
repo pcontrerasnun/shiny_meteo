@@ -32,6 +32,8 @@ IntensityPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, 
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(ref_start_year, "-01-01")) &
       date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
+    dplyr::filter((date < as.Date(paste0(selected_year, "-01-01")) | # Not include year of study in calculations
+                     date > as.Date(paste0(selected_year, "-12-31")))) |>
     dplyr::mutate(season = dplyr::case_when(
       month %in% c("12", "01", "02") ~ "4-winter",
       month %in% c("03", "04", "05") ~ "1-spring",
@@ -88,12 +90,13 @@ IntensityPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, 
         ref_start_year, "-", ref_end_year, ")"
       ),
       caption = paste0(
-        "Updated: ", max_date, ", Source: AEMET OpenData, Graph: @Pcontreras95 (Twitter)"
+        "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"
       )
     ) +
     ggplot2::theme(
       plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),
-      plot.subtitle = ggplot2::element_text(hjust = 1, size = 25), legend.position = "none"
+      plot.subtitle = ggplot2::element_text(hjust = 1, size = 25), 
+      legend.position = "none"
     )
 
   return(p)

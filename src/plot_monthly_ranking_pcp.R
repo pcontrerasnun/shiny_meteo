@@ -136,7 +136,7 @@ MonthlyRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_y
         ref_start_year, "-", ref_end_year, ")"
       ),
       caption = paste0(
-        "Updated: ", max_date, ", Source: AEMET OpenData, Graph: @Pcontreras95 (Twitter)"
+        "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"
       ),
       color = NULL, fill = NULL
     ) +

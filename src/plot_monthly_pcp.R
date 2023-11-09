@@ -31,13 +31,14 @@ MonthlyPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, ma
     dplyr::ungroup() |>
     dplyr::as_tibble()
 
-  # Join data and create new column with diff vs P50
+  # Join data and create new columns with diff vs P50
   plot_data <- left_join(reference_pcts_monthly_pcp, selected_year_monthly_pcp, by = "month") |> 
-    mutate(diffq50pcp = round(sumpcp - q50pcp, 1)) |>
-    mutate(diffq50pcp_x = ifelse(diffq50pcp > 0, paste0("x", round(sumpcp / q50pcp)), 
-                                 paste0("/", round(q50pcp / sumpcp)))) |> 
-    mutate(diffq50pcp_x = ifelse(diffq50pcp_x == "/Inf", "-", diffq50pcp_x)) |> # Replace Inf with -
-    mutate(diffq50pcp = ifelse(diffq50pcp > 0, paste0("+", diffq50pcp), diffq50pcp))
+    dplyr::mutate(diffq50pcp = round(sumpcp - q50pcp, 1)) |>
+    dplyr::mutate(diffq50pcp_x = ifelse(diffq50pcp > 0, paste0("x", round(sumpcp / q50pcp, 1)), 
+                                 paste0("/", round(q50pcp / sumpcp, 1)))) |> 
+    dplyr::mutate(diffq50pcp_x = ifelse(diffq50pcp_x == "/Inf", "-", diffq50pcp_x)) |> # Replace Inf with -
+    dplyr::mutate(diffq50pcp_x = ifelse(diffq50pcp_x %in% c("/1", "x1"), "=", diffq50pcp_x)) |>  # Replace /1 and x1 with =
+    dplyr::mutate(diffq50pcp = ifelse(diffq50pcp > 0, paste0("+", diffq50pcp), diffq50pcp)) 
 
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = month)) +
@@ -96,7 +97,7 @@ MonthlyPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, ma
         ref_start_year, "-", ref_end_year, ")"
       ),
       caption = paste0(
-        "Updated: ", max_date, ", Source: AEMET OpenData, Graph: @Pcontreras95 (Twitter)"
+        "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"
       ),
       color = NULL, fill = NULL
     ) +

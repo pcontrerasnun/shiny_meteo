@@ -17,6 +17,8 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(ref_start_year, "-01-01")) &
       date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
+    dplyr::filter((date < as.Date(paste0(selected_year, "-01-01")) | # Not include year of study in calculations
+      date > as.Date(paste0(selected_year, "-12-31")))) |>
     dplyr::group_by(year) |>
     dplyr::mutate(cumsumpcp = cumsum(pcp)) |>
     dplyr::arrange(year, month, day) |>
@@ -33,14 +35,16 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
       cumq100pcp = round(quantile(cumsumpcp, probs = 1, na.rm = TRUE), 1),
       .groups = "keep"
     ) |>
-    dplyr::arrange(month, day)
+    dplyr::arrange(month, day) |>
+    dplyr::as_tibble()
 
   # Calculate cumulative sum precipitation for selected year
   selected_year_pcp <- data |>
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(selected_year, "-01-01")) &
       date <= as.Date(paste0(selected_year, "-12-31"))) |>
-    dplyr::mutate(cumsumpcp = cumsum(tidyr::replace_na(pcp, 0)))
+    dplyr::mutate(cumsumpcp = cumsum(tidyr::replace_na(pcp, 0))) |>
+    dplyr::as_tibble()
 
   # Join previous two datasets and create new columns 'diffmedian' and 'date'
   plot_data <- left_join(reference_pcts_pcp, selected_year_pcp, by = c("day", "month")) |>
@@ -48,48 +52,38 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
       day, month, cumq00pcp, cumq05pcp, cumq20pcp, cumq40pcp, cumq50pcp,
       cumq60pcp, cumq80pcp, cumq95pcp, cumq100pcp, cumsumpcp
     ) |>
-    dplyr::mutate(diffmedian = cumsumpcp - cumq50pcp) |> 
-    dplyr::mutate(date = as.Date(paste0(day, "-", month, "2023"), format = "%d-%m%Y")) |> # We choose
-    # 2023 since it doesn't have 29th Feb, it doesn't matter what year we choose but it can't be
-    # a leap year
-    dplyr::as_tibble()
+    dplyr::mutate(diffmedian = cumsumpcp - cumq50pcp) |>
+    dplyr::mutate(date = as.Date(paste0(day, "-", month, "2023"), format = "%d-%m%Y")) # We choose
+  # 2023 since it doesn't have 29th Feb, it doesn't matter what year we choose but it can't be
+  # a leap year
 
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = date, y = cumsumpcp)) +
     ggplot2::geom_ribbon(aes(ymin = cumq00pcp, ymax = cumq20pcp),
-      alpha = 0.3,
-      color = "#d7191c", fill = "#d7191c", linetype = "51", lineend = "round",
-      linejoin = "round"
+      alpha = 0.3, color = "#d7191c", fill = "#d7191c", linetype = "51", lineend = "round", linejoin = "round"
     ) +
     ggplot2::geom_ribbon(aes(ymin = cumq20pcp, ymax = cumq40pcp),
-      alpha = 0.1,
-      color = "#fdae61", fill = "#fdae61", linetype = "51", lineend = "round",
-      linejoin = "round"
+      alpha = 0.1, color = "#fdae61", fill = "#fdae61", linetype = "51", lineend = "round", linejoin = "round"
     ) +
     ggplot2::geom_ribbon(aes(ymin = cumq60pcp, ymax = cumq80pcp),
-      alpha = 0.1,
-      color = "#abd9e9", fill = "#abd9e9", linetype = "51", lineend = "round",
-      linejoin = "round"
+      alpha = 0.1, color = "#abd9e9", fill = "#abd9e9", linetype = "51", lineend = "round", linejoin = "round"
+    ) +
+    ggplot2::geom_ribbon(aes(ymin = cumq80pcp, ymax = cumq100pcp),
+      alpha = 0.3, color = "#2c7bb6", fill = "#2c7bb6", linetype = "51", lineend = "round", linejoin = "round"
     ) +
     #  ggplot2::geom_ribbon_pattern(aes(ymin = cumq80pcp, ymax = cumq100pcp), pattern = 'gradient',
     #                      na.rm = TRUE, pattern_fill  = '#abd9e9', pattern_fill2 = '#2c7bb6',
     #                      pattern_alpha = 0.01, pattern_linetype = '51', lineend = 'round',
     #                      linejoin = 'round', pattern_orientation = 'vertical') +
-    ggplot2::geom_ribbon(aes(ymin = cumq80pcp, ymax = cumq100pcp),
-      alpha = 0.3, color = "#2c7bb6",
-      fill = "#2c7bb6", linetype = "51", lineend = "round", linejoin = "round"
-    ) +
     #  geom_line(aes(y = cumq50pcp)) +
     ggplot2::geom_line(linewidth = 0.85, lineend = "round", na.rm = TRUE) +
     #  ggplot2::geom_ribbon_pattern(aes(x = date, ymin = cumq50pcp, ymax = cumsumpcp),
     #                               pattern = 'gradient', na.rm = TRUE, pattern_fill  = '#377eb8',
     #                               pattern_fill2 = '#e41a1c') +
     ggplot2::scale_x_continuous(
-      breaks = as.numeric(seq(ymd("2023-01-01"), ymd("2023-12-31"),
-        by = "month"
-      )),
-      labels = format(seq(ymd("2023-01-01"), ymd("2023-12-31"), by = "month"), "%b"),
-      limits = c(as.numeric(ymd("2023-01-01")), as.numeric(ymd("2024-02-10"))),
+      breaks = as.numeric(seq(ymd("2023-01-01"), ymd("2023-12-31"), by = "month")),
+      labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"),
+      limits = c(as.numeric(ymd("2023-01-01")), as.numeric(ymd("2024-02-04"))),
       expand = expansion(mult = c(0.02, 0))
     ) +
     ggplot2::scale_y_continuous(
@@ -106,7 +100,7 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
         ref_start_year, "-", ref_end_year, ")"
       ),
       caption = paste0(
-        "Updated: ", max_date, ", Source: AEMET OpenData, Graph: @Pcontreras95 (Twitter)"
+        "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"
       )
     ) +
     ggplot2::theme(
@@ -147,18 +141,18 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
       geom = "text", x = max(plot_data$date, na.rm = TRUE), y = max(plot_data$cumq00pcp),
       label = paste("Extrem.~dry~(italic(min))"),
       parse = TRUE, family = "sans", hjust = -0.05, vjust = 0.5
-    ) 
-#    ggplot2::geom_point(data = plot_data |> filter(!is.na(cumsumpcp)) |> slice_tail(n = 1)) +
-#    https://github.com/slowkow/ggrepel/issues/153
-#    ggrepel::geom_text_repel(data = plot_data |> filter(!is.na(cumsumpcp)) |> slice_tail(n = 1),
-#                             aes(label = paste0("Precip. ", max(plot_data$cumsumpcp, na.rm = TRUE),
-#                                                "mm"))) 
-#    ggplot2::annotate(geom = "text", x = plot_data[mlr3misc::which_max(plot_data$cumsumpcp, 
-#                                                                       ties_method = "last",
-#                                                                       na_rm = TRUE), ]$date,
-#                      y = max(plot_data$cumsumpcp, na.rm = TRUE),
-#                      label = paste0("Precip. ", max(plot_data$cumsumpcp, na.rm = TRUE), "mm"),
-#                      hjust = -0.1)
+    )
+  #    ggplot2::geom_point(data = plot_data |> filter(!is.na(cumsumpcp)) |> slice_tail(n = 1)) +
+  #    https://github.com/slowkow/ggrepel/issues/153
+  #    ggrepel::geom_text_repel(data = plot_data |> filter(!is.na(cumsumpcp)) |> slice_tail(n = 1),
+  #                             aes(label = paste0("Precip. ", max(plot_data$cumsumpcp, na.rm = TRUE),
+  #                                                "mm")))
+  #    ggplot2::annotate(geom = "text", x = plot_data[mlr3misc::which_max(plot_data$cumsumpcp,
+  #                                                                       ties_method = "last",
+  #                                                                       na_rm = TRUE), ]$date,
+  #                      y = max(plot_data$cumsumpcp, na.rm = TRUE),
+  #                      label = paste0("Precip. ", max(plot_data$cumsumpcp, na.rm = TRUE), "mm"),
+  #                      hjust = -0.1)
 
   # If there has been superavit of rain during the year
   # In plot_daily_cum_pcp.R a different approach can be found for plotting these points with ggrepel
@@ -177,12 +171,12 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
           "*mm~vs.~italic(P)[50]"
         ), parse = TRUE, vjust = -1
       )
-#    https://github.com/slowkow/ggrepel/issues/153
-#    ggplot2::geom_point(data = plot_data[which.max(plot_data$diffmedian), ], shape = 21, 
-#                        fill = "#2c7bb6", size = 2, stroke = 1) +
-#    ggrepel::geom_text_repel(data = plot_data[which.max(plot_data$diffmedian), ],
-#                               aes(label = paste("+", plot_data[which.max(plot_data$diffmedian), ]$diffmedian, 
-#    "*mm~vs.~italic(P)[50]"), parse = TRUE), vjust = -1) 
+    #    https://github.com/slowkow/ggrepel/issues/153
+    #    ggplot2::geom_point(data = plot_data[which.max(plot_data$diffmedian), ], shape = 21,
+    #                        fill = "#2c7bb6", size = 2, stroke = 1) +
+    #    ggrepel::geom_text_repel(data = plot_data[which.max(plot_data$diffmedian), ],
+    #                               aes(label = paste("+", plot_data[which.max(plot_data$diffmedian), ]$diffmedian,
+    #    "*mm~vs.~italic(P)[50]"), parse = TRUE), vjust = -1)
   }
 
   # If there has been deficit of rain during the year

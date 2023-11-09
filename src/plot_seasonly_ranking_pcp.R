@@ -170,7 +170,7 @@ SeasonRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_ye
         ref_start_year, "-", ref_end_year, ")"
       ),
       caption = paste0(
-        "Updated: ", max_date, ", Source: AEMET OpenData, Graph: @Pcontreras95 (Twitter)"
+        "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"
       ),
       color = NULL, fill = NULL
     ) +
@@ -182,7 +182,7 @@ SeasonRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_ye
         fill = "white", color = "black",
         linewidth = 0.75
       ),
-      legend.position = c(0.1, 0.85),
+      legend.position = c(0.09, 0.875),
       legend.spacing = ggplot2::unit(0, "cm"),
       legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
       legend.text = ggtext::element_markdown()

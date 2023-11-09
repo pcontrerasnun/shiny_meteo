@@ -17,6 +17,8 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(ref_start_year, "-01-01")) &
       date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
+    dplyr::filter((date < as.Date(paste0(selected_year, "-01-01")) | # Not include year of study in calculations
+                     date > as.Date(paste0(selected_year, "-12-31")))) |>
     dplyr::group_by(day, month) |>
     dplyr::summarise(sumpcp = sum(pcp, na.rm = TRUE), n = n(), .groups = "keep") |>
     dplyr::ungroup() |>
@@ -24,14 +26,16 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
     dplyr::mutate(
       meanpcp = sumpcp / n,
       cummeanpcp = round(cumsum(ifelse(is.na(meanpcp), 0, meanpcp)), 1)
-    )
+    ) |> 
+    dplyr::as_tibble()
 
   # Calculate cumulative sum precipitation for selected year
   selected_year_pcp <- data |>
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(selected_year, "-01-01")) &
       date <= as.Date(paste0(selected_year, "-12-31"))) |>
-    dplyr::mutate(cumsumpcp = cumsum(tidyr::replace_na(pcp, 0)))
+    dplyr::mutate(cumsumpcp = cumsum(tidyr::replace_na(pcp, 0))) |> 
+    dplyr::as_tibble()
 
   # Join previous two datasets and create new columns 'diffmean' and 'date'
   plot_data <- left_join(reference_mean_pcp, selected_year_pcp, by = c("day", "month")) |>
@@ -39,16 +43,18 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
       day, month, cummeanpcp, cumsumpcp
     ) |>
     mutate(diffmean = cumsumpcp - cummeanpcp) |>
-    dplyr::mutate(date = as.Date(paste0(day, "-", month, "2023"), format = "%d-%m%Y")) |> # We choose
+    dplyr::mutate(date = as.Date(paste0(day, "-", month, "2023"), format = "%d-%m%Y")) # We choose
     # 2023 since it doesn't have 29th Feb, it doesn't matter what year we choose but it can't be
     # a leap year, otherwise it will plot NA values for 29th Feb
-    dplyr::as_tibble()
   
   # For annotating points
   annotate_data <- rbind(plot_data |> filter(!is.na(cumsumpcp)) |> slice_tail(n = 1), # Current pcp
                          subset(plot_data, diffmean == min(diffmean[diffmean < 0], na.rm = TRUE)), # Max deficit
                          subset(plot_data, diffmean == max(diffmean[diffmean > 0], na.rm = TRUE))) |> # Max superavit
-    dplyr::mutate(percentage = round(diffmean / cummeanpcp * 100))
+    dplyr::mutate(percentage = ifelse(diffmean > 0, paste0("x", round(cumsumpcp / cummeanpcp, 1)), 
+                                      paste0("/", round(cummeanpcp / cumsumpcp, 1)))) |> 
+    dplyr::mutate(percentage = ifelse(percentage == "/Inf", "-", percentage)) |> # Replace Inf with -
+    dplyr::mutate(percentage = ifelse(percentage %in% c("/1", "x1"), "=", percentage)) # Replace /1 and x1 with =
   
   # If there is superavit
   if (annotate_data[mlr3misc::which_max(annotate_data$cumsumpcp, ties_method = "last"), ]$diffmean > 0) {
@@ -59,13 +65,13 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
   
   annotate_labels <- data.frame(
     label = c(
-      paste0("'Precip. ", max(annotate_data$cumsumpcp), "mm\n(", sign, # Current precip.
+      paste0("atop(Precip.~", max(annotate_data$cumsumpcp), "*mm,", sign, # Current precip.
             annotate_data[mlr3misc::which_max(annotate_data$cumsumpcp, ties_method = "last"), ]$diffmean, # absolute diff
-            "mm, ", sign, annotate_data[which.max(annotate_data$date), ]$percentage, "%)'"), # % diff
+            "*mm.~", annotate_data[which.max(annotate_data$date), ]$percentage, ")"), # % diff
       if (sum(annotate_data$diffmean < 0) > 0) { # Only create label if there has been deficit
       paste(min(annotate_data$diffmean), "*mm~vs.~italic(mean)")},
       if (sum(annotate_data$diffmean > 0) > 0) { # Only create label if there has been superavit
-      paste("+", max(annotate_data$diffmean), "*mm~vs.~italic(mean)")}
+      paste0("+", max(annotate_data$diffmean), "*mm~vs.~italic(mean)")}
     )
   )
   
@@ -77,20 +83,42 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
   } else if (any(annotate_data$diffmean > 0)) {
     colors <- c("black", "#2c7bb6") # If only there has been superavit
   }
+  
+  # For ranking of days with most rain
+  ranking_days_most_pcp <- data |> 
+    dplyr::filter((date >= as.Date(paste0(ref_start_year, "-01-01")) &
+                     date <= as.Date(paste0(ref_end_year, "-12-31"))) |
+                    (date >= as.Date(paste0(as.numeric(selected_year), "-01-01")) &
+                       date <= as.Date(paste0(as.numeric(selected_year), "-12-31")))) |>
+    dplyr::arrange(-pcp)
 
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = date, y = cumsumpcp)) +
     ggplot2::geom_segment(aes(xend = date, yend = cummeanpcp, color = diffmean), linewidth = 1.2,
                           na.rm = TRUE) +
-    ggplot2::scale_color_gradient2(high = "#2c7bb6", mid = "white", low = "#d7191c") +
-    ggplot2::geom_line(linewidth = 0.85, lineend = "round", na.rm = TRUE) +
-    ggplot2::geom_line(aes(y = cummeanpcp), na.rm = TRUE) +
+    ggplot2::scale_color_gradient2(high = "#2c7bb6", mid = "white", low = "#d7191c", guide = guide_none()) +
+    ggplot2::geom_line(aes(linetype = "Cumsumpcp"), linewidth = 0.85, lineend = "round", na.rm = TRUE) +
+    ggplot2::geom_line(aes(y = cummeanpcp, linetype = "Cummeanpcp"), na.rm = TRUE, show.legend = FALSE) +
+    ggplot2::scale_linetype_manual(values = c("Cummeanpcp" = "longdash", "Cumsumpcp" = "solid"),
+                                   labels = c(paste0("Historical mean (", ref_start_year, "-", ref_end_year, ")"), 
+                                              selected_year)) +
     ggplot2::geom_point(data = annotate_data, fill = colors, 
                         size = 2, stroke = 1, shape = 21) +
-    ggrepel::geom_text_repel(data = annotate_data, aes(label = annotate_labels$label), parse = TRUE) +
+    ggrepel::geom_label_repel(data = annotate_data, aes(label = annotate_labels$label), parse = TRUE) +
+    ggplot2::annotate(geom = "richtext", x = min(plot_data$date, na.rm = TRUE) + 15, 
+                      y = max(plot_data$cumsumpcp, na.rm = TRUE) - 100, 
+                      label = paste0("**Ranking** (", ref_start_year, "-", ref_end_year, 
+                                     ")<br><br>", head(ranking_days_most_pcp, 1)$date, ": ", 
+                                     head(ranking_days_most_pcp, 1)$pcp, "mm<br>",
+                                     head(ranking_days_most_pcp, 2)[2,]$date, ": ", 
+                                     head(ranking_days_most_pcp, 2)[2,]$pcp, "mm<br>",
+                                     head(ranking_days_most_pcp, 3)[3,]$date, ": ", 
+                                     head(ranking_days_most_pcp, 3)[3,]$pcp, "mm"),
+                      family = "sans", hjust = -0.05, vjust = 0.5, label.size = 0.75,
+                      label.padding = unit(0.5, "lines")) + 
     ggplot2::scale_x_continuous(
       breaks = as.numeric(seq(ymd("2023-01-01"), ymd("2023-12-31"), by = "month")),
-      labels = format(seq(ymd("2023-01-01"), ymd("2023-12-31"), by = "month"), "%b"),
+      labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"),
       limits = c(as.numeric(ymd("2023-01-01")), as.numeric(ymd("2023-12-31"))),
       expand = ggplot2::expansion(mult = c(0.04, 0.05))
     ) +
@@ -114,13 +142,26 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
         ref_start_year, "-", ref_end_year, ")"
       ),
       caption = paste0(
-        "Updated: ", max_date, ", Source: AEMET OpenData, Graph: @Pcontreras95 (Twitter)"
+        "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"
       )
     ) +
     ggplot2::theme(
       plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),
-      plot.subtitle = ggplot2::element_text(hjust = 1, size = 25), legend.position = "none"
-    )
+      plot.subtitle = ggplot2::element_text(hjust = 1, size = 25), 
+      legend.background = ggplot2::element_blank(),
+      legend.box.background = ggplot2::element_rect(fill = "white", color = "black", linewidth = 0.75),
+      legend.position = c(0.095, 0.85),
+      legend.justification = c(0.095, 0.85),
+      legend.spacing = ggplot2::unit(0, "cm"),
+      legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
+      legend.title = element_blank(),
+      #legend.key.size = unit(0.9, "cm") # longdash is for instance indistingusihable from solid linetype
+    ) +
+    guides(linetype = guide_legend(override.aes = list(
+      linewidth = c(0.5, 0.85),
+      lineend = c("square", "round")
+    )))
 
   return(p)
 }
+
