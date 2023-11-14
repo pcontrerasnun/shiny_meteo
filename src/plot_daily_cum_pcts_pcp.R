@@ -33,7 +33,7 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
       cumq80pcp = round(quantile(cumsumpcp, probs = 0.80, na.rm = TRUE), 1),
       cumq95pcp = round(quantile(cumsumpcp, probs = 0.95, na.rm = TRUE), 1),
       cumq100pcp = round(quantile(cumsumpcp, probs = 1, na.rm = TRUE), 1),
-      .groups = "keep"
+      .groups = "keep" # .groups to avoid warnings
     ) |>
     dplyr::arrange(month, day) |>
     dplyr::as_tibble()

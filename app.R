@@ -6,9 +6,8 @@
 # - doc MonthlyPcpPlot
 # - añadir en leyenda very wet season (p80-p100), wet season (P60-P80)...
 # - doc SeasonRankingPcpPlot
-# - revisar torrencialidad, otoño 2023 deberia ser el max de la distrubcion
+# - revisar torrencialidad, otoño 2023 deberia ser el max de la distrubcion, darle una vuelta (total lluvia / num dias con lluvia)
 # - cajita en grafico temperatura con top 3 días mas cálidos y más frios
-# - intentar separar letra gamma grafico anual
 # - cajita tmp minima mas baja
 # - cajita tmp maxima mas alta
 # - mapa evolucion tmax a lo largo años, tmin a lo largo años, tmean a lo largo años
@@ -17,8 +16,7 @@
 # - doc MonthlyTmeanPlot
 # - leyenda dotted y solid en graficos 2 y 9
 # - doc DailyRollingTmeanPlot
-# - nuevo gráfico, num dias por año con mas de 30mm/dia desglosado por estación
-# - poner misma escala eje y en gráficos season
+# - poner misma escala eje y en gráficos season (y reducir breaks)
 # - en leyenda cumulativa monthly precip <selected_year>
 # - arreglar gráfico 2 para año 2022 y todo historico
 # - arreglar gráfico 10 para año 2022 y todo historico (creo q va a ser por missings)
@@ -26,6 +24,13 @@
 # - doc HighPcpDaysPlot
 # - grafico rolling mean temp añadir label con temp media del año y en leyenda meter periodo ref
 # - en gráfico pcp > 25mm si 2023 vs 1981-2010, poner 2023 junto a 2010 no a tomar por culo
+# - doc MonthlyAnomaliesPcpPlot
+# - en algun sitio meter num total de dias con lluvia en el año, o gráfico evolutivo (tbn mensual?)
+# - en gráfico torrencialidad winter, summer, spring, autumn primera letra en mayus
+# - arreglar gráfico overview para 2022/2021 (es por el num de circulos)
+# - doc OverviewPcpTempPlot
+# - doc AnualTmeanDistributionPlot
+# - estudiar hover sobre gráfico anual mean temp/pcp anomalies para conocer temp media exacta en un año en concreto
 
 library(shiny)
 library(shinyjs)
@@ -48,20 +53,8 @@ library(zoo)
 library(ggtext)
 
 # Code outside 'ui' and 'server' only runs once when app is launched
-source(here::here("src", "data_cleaning.R"))
-
-source(here::here("src", "plot_daily_cum_pcts_pcp.R"))
-source(here::here("src", "plot_daily_cum_pcp.R"))
-source(here::here("src", "plot_daily_25mm_pcp.R"))
-source(here::here("src", "plot_seasonly_pcp.R"))
-source(here::here("src", "plot_seasonly_ranking_pcp.R"))
-source(here::here("src", "plot_monthly_pcp.R"))
-source(here::here("src", "plot_monthly_ranking_pcp.R"))
-source(here::here("src", "plot_seasonly_intensity_pcp.R"))
-source(here::here("src", "plot_yearly_pcp.R"))
-
-source(here::here("src", "plot_monthly_tmean.R"))
-source(here::here("src", "plot_daily_rolling_tmean.R"))
+# Load all functions
+invisible(lapply(list.files(path = here::here("src"), full.names = TRUE), source))
 
 # Parameters
 station <- 3195
@@ -71,7 +64,7 @@ selected_year <- 2023
 # aemet_api_key('eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJwY29udHJlcjk1QGdtYWlsLmNvbSIsImp0aSI6ImQ0ODYzZWIzLWRmOWQtNDg4YS04OGFmLTU2NTlmZWE3MDBkNyIsImlzcyI6IkFFTUVUIiwiaWF0IjoxNjIzMTc0ODAwLCJ1c2VySWQiOiJkNDg2M2ViMy1kZjlkLTQ4OGEtODhhZi01NjU5ZmVhNzAwZDciLCJyb2xlIjoiIn0.YTDbbuMFmA-ygIvjqwqRbCEt2JRlE9V05iYZjhmX9lA',
 #              install = TRUE)
 
-#data <- aemet_daily_period(station = station, start = ref_start_year, end = ref_end_year)
+# data <- aemet_daily_period(station = station, start = ref_start_year, end = ref_end_year)
 data_clean <- DataCleaning(data)[[1]]
 max_date <- paste(DataCleaning(data)[[2]], "UTC")
 data_pcp <- data_clean |> # Remove years with more than 50% of pcp values missing
@@ -138,10 +131,15 @@ ui <- shiny::fluidPage(
           "5. Seasonal precip. (ranking)" = "5",
           "6. Monthly precip." = "6",
           "7. Monthly precip. (ranking)" = "7",
-          "8. Precip. intensity" = "8",
-          "9. Annual precip." = "9",
-          "10. Monthly mean temp. anomalies" = "10",
-          "11. Rolling daily mean temp." = "11"
+          "8. Monthly precip. (historical)" = "8",
+          "9. Precip. intensity" = "9",
+          "10. Annual precip. (distribution)" = "10",
+          "11. Monthly mean temp. anomalies" = "11",
+          "12. Rolling daily mean temp." = "12",
+          "13. Overview" = "13",
+          "14. Anual mean temp. (anomalies)" = "14",
+          "15. Anual mean temp. (distribution)" = "15",
+          "16. Anual precip. (anomalies)" = "16"
         )
       ),
       shiny::actionButton(
@@ -204,26 +202,48 @@ server <- function(input, output) {
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "8" = IntensityPcpPlot(
+      "8" = MonthlyAnomaliesPcpPlot(
+        data = data_pcp,
+        ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
+        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+        max_date = max_date
+      ),
+      "9" = IntensityPcpPlot(
         data = data_pcp, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "9" = YearlyPcpPlot(
-        data = data_pcp, selected_year = input$year,
-        ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
-        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
-        max_date = max_date
+      "10" = AnualPcpDistributionPlot(
+        data = data_pcp, max_date = max_date
       ),
-      "10" = MonthlyTmeanPlot(
+      "11" = MonthlyTmeanPlot(
         data = data_temp, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "11" = DailyRollingTmeanPlot(
+      "12" = DailyRollingTmeanPlot(
         data = data_temp, selected_year = input$year,
+        ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
+        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+        max_date = max_date
+      ),
+      "13" = OverviewPcpTempPlot(
+        data = data_clean, selected_year = input$year,
+        max_date = max_date
+      ),
+      "14" = AnualTmeanAnomaliesPlot(
+        data = data_temp,
+        ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
+        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+        max_date = max_date
+      ),
+      "15" = AnualTmeanDistributionPlot(
+        data = data_temp, max_date = max_date
+      ),
+      "16" = AnualPcpAnomaliesPlot(
+        data = data_pcp,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date

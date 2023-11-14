@@ -157,7 +157,7 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
       legend.title = element_blank(),
       #legend.key.size = unit(0.9, "cm") # longdash is for instance indistingusihable from solid linetype
     ) +
-    guides(linetype = guide_legend(override.aes = list(
+    ggplot2::guides(linetype = guide_legend(override.aes = list(
       linewidth = c(0.5, 0.85),
       lineend = c("square", "round")
     )))
