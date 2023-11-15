@@ -61,15 +61,20 @@ DailyRollingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_y
     ) +
     ggplot2::geom_line(aes(color = "selected_year"), linewidth = 0.85, lineend = "round", na.rm = TRUE) +
     ggplot2::scale_color_manual(values = c("selected_year" = "black"),
-                                label = paste0("Mean temp. ", selected_year)) +
+                                label = paste0("Daily mean temp. ", selected_year)) +
     ggplot2::scale_fill_manual(
       values = c("Very hot" = "#d7191c", "Hot" = "#fdae61", "Normal" = "white", "Cold" = "#abd9e9", "Very cold" = "#2c7bb6"), 
       breaks = c("Very hot", "Hot", "Normal", "Cold", "Very cold"), # To give order,
-      labels = c("Very hot" = expression(paste("Very hot (", italic(P[80]), " - ", italic(P[100]), ")")), 
-                 "Hot" = expression(paste("Hot (", italic(P[60]), " - ", italic(P[80]), ")")), 
-                 "Normal" = expression(paste("Normal (", italic(P[40]), " - ", italic(P[60]), ")")),
-                 "Cold" = expression(paste("Cold (", italic(P[20]), " - ", italic(P[40]), ")")),
-                 "Very cold" = expression(paste("Very cold (", italic(P[00]), " - ", italic(P[20]), ")"))),
+      labels = c("Very hot" = expr(paste("Very hot (", italic(P[80]), " - ", italic(P[100]), ") (", 
+                                               !!ref_start_year, " - ", !!ref_end_year, ")")), 
+                 "Hot" = expr(paste("Hot (", italic(P[60]), " - ", italic(P[80]), ") (", 
+                                          !!ref_start_year, " - ", !!ref_end_year, ")")), 
+                 "Normal" = expr(paste("Normal (", italic(P[40]), " - ", italic(P[60]), ") (", 
+                                             !!ref_start_year, " - ", !!ref_end_year, ")")),
+                 "Cold" = expr(paste("Cold (", italic(P[20]), " - ", italic(P[40]), ") (", 
+                                           !!ref_start_year, " - ", !!ref_end_year, ")")),
+                 "Very cold" = expr(paste("Very cold (", italic(P[00]), " - ", italic(P[20]), ") (", 
+                                                !!ref_start_year, " - ", !!ref_end_year, ")"))),
       guide = guide_legend(override.aes = list(colour = NA))
     ) +
     ggplot2::scale_x_continuous(
@@ -106,7 +111,7 @@ DailyRollingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_y
       x = "", y = "", title = paste0("Temperature in Madrid - Retiro ", selected_year),
       subtitle = paste0(
         "Rolling daily mean temperature vs. historical percentiles (",
-        ref_start_year, "-", ref_end_year, ")"
+        ref_start_year, " - ", ref_end_year, ")"
       ),
       caption = paste0(
         "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"

@@ -31,16 +31,16 @@ AnualTmeanAnomaliesPlot <- function(data, ref_start_year, ref_end_year, max_date
                    diff = y1 - y2)
   
   # Draw the plot
-  ggplot2::ggplot(data = plot_data, aes(x = year, y = tmean)) +
+  p <- ggplot2::ggplot(data = plot_data, aes(x = year, y = tmean)) +
     ggplot2::geom_segment(data = color_data, aes(x = x, y = y1, xend = x, yend = y2, color = diff),
                           linewidth = 1, na.rm = TRUE) +
     ggplot2::scale_color_gradient2(high = "#d7191c", mid = "white", low = "#2c7bb6", guide = guide_none()) +
     ggplot2::geom_line() +
-    ggplot2::geom_line(aes(y = q50tmean, group = 1, linetype = "q50")) +
+    ggplot2::geom_line(aes(y = q50tmean, linetype = "q50")) +
     ggplot2::geom_smooth(aes(linetype = "trend"), color = "blue", linewidth = 0.85,
                          method = lm, se = FALSE, na.rm = TRUE, show.legend = FALSE) + 
     ggplot2::scale_linetype_manual(values = c("q50" = "longdash", "trend" = "dotted"),
-                                   labels = c(paste0("Normal mean temp. (", ref_start_year, "-", ref_end_year, ")"),
+                                   labels = c(paste0("Normal mean temp. (", ref_start_year, " - ", ref_end_year, ")"),
                                               "Trend")) +
     ggrepel::geom_label_repel(data = rbind(head(plot_data, 3), tail(plot_data, 3)),
                               aes(y = tmean, label = paste0(ifelse(diffmedian > 0, "+", ""), diffmedian, "ºC"))) +
@@ -54,7 +54,7 @@ AnualTmeanAnomaliesPlot <- function(data, ref_start_year, ref_end_year, max_date
       x = "", y = "", title = "Temperature in Madrid - Retiro",
       subtitle = paste0(
         "Anual mean temperatures anomalies (",
-        ref_start_year, "-", ref_end_year, ")"
+        ref_start_year, " - ", ref_end_year, ")"
       ),
       caption = paste0(
         "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"

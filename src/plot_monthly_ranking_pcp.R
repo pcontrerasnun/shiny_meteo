@@ -133,7 +133,7 @@ MonthlyRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_y
       x = "", y = "", title = paste0("Precipitation in Madrid - Retiro ", selected_year),
       subtitle = paste0(
         "Ranking monthly precipitation vs. historical values (",
-        ref_start_year, "-", ref_end_year, ")"
+        ref_start_year, " - ", ref_end_year, ")"
       ),
       caption = paste0(
         "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"

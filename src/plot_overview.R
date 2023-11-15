@@ -7,13 +7,13 @@ OverviewPcpTempPlot <- function(data, selected_year, max_date) {
     dplyr::arrange(-pcp)
   
   # Temperature data
-  plot_data_tmp <- data |> 
+  plot_data_temp <- data |> 
     dplyr::filter(date >= as.Date(paste0(as.numeric(selected_year), "-01-01")) & 
                     date <= as.Date(paste0(as.numeric(selected_year), "-12-31")))
   
   # Draw the plot
-  ggplot2::ggplot(data = plot_data_pcp, aes(x = date)) +
-    ggplot2::geom_violin(data = plot_data_tmp, aes(y = tmean, group = month), fill = "orange", 
+  p <- ggplot2::ggplot(data = plot_data_pcp, aes(x = date)) +
+    ggplot2::geom_violin(data = plot_data_temp, aes(y = tmean, group = month), fill = "orange", 
                          alpha = 0.5, na.rm = TRUE) +
     ggplot2::geom_point(aes(y = pcp, size = pcp, color = pcp), alpha = 0.5) +
     ggplot2::scale_size(breaks = c(0.1, 5, 10, 25, 60), name = "Precipitation", range = c(2, 20),
@@ -24,10 +24,10 @@ OverviewPcpTempPlot <- function(data, selected_year, max_date) {
     ggplot2::scale_y_continuous(labels = function(x) paste0(x, "ºC/mm"),
                                 breaks = seq(from = 0, to = max(
                                   max(plot_data_pcp$pcp, na.rm = TRUE),
-                                  max(plot_data_tmp$tmean, na.rm = TRUE)) + 7, by = 5),
+                                  max(plot_data_temp$tmean, na.rm = TRUE)) + 7, by = 5),
                                 limits = c(0, max(
                                   max(plot_data_pcp$pcp, na.rm = TRUE),
-                                  max(plot_data_tmp$tmean, na.rm = TRUE)) + 7)) +
+                                  max(plot_data_temp$tmean, na.rm = TRUE)) + 7)) +
     ggplot2::scale_x_continuous(
       breaks = as.numeric(seq(ymd(paste0(selected_year, "-01-01")), 
                               ymd(paste0(selected_year, "-12-31")), by = "month")),

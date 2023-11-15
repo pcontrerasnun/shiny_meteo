@@ -69,8 +69,8 @@ MonthlyPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, ma
         "P40" = "Dry month", "P80" = "Wet month",
         "P100" = "Very wet month", "P60" = "Normal month"
       ),
-      breaks = c("P100", "P80", "P60", "P40", "P20", "P00")
-    ) + # To give order
+      breaks = c("P100", "P80", "P60", "P40", "P20", "P00") # To give order
+    ) + 
     ggplot2::scale_x_discrete(
       limits = c(
         "01", "02", "03", "04", "05", "06", "07", "08",
@@ -94,7 +94,7 @@ MonthlyPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, ma
       x = "", y = "", title = paste0("Precipitation in Madrid - Retiro ", selected_year),
       subtitle = paste0(
         "Monthly precipitation vs. historical values (",
-        ref_start_year, "-", ref_end_year, ")"
+        ref_start_year, " - ", ref_end_year, ")"
       ),
       caption = paste0(
         "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"

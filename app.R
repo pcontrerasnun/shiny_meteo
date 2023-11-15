@@ -27,10 +27,19 @@
 # - doc MonthlyAnomaliesPcpPlot
 # - en algun sitio meter num total de dias con lluvia en el año, o gráfico evolutivo (tbn mensual?)
 # - en gráfico torrencialidad winter, summer, spring, autumn primera letra en mayus
-# - arreglar gráfico overview para 2022/2021 (es por el num de circulos)
+# - arreglar gráfico overview para 2022/2021 (es por el num de circulos) o 2023 con 1991 - 2020
 # - doc OverviewPcpTempPlot
 # - doc AnualTmeanDistributionPlot
 # - estudiar hover sobre gráfico anual mean temp/pcp anomalies para conocer temp media exacta en un año en concreto
+# - doc MonthlyAnomaliesTmeanPlot
+# - arreglar anual mean temperatures anomalies 2023 1991-2010
+# - n days < p40, n days > p60
+# - cambiar medias por medianas
+# - doc DailyTmeanPlot
+# - monthly temp anomalies añadir leyenda y ºC a las labels
+# - arreglar grafico 2 1995 all available data
+# - arreglar legend position rolling daily tmean
+# - arreglar grafico 18 para 1995 all available data y meter orden en leyenda porq 1995 aparece abajo
 
 library(shiny)
 library(shinyjs)
@@ -139,7 +148,10 @@ ui <- shiny::fluidPage(
           "13. Overview" = "13",
           "14. Anual mean temp. (anomalies)" = "14",
           "15. Anual mean temp. (distribution)" = "15",
-          "16. Anual precip. (anomalies)" = "16"
+          "16. Anual precip. (anomalies)" = "16",
+          "17. Monthly mean temp. (historical)" = "17",
+          "18. Daily mean temp. (vs. percentiles)" = "18",
+          "19. Daily mean temp. (anomalies)" = "19"
         )
       ),
       shiny::actionButton(
@@ -149,7 +161,8 @@ ui <- shiny::fluidPage(
     ),
     shiny::mainPanel(
       width = 9,
-      shiny::plotOutput("plot", height = "800px")
+      shiny::plotOutput("plot", height = "800px", click = "plot_click"),
+      shiny::verbatimTextOutput("info")
     )
   )
 )
@@ -247,13 +260,39 @@ server <- function(input, output) {
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
+      ),
+      "17" = MonthlyAnomaliesTmeanPlot(
+        data = data_temp,
+        ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
+        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+        max_date = max_date
+      ),
+      "18" = DailyTmeanPlot(
+        data = data_temp, selected_year = input$year,
+        ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
+        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+        max_date = max_date
+      ),
+      "19" = DailyTmeanAnomaliesPlot(
+        data = data_temp, selected_year = input$year,
+        ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
+        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+        max_date = max_date
       )
     )
   })
 
+  # Display plot
   output$plot <- shiny::renderPlot({
+    #plot()[[1]]
     plot()
   })
+  
+  # Display values
+#  output$info <- shiny::renderPrint({
+#    #input$plot_click
+#    nearPoints(plot()[[2]], input$plot_click, maxpoints = 1, xvar = plot()[[3]], yvar = plot()[[4]])
+#  })
 
 }
 

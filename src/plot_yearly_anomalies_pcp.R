@@ -54,7 +54,7 @@ AnualPcpAnomaliesPlot <- function(data, ref_start_year, ref_end_year, max_date) 
       x = "", y = "", title = "Precipitation in Madrid - Retiro",
       subtitle = paste0(
         "Anual total precipitation anomalies (",
-        ref_start_year, "-", ref_end_year, ")"
+        ref_start_year, " - ", ref_end_year, ")"
       ),
       caption = paste0(
         "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"
@@ -75,5 +75,5 @@ AnualPcpAnomaliesPlot <- function(data, ref_start_year, ref_end_year, max_date) 
       color = c("black", "blue"),
       linewidth = c(0.5, 0.85))))
   
-  return(p)
+  return(list(p, plot_data, "year", "pcp"))
 }

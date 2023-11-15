@@ -59,7 +59,7 @@ MonthlyTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, 
       x = "", y = "", title = paste0("Temperature in Madrid - Retiro ", selected_year),
       subtitle = paste0(
         "Monthly mean temperature anomalies vs. historical mean (",
-        ref_start_year, "-", ref_end_year, ")"
+        ref_start_year, " - ", ref_end_year, ")"
       ),
       caption = paste0(
         "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"

@@ -52,7 +52,7 @@ AnualPcpDistributionPlot <- function(data, max_date) {
       x = "", y = "", title = "Precipitation in Madrid - Retiro ",
       subtitle = paste0(
         "Anual total precipitation distribution (",
-        min(plot_data$year), "-", max(plot_data$year), ")"
+        min(plot_data$year), " - ", max(plot_data$year), ")"
       ),
       caption = paste0(
         "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"
