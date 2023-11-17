@@ -65,18 +65,18 @@ MonthlyPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, ma
     ggplot2::scale_fill_manual(
       values = c("P100" = "#abd9e9", "P80" = "#e0f3f8", "P60" = "white", "P40" = "#fee090", 
                  "P20" = "#fdae61", "P00" = "#f46d43"),
-      labels = c("P100" = expr(paste("Very wet month (", italic(P[80]), " - ", italic(P[100]), ") (", 
-                                     !!ref_start_year, " - ", !!ref_end_year, ")")), 
-                 "P80" = expr(paste("Wet month (", italic(P[60]), " - ", italic(P[80]), ") (", 
-                                    !!ref_start_year, " - ", !!ref_end_year, ")")), 
-                 "P60" = expr(paste("Normal month (", italic(P[40]), " - ", italic(P[60]), ") (", 
-                                    !!ref_start_year, " - ", !!ref_end_year, ")")),
-                 "P40" = expr(paste("Dry month (", italic(P[20]), " - ", italic(P[40]), ") (", 
-                                    !!ref_start_year, " - ", !!ref_end_year, ")")),
-                 "P20" = expr(paste("Very dry month (", italic(P[00]), " - ", italic(P[20]), ") (", 
-                                    !!ref_start_year, " - ", !!ref_end_year, ")")),
+      labels = c("P100" = expr(paste("Very wet month (", italic(P[80]), "-", italic(P[100]), ") (", 
+                                     !!ref_start_year, "-", !!ref_end_year, ")")), 
+                 "P80" = expr(paste("Wet month (", italic(P[60]), "-", italic(P[80]), ") (", 
+                                    !!ref_start_year, "-", !!ref_end_year, ")")), 
+                 "P60" = expr(paste("Normal month (", italic(P[40]), "-", italic(P[60]), ") (", 
+                                    !!ref_start_year, "-", !!ref_end_year, ")")),
+                 "P40" = expr(paste("Dry month (", italic(P[20]), "-", italic(P[40]), ") (", 
+                                    !!ref_start_year, "-", !!ref_end_year, ")")),
+                 "P20" = expr(paste("Very dry month (", italic(P[00]), "-", italic(P[20]), ") (", 
+                                    !!ref_start_year, "-", !!ref_end_year, ")")),
                  "P00" = expr(paste("Extrem. dry month (<", italic(P[00]), ") (", 
-                                    !!ref_start_year, " - ", !!ref_end_year, ")"))),
+                                    !!ref_start_year, "-", !!ref_end_year, ")"))),
       breaks = c("P100", "P80", "P60", "P40", "P20", "P00")) + # to give order
     ggplot2::scale_x_discrete(
       limits = c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"),
@@ -88,7 +88,7 @@ MonthlyPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, ma
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
       x = "", y = "", title = paste0("Precipitation in Madrid - Retiro ", selected_year),
-      subtitle = paste0("Monthly precipitation vs. historical percentiles (", ref_start_year, " - ", ref_end_year, ")"),
+      subtitle = paste0("Monthly precipitation vs. historical percentiles (", ref_start_year, "-", ref_end_year, ")"),
       caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"),
       color = NULL, fill = NULL
     ) +

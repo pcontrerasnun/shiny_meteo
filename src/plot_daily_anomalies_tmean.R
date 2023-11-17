@@ -54,9 +54,9 @@ DailyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_end
     ggplot2::geom_line(aes(y = q95tmean, linetype = "q95"), na.rm = TRUE) +
     ggplot2::scale_linetype_manual(values = c("q50" = "longdash", "q05" = "dotted", "q95" = "dotted",
                                               "tmean" = "solid"),
-                                   labels = c("q50" = paste0("Normal mean temp. (", ref_start_year, " - ", ref_end_year, ")"),
-                                              "q05" = expr(paste(italic(P[5]), " (", !!ref_start_year, " - ", !!ref_end_year, ")")),
-                                              "q95" = expr(paste(italic(P[95]), " (", !!ref_start_year, " - ", !!ref_end_year, ")")),
+                                   labels = c("q50" = paste0("Normal mean temp. (", ref_start_year, "-", ref_end_year, ")"),
+                                              "q05" = expr(paste(italic(P[5]), " (", !!ref_start_year, "-", !!ref_end_year, ")")),
+                                              "q95" = expr(paste(italic(P[95]), " (", !!ref_start_year, "-", !!ref_end_year, ")")),
                                               "tmean" = paste0("Daily mean temp. (", selected_year, ")")),
                                    breaks = c("q95", "q50", "tmean", "q05")) + # To give order
     ggrepel::geom_label_repel(data = rbind(head(plot_data, 3), tail(plot_data |> na.omit(), 3)),
@@ -77,7 +77,7 @@ DailyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_end
       x = "", y = "", title = "Temperature in Madrid - Retiro",
       subtitle = paste0(
         "Daily mean temperatures anomalies vs historical median (",
-        ref_start_year, " - ", ref_end_year, ")"
+        ref_start_year, "-", ref_end_year, ")"
       ),
       caption = paste0(
         "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"

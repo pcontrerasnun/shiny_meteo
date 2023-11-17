@@ -126,25 +126,25 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
     ggplot2::geom_text(aes(y = seasoncumsumpcp, label = diffq50pcp_x), vjust = -1.5, na.rm = TRUE, size = 3.5) +
     ggplot2::scale_color_manual(
       values = c("cumq50pcp" = "#d7191c"),
-      labels = c("cumq50pcp" = paste0("Cumulative seasonal median precip. (", ref_start_year, " - ", 
+      labels = c("cumq50pcp" = paste0("Cumulative seasonal median precip. (", ref_start_year, "-", 
                                       ref_end_year, ")"))) +
     ggplot2::scale_fill_manual(
       values = c("seasoncumsumpcp" = "#2c7bb6", "P100" = "#abd9e9",
                  "P80" = "#e0f3f8", "P60" = "white", "P40" = "#fee090", "P20" = "#fdae61",
                  "P00" = "#f46d43"), 
       labels = c("seasoncumsumpcp" = paste0("Cumulative seasonal precip. (", selected_year, ")"),
-                 "P100" = expr(paste("Very wet season (", italic(P[80]), " - ", italic(P[100]), ") (", 
-                                     !!ref_start_year, " - ", !!ref_end_year, ")")), 
-                 "P80" = expr(paste("Wet season (", italic(P[60]), " - ", italic(P[80]), ") (", 
-                                    !!ref_start_year, " - ", !!ref_end_year, ")")), 
-                 "P60" = expr(paste("Normal season (", italic(P[40]), " - ", italic(P[60]), ") (", 
-                                    !!ref_start_year, " - ", !!ref_end_year, ")")),
-                 "P40" = expr(paste("Dry season (", italic(P[20]), " - ", italic(P[40]), ") (", 
-                                    !!ref_start_year, " - ", !!ref_end_year, ")")),
-                 "P20" = expr(paste("Very dry season (", italic(P[00]), " - ", italic(P[20]), ") (", 
-                                    !!ref_start_year, " - ", !!ref_end_year, ")")),
+                 "P100" = expr(paste("Very wet season (", italic(P[80]), "-", italic(P[100]), ") (", 
+                                     !!ref_start_year, "-", !!ref_end_year, ")")), 
+                 "P80" = expr(paste("Wet season (", italic(P[60]), "-", italic(P[80]), ") (", 
+                                    !!ref_start_year, "-", !!ref_end_year, ")")), 
+                 "P60" = expr(paste("Normal season (", italic(P[40]), "-", italic(P[60]), ") (", 
+                                    !!ref_start_year, "-", !!ref_end_year, ")")),
+                 "P40" = expr(paste("Dry season (", italic(P[20]), "-", italic(P[40]), ") (", 
+                                    !!ref_start_year, "-", !!ref_end_year, ")")),
+                 "P20" = expr(paste("Very dry season (", italic(P[00]), "-", italic(P[20]), ") (", 
+                                    !!ref_start_year, "-", !!ref_end_year, ")")),
                  "P00" = expr(paste("Extrem. dry season (<", italic(P[00]), ") (", 
-                                    !!ref_start_year, " - ", !!ref_end_year, ")"))),
+                                    !!ref_start_year, "-", !!ref_end_year, ")"))),
       breaks = c("P100", "P80", "P60", "P40", "P20", "P00", "seasoncumsumpcp") # To give order
     ) +
     ggplot2::scale_x_discrete(
@@ -167,7 +167,7 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
       x = "", y = "", title = paste0("Precipitation in Madrid - Retiro ", selected_year),
       subtitle = paste0(
         "Cumulative seasonal precipitation vs. historical percentiles (",
-        ref_start_year, " - ", ref_end_year, ")"),
+        ref_start_year, "-", ref_end_year, ")"),
       caption = paste0(
         "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"),
       color = NULL, fill = NULL) +

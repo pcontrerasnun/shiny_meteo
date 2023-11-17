@@ -28,7 +28,7 @@ MonthlyAnomaliesTmeanPlot <- function(data, ref_start_year, ref_end_year, max_da
   
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = year, y = tmean)) +
-    ggplot2::geom_line(aes(group = 1), show.legend = FALSE) +
+    ggplot2::geom_line(aes(color = "tmean"), show.legend = FALSE) +
     ggplot2::geom_line(aes(y = q50tmean, color = "q50"), linetype = "dashed") +
     ggplot2::geom_smooth(aes(color = "trend", group = month), linetype = "solid", linewidth = 0.5,
                          method = lm, se = FALSE, na.rm = TRUE, show.legend = FALSE) + 
@@ -36,9 +36,10 @@ MonthlyAnomaliesTmeanPlot <- function(data, ref_start_year, ref_end_year, max_da
                                                                    "04" = "Apr", "05" = "May", "06" = "Jun", 
                                                                    "07" = "Jul", "08" = "Aug", "09" = "Sep", 
                                                                    "10" = "Oct", "11" = "Nov", "12" = "Dec"))) +
-    ggplot2::scale_color_manual(values = c("trend" = "blue", "q50" = "black"), 
-                                labels = c("trend" = "Trend", 
-                                           "q50" = paste0("Median mean temp. (", ref_start_year, "-", ref_end_year, ")"))) +
+    ggplot2::scale_color_manual(values = c("trend" = "blue", "q50" = "black", "tmean" = "black"), 
+                                labels = c("trend" = "Trend", "tmean" = "Monthly mean temp.",
+                                           "q50" = paste0("Median mean temp. (", ref_start_year, "-", ref_end_year, ")")),
+                                breaks = c("tmean", "q50", "trend")) +
     ggplot2::scale_x_continuous(breaks = seq(from = min(plot_data$year), to = max(plot_data$year), by = 10)) +
     ggplot2::scale_y_continuous(labels = function(x) paste0(x, "ºC"),
                                 breaks = seq(from = round(min(plot_data$tmean, na.rm = TRUE), digits = -1),
@@ -48,7 +49,7 @@ MonthlyAnomaliesTmeanPlot <- function(data, ref_start_year, ref_end_year, max_da
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
       x = "", y = "", title = "Temperature in Madrid - Retiro",
-      subtitle = paste0("Historical monthly mean temperature (", ref_start_year, " - ", ref_end_year, ")"),
+      subtitle = paste0("Historical monthly mean temperature (", ref_start_year, "-", ref_end_year, ")"),
       caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"),
       color = NULL, fill = NULL) +
     ggplot2::theme(
@@ -66,8 +67,8 @@ MonthlyAnomaliesTmeanPlot <- function(data, ref_start_year, ref_end_year, max_da
       legend.title = element_blank(),
       axis.text.x = element_text(angle = 0, size = 10)
     ) +
-    ggplot2::guides(color = guide_legend(override.aes = list(linetype = c("dashed", "solid"),
-                                                             linewidth = c(0.5, 0.85))))
+    ggplot2::guides(color = guide_legend(override.aes = list(linetype = c("solid", "dashed", "solid"),
+                                                             linewidth = c(0.5, 0.5, 0.85))))
   
   return(p)
 }

@@ -43,7 +43,7 @@ MonthlyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_e
     ggplot2::scale_linetype_manual(values = c("tmean" = "solid", "tmean_ref" = "longdash"),
                                    labels = c("tmean" = paste0("Monthly mean temp. (", selected_year, ")"),
                                               "tmean_ref" = paste0("Monthly mean temp. (", ref_start_year, 
-                                                                   " - ", ref_end_year, ")"))) +
+                                                                   "-", ref_end_year, ")"))) +
     ggplot2::geom_point(na.rm = TRUE) +
     ggrepel::geom_label_repel(aes(label = paste0(tano_label, "ºC")), segment.color = NA, na.rm = TRUE) +
     ggplot2::scale_x_continuous(breaks = seq(1, 12), 
@@ -63,7 +63,7 @@ MonthlyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_e
       x = "", y = "", title = paste0("Temperature in Madrid - Retiro ", selected_year),
       subtitle = paste0(
         "Monthly mean temperature anomalies vs. historical mean (",
-        ref_start_year, " - ", ref_end_year, ")"
+        ref_start_year, "-", ref_end_year, ")"
       ),
       caption = paste0(
         "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"

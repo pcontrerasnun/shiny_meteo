@@ -54,7 +54,7 @@ AnnualPcpAnomaliesPlot <- function(data, ref_start_year, ref_end_year, max_date)
       x = "", y = "", title = "Precipitation in Madrid - Retiro",
       subtitle = paste0(
         "Annual total precipitation anomalies vs. historical median (",
-        ref_start_year, " - ", ref_end_year, ")"
+        ref_start_year, "-", ref_end_year, ")"
       ),
       caption = paste0(
         "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"

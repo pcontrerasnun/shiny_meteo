@@ -59,16 +59,16 @@ DailyTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, ma
       values = c("P100" = "#d7191c", "P80" = "#fdae61", "P60" = "white",
                  "P40" = "#abd9e9", "P20" = "#2c7bb6"),
       breaks = c("P100", "P80", "P60", "P40", "P20"), # To give order
-      labels = c("P100" = expr(paste("Very hot day (", italic(P[80]), " - ", italic(P[100]), ") (", 
-                                     !!ref_start_year, " - ", !!ref_end_year, ")")), 
-                 "P80" = expr(paste("Hot day (", italic(P[60]), " - ", italic(P[80]), ") (", 
-                                    !!ref_start_year, " - ", !!ref_end_year, ")")), 
-                 "P60" = expr(paste("Normal day (", italic(P[40]), " - ", italic(P[60]), ") (", 
-                                    !!ref_start_year, " - ", !!ref_end_year, ")")),
-                 "P40" = expr(paste("Cold day (", italic(P[20]), " - ", italic(P[40]), ") (", 
-                                    !!ref_start_year, " - ", !!ref_end_year, ")")),
-                 "P20" = expr(paste("Very cold day (", italic(P[00]), " - ", italic(P[20]), ") (", 
-                                    !!ref_start_year, " - ", !!ref_end_year, ")"))),
+      labels = c("P100" = expr(paste("Very hot day (", italic(P[80]), "-", italic(P[100]), ") (", 
+                                     !!ref_start_year, "-", !!ref_end_year, ")")), 
+                 "P80" = expr(paste("Hot day (", italic(P[60]), "-", italic(P[80]), ") (", 
+                                    !!ref_start_year, "-", !!ref_end_year, ")")), 
+                 "P60" = expr(paste("Normal day (", italic(P[40]), "-", italic(P[60]), ") (", 
+                                    !!ref_start_year, "-", !!ref_end_year, ")")),
+                 "P40" = expr(paste("Cold day (", italic(P[20]), "-", italic(P[40]), ") (", 
+                                    !!ref_start_year, "-", !!ref_end_year, ")")),
+                 "P20" = expr(paste("Very cold day (", italic(P[00]), "-", italic(P[20]), ") (", 
+                                    !!ref_start_year, "-", !!ref_end_year, ")"))),
       guide = guide_legend(override.aes = list(colour = NA), order = 2)) +
     ggplot2::scale_x_continuous(
       breaks = as.numeric(seq(ymd("2023-01-01"), ymd("2023-12-31"), by = "month")),
@@ -86,7 +86,7 @@ DailyTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, ma
     ggplot2::labs(
       x = "", y = "", title = paste0("Temperature in Madrid - Retiro ", selected_year),
       subtitle = paste0(
-        "Daily mean temperature vs. historical percentiles (", ref_start_year, " - ", ref_end_year, ")"),
+        "Daily mean temperature vs. historical percentiles (", ref_start_year, "-", ref_end_year, ")"),
       caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)")
     ) +
     ggplot2::theme(

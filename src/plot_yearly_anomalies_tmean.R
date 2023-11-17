@@ -40,7 +40,7 @@ AnnualTmeanAnomaliesPlot <- function(data, ref_start_year, ref_end_year, max_dat
     ggplot2::geom_smooth(aes(linetype = "trend"), color = "blue", linewidth = 0.85,
                          method = lm, se = FALSE, na.rm = TRUE, show.legend = FALSE) + 
     ggplot2::scale_linetype_manual(values = c("q50" = "longdash", "trend" = "dotted", "tmean" = "solid"),
-                                   labels = c("q50" = paste0("Annual normal mean temp. (", ref_start_year, " - ", ref_end_year, ")"),
+                                   labels = c("q50" = paste0("Annual normal mean temp. (", ref_start_year, "-", ref_end_year, ")"),
                                               "trend" = "Trend", "tmean" = "Annual mean temp."),
                                    breaks = c("tmean", "q50", "trend")) + # to give order
     ggrepel::geom_label_repel(data = rbind(head(plot_data, 3), tail(plot_data, 3)),
@@ -55,7 +55,7 @@ AnnualTmeanAnomaliesPlot <- function(data, ref_start_year, ref_end_year, max_dat
       x = "", y = "", title = "Temperature in Madrid - Retiro",
       subtitle = paste0(
         "Annual mean temperatures anomalies vs. historical median (",
-        ref_start_year, " - ", ref_end_year, ")"
+        ref_start_year, "-", ref_end_year, ")"
       ),
       caption = paste0(
         "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"

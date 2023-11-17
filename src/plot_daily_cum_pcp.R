@@ -139,7 +139,7 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
       x = "", y = "", title = paste0("Precipitation in Madrid - Retiro ", selected_year),
       subtitle = paste0(
         "Cumulative daily precipitation vs. historical mean (",
-        ref_start_year, " - ", ref_end_year, ")"
+        ref_start_year, "-", ref_end_year, ")"
       ),
       caption = paste0(
         "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"
