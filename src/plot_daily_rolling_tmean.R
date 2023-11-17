@@ -28,6 +28,7 @@ DailyRollingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_y
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(selected_year, "-01-01")) &
       date <= as.Date(paste0(selected_year, "-12-31"))) |>
+    dplyr::filter(complete.cases(tmean)) |> 
     dplyr::group_by(year) |>
     dplyr::mutate(tmean_acumulated = round(cumsum(tmean) / row_number(), 1)) |>
     dplyr::as_tibble()
@@ -38,30 +39,27 @@ DailyRollingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_y
       day, month, tmean_acumulated, cumq00tmean, cumq05tmean, cumq20tmean, cumq40tmean,
       cumq50tmean, cumq60tmean, cumq80tmean, cumq95tmean, cumq100tmean
     ) |>
-    dplyr::mutate(date = as.Date(paste0(day, "-", month, "2023"), format = "%d-%m%Y")) # We choose
+    dplyr::mutate(date = as.Date(paste0(day, "-", month, "2023"), format = "%d-%m%Y")) |> # We choose
   # 2023 since it doesn't have 29th Feb, it doesn't matter what year we choose but it can't be
   # a leap year
+    dplyr::arrange(date)
 
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = date, y = tmean_acumulated)) +
     ggplot2::geom_ribbon(aes(ymin = cumq80tmean, ymax = cumq100tmean, fill = "Very hot"),
-      alpha = 0.3, color = "#d7191c", linetype = "51", lineend = "round", linejoin = "round"
-    ) +
+      alpha = 0.3, color = "#d7191c", linetype = "51", lineend = "round", linejoin = "round") +
     ggplot2::geom_ribbon(aes(ymin = cumq60tmean, ymax = cumq80tmean, fill = "Hot"),
-      alpha = 0.1, color = "#fdae61", linetype = "51", lineend = "round", linejoin = "round"
-    ) +
+      alpha = 0.1, color = "#fdae61", linetype = "51", lineend = "round", linejoin = "round") +
     ggplot2::geom_ribbon(aes(ymin = cumq40tmean, ymax = cumq60tmean, fill = "Normal"),
-      alpha = 0.1, linetype = "51", lineend = "round", linejoin = "round"
-    ) +
+      alpha = 0.1, linetype = "51", lineend = "round", linejoin = "round") +
     ggplot2::geom_ribbon(aes(ymin = cumq20tmean, ymax = cumq40tmean, fill = "Cold"),
-      alpha = 0.1, color = "#abd9e9", linetype = "51", lineend = "round", linejoin = "round"
-    ) +
+      alpha = 0.1, color = "#abd9e9", linetype = "51", lineend = "round", linejoin = "round") +
     ggplot2::geom_ribbon(aes(ymin = cumq00tmean, ymax = cumq20tmean, fill = "Very cold"),
-      alpha = 0.3, color = "#2c7bb6", linetype = "51", lineend = "round", linejoin = "round"
-    ) +
+      alpha = 0.3, color = "#2c7bb6", linetype = "51", lineend = "round", linejoin = "round") +
     ggplot2::geom_line(aes(color = "selected_year"), linewidth = 0.85, lineend = "round", na.rm = TRUE) +
+    ggrepel::geom_label_repel(data = tail(na.omit(plot_data), 1), aes(label = paste0(tmean_acumulated, "ºC"))) +
     ggplot2::scale_color_manual(values = c("selected_year" = "black"),
-                                label = paste0("Daily mean temp. ", selected_year)) +
+                                label = paste0("Daily mean temp. (", selected_year, ")"), guide = guide_legend(order = 1)) +
     ggplot2::scale_fill_manual(
       values = c("Very hot" = "#d7191c", "Hot" = "#fdae61", "Normal" = "white", "Cold" = "#abd9e9", "Very cold" = "#2c7bb6"), 
       breaks = c("Very hot", "Hot", "Normal", "Cold", "Very cold"), # To give order,
@@ -75,7 +73,7 @@ DailyRollingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_y
                                            !!ref_start_year, " - ", !!ref_end_year, ")")),
                  "Very cold" = expr(paste("Very cold (", italic(P[00]), " - ", italic(P[20]), ") (", 
                                                 !!ref_start_year, " - ", !!ref_end_year, ")"))),
-      guide = guide_legend(override.aes = list(colour = NA))
+      guide = guide_legend(override.aes = list(colour = NA), guide = guide_legend(order = 2))
     ) +
     ggplot2::scale_x_continuous(
       breaks = as.numeric(seq(ymd("2023-01-01"), ymd("2023-12-31"), by = "month")),
@@ -122,7 +120,7 @@ DailyRollingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_y
       plot.subtitle = ggplot2::element_text(hjust = 1, size = 25),
       legend.background = ggplot2::element_blank(),
       legend.box.background = ggplot2::element_rect(fill = "white", color = "black", linewidth = 0.75),
-      legend.position = c(0.075, 0.85),
+      legend.position = c(0.125, 0.8),
       legend.spacing = ggplot2::unit(0, "cm"),
       legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
       legend.title = element_blank(),

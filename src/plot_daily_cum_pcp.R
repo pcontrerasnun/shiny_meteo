@@ -52,9 +52,9 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
                          subset(plot_data, diffmean == min(diffmean[diffmean < 0], na.rm = TRUE)), # Max deficit
                          subset(plot_data, diffmean == max(diffmean[diffmean > 0], na.rm = TRUE))) |> # Max superavit
     dplyr::mutate(percentage = ifelse(diffmean > 0, paste0("x", round(cumsumpcp / cummeanpcp, 1)), 
-                                      paste0("/", round(cummeanpcp / cumsumpcp, 1)))) |> 
+                                      paste0("phantom()/", round(cummeanpcp / cumsumpcp, 1)))) |> 
     dplyr::mutate(percentage = ifelse(percentage == "/Inf", "-", percentage)) |> # Replace Inf with -
-    dplyr::mutate(percentage = ifelse(percentage %in% c("/1", "x1"), "=", percentage)) # Replace /1 and x1 with =
+    dplyr::mutate(percentage = ifelse(percentage %in% c("phantom()/1", "x1"), "phantom()==phantom()", percentage)) # Replace /1 and x1 with =
   
   # If there is superavit
   if (annotate_data[mlr3misc::which_max(annotate_data$cumsumpcp, ties_method = "last"), ]$diffmean > 0) {
@@ -65,9 +65,9 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
   
   annotate_labels <- data.frame(
     label = c(
-      paste0("atop(Precip.~", max(annotate_data$cumsumpcp), "*mm,", sign, # Current precip.
+      paste0("atop(Precip.~", max(annotate_data$cumsumpcp), "*mm,list(", sign, # Current precip.
             annotate_data[mlr3misc::which_max(annotate_data$cumsumpcp, ties_method = "last"), ]$diffmean, # absolute diff
-            "*mm.~", annotate_data[which.max(annotate_data$date), ]$percentage, ")"), # % diff
+            "*mm,", annotate_data[which.max(annotate_data$date), ]$percentage, "))"), # % diff
       if (sum(annotate_data$diffmean < 0) > 0) { # Only create label if there has been deficit
       paste(min(annotate_data$diffmean), "*mm~vs.~italic(mean)")},
       if (sum(annotate_data$diffmean > 0) > 0) { # Only create label if there has been superavit
@@ -154,8 +154,7 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
       legend.justification = c(0.095, 0.85),
       legend.spacing = ggplot2::unit(0, "cm"),
       legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
-      legend.title = element_blank(),
-      #legend.key.size = unit(0.9, "cm") # longdash is for instance indistingusihable from solid linetype
+      legend.title = element_blank()
     ) +
     ggplot2::guides(linetype = guide_legend(override.aes = list(
       linewidth = c(0.5, 0.85),

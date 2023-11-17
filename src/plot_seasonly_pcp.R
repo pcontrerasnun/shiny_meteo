@@ -119,28 +119,33 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
     ggh4x::geom_box(aes(ymin = cumq60pcp, ymax = cumq80pcp, fill = "P80", width = 0.9), alpha = 0.5) +
     ggh4x::geom_box(aes(ymin = cumq80pcp, ymax = cumq100pcp, fill = "P100", width = 0.9), alpha = 0.5) +
     # https://github.com/tidyverse/ggplot2/issues/3532
-    ggplot2::geom_col(aes(y = seasoncumsumpcp, fill = "Cumulative seasonal precip."), na.rm = TRUE) +
-    ggplot2::geom_col(aes(y = cumq50pcp, color = "Historical cumulative seasonal median precip."),
-      fill = NA, linewidth = 1
-    ) +
+    ggplot2::geom_col(aes(y = seasoncumsumpcp, fill = "seasoncumsumpcp"), na.rm = TRUE) +
+    ggplot2::geom_col(aes(y = cumq50pcp, color = "cumq50pcp"), fill = NA, linewidth = 1) +
     ggplot2::geom_text(aes(y = seasoncumsumpcp, label = paste(diffq50pcp, "*mm~vs.~italic(P)[50]")), 
                        parse = TRUE, vjust = -2.5, na.rm = TRUE, size = 3.5) +
     ggplot2::geom_text(aes(y = seasoncumsumpcp, label = diffq50pcp_x), vjust = -1.5, na.rm = TRUE, size = 3.5) +
     ggplot2::scale_color_manual(
-      breaks = c("Historical cumulative seasonal median precip."),
-      values = c("Historical cumulative seasonal median precip." = "#d7191c")
-    ) +
+      values = c("cumq50pcp" = "#d7191c"),
+      labels = c("cumq50pcp" = paste0("Cumulative seasonal median precip. (", ref_start_year, " - ", 
+                                      ref_end_year, ")"))) +
     ggplot2::scale_fill_manual(
-      values = c("Cumulative seasonal precip." = "#2c7bb6", "P100" = "#abd9e9",
+      values = c("seasoncumsumpcp" = "#2c7bb6", "P100" = "#abd9e9",
                  "P80" = "#e0f3f8", "P60" = "white", "P40" = "#fee090", "P20" = "#fdae61",
                  "P00" = "#f46d43"), 
-      labels = c(
-        "Cumulative seasonal precip." =
-          glue::glue("<span style = 'color: #2c7bb6; '>Cumulative seasonal precip.</span>"),
-        "P00" = "Extrem. dry season", "P20" = "Very dry season", "P40" = "Dry season",
-        "P80" = "Wet season", "P100" = "Very wet season", "P60" = "Normal season"
-      ),
-      breaks = c("P100", "P80", "P60", "P40", "P20", "P00", "Cumulative seasonal precip.") # To give order
+      labels = c("seasoncumsumpcp" = paste0("Cumulative seasonal precip. (", selected_year, ")"),
+                 "P100" = expr(paste("Very wet season (", italic(P[80]), " - ", italic(P[100]), ") (", 
+                                     !!ref_start_year, " - ", !!ref_end_year, ")")), 
+                 "P80" = expr(paste("Wet season (", italic(P[60]), " - ", italic(P[80]), ") (", 
+                                    !!ref_start_year, " - ", !!ref_end_year, ")")), 
+                 "P60" = expr(paste("Normal season (", italic(P[40]), " - ", italic(P[60]), ") (", 
+                                    !!ref_start_year, " - ", !!ref_end_year, ")")),
+                 "P40" = expr(paste("Dry season (", italic(P[20]), " - ", italic(P[40]), ") (", 
+                                    !!ref_start_year, " - ", !!ref_end_year, ")")),
+                 "P20" = expr(paste("Very dry season (", italic(P[00]), " - ", italic(P[20]), ") (", 
+                                    !!ref_start_year, " - ", !!ref_end_year, ")")),
+                 "P00" = expr(paste("Extrem. dry season (<", italic(P[00]), ") (", 
+                                    !!ref_start_year, " - ", !!ref_end_year, ")"))),
+      breaks = c("P100", "P80", "P60", "P40", "P20", "P00", "seasoncumsumpcp") # To give order
     ) +
     ggplot2::scale_x_discrete(
       limits = plot_data$row,
@@ -155,31 +160,25 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
       labels = function(x) paste0(x, "mm"),
       breaks = seq(
         from = 0, to = max(max(plot_data$cumq100pcp), max(plot_data$seasoncumsumpcp, na.rm = TRUE))
-        + 125, by = 25
-      ),
-      limits = c(0, max(max(plot_data$cumq100pcp), max(plot_data$seasoncumsumpcp, na.rm = TRUE)) + 125)
-    ) + # expand = c(0, 20, 0, 50)
+        + 125, by = 50),
+      limits = c(0, max(max(plot_data$cumq100pcp), max(plot_data$seasoncumsumpcp, na.rm = TRUE)) + 100)) + # expand = c(0, 20, 0, 50)
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
       x = "", y = "", title = paste0("Precipitation in Madrid - Retiro ", selected_year),
       subtitle = paste0(
-        "Cumulative seasonal precipitation vs. historical values (",
-        ref_start_year, " - ", ref_end_year, ")"
-      ),
+        "Cumulative seasonal precipitation vs. historical percentiles (",
+        ref_start_year, " - ", ref_end_year, ")"),
       caption = paste0(
-        "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"
-      ),
-      color = NULL, fill = NULL
-    ) +
+        "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"),
+      color = NULL, fill = NULL) +
     ggplot2::theme(
       plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),
       plot.subtitle = ggplot2::element_text(hjust = 1, size = 25),
       legend.background = ggplot2::element_blank(),
       legend.box.background = ggplot2::element_rect(fill = "white", color = "black", linewidth = 0.75),
-      legend.position = c(0.125, 0.85),
+      legend.position = c(0.15, 0.85),
       legend.spacing = ggplot2::unit(0, "cm"),
       legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
-      legend.text = ggtext::element_markdown()
     )
 
   return(p)

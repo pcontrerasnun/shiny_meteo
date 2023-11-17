@@ -50,7 +50,8 @@ MonthlyAnomaliesPcpPlot <- function(data, ref_start_year, ref_end_year, max_date
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
       x = "", y = "", title = "Precipitation in Madrid - Retiro",
-      subtitle = paste0("Historical monthly precipitation (", ref_start_year, " - ", ref_end_year, ")"),
+      subtitle = paste0("Historical monthly precipitation vs. historical median (",
+                        ref_start_year, " - ", ref_end_year, ")"),
       caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"),
       color = NULL, fill = NULL) +
     ggplot2::theme(

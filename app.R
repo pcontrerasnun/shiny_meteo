@@ -3,43 +3,29 @@
 # - documentar funcion YearlyPcpPlot
 # - versiones librerias, rproj?
 # - añadir cabecera doc al archivo app.R
-# - doc MonthlyPcpPlot
-# - añadir en leyenda very wet season (p80-p100), wet season (P60-P80)...
-# - doc SeasonRankingPcpPlot
+# - docmumentar funciones sin documentar
 # - revisar torrencialidad, otoño 2023 deberia ser el max de la distrubcion, darle una vuelta (total lluvia / num dias con lluvia)
 # - cajita en grafico temperatura con top 3 días mas cálidos y más frios
 # - cajita tmp minima mas baja
 # - cajita tmp maxima mas alta
 # - mapa evolucion tmax a lo largo años, tmin a lo largo años, tmean a lo largo años
-# - en gráfico 1 y 2 meses están en minus y en español
 # - theme temperatura dominic royé
-# - doc MonthlyTmeanPlot
 # - leyenda dotted y solid en graficos 2 y 9
-# - doc DailyRollingTmeanPlot
 # - poner misma escala eje y en gráficos season (y reducir breaks)
 # - en leyenda cumulativa monthly precip <selected_year>
-# - arreglar gráfico 2 para año 2022 y todo historico
-# - arreglar gráfico 10 para año 2022 y todo historico (creo q va a ser por missings)
-# - en leyendas, poner circulos en vez de cuadrados
-# - doc HighPcpDaysPlot
-# - grafico rolling mean temp añadir label con temp media del año y en leyenda meter periodo ref
 # - en gráfico pcp > 25mm si 2023 vs 1981-2010, poner 2023 junto a 2010 no a tomar por culo
-# - doc MonthlyAnomaliesPcpPlot
 # - en algun sitio meter num total de dias con lluvia en el año, o gráfico evolutivo (tbn mensual?)
 # - en gráfico torrencialidad winter, summer, spring, autumn primera letra en mayus
-# - arreglar gráfico overview para 2022/2021 (es por el num de circulos) o 2023 con 1991 - 2020
-# - doc OverviewPcpTempPlot
-# - doc AnualTmeanDistributionPlot
-# - estudiar hover sobre gráfico anual mean temp/pcp anomalies para conocer temp media exacta en un año en concreto
-# - doc MonthlyAnomaliesTmeanPlot
-# - arreglar anual mean temperatures anomalies 2023 1991-2010
+# - estudiar hover sobre gráfico annual mean temp/pcp anomalies para conocer temp media exacta en un año en concreto
 # - n days < p40, n days > p60
 # - cambiar medias por medianas
-# - doc DailyTmeanPlot
-# - monthly temp anomalies añadir leyenda y ºC a las labels
-# - arreglar grafico 2 1995 all available data
-# - arreglar legend position rolling daily tmean
-# - arreglar grafico 18 para 1995 all available data y meter orden en leyenda porq 1995 aparece abajo
+# - cambiar +/- por +/- de plotmath
+# - "percentiles" por "values" en titulos?
+# - gráfico 19 me chirrian p5 y p95 (daily mean temp anomalies)
+# - preguntar SO por annotate box junto a leyenda
+# - nuevo grafico temp perceetniles hoy extremo
+# - nuevo grafico cuanto dura invierno
+# - num dias seguidos de lluvia
 
 library(shiny)
 library(shinyjs)
@@ -146,9 +132,9 @@ ui <- shiny::fluidPage(
           "11. Monthly mean temp. anomalies" = "11",
           "12. Rolling daily mean temp." = "12",
           "13. Overview" = "13",
-          "14. Anual mean temp. (anomalies)" = "14",
-          "15. Anual mean temp. (distribution)" = "15",
-          "16. Anual precip. (anomalies)" = "16",
+          "14. Annual mean temp. (anomalies)" = "14",
+          "15. Annual mean temp. (distribution)" = "15",
+          "16. Annual precip. (anomalies)" = "16",
           "17. Monthly mean temp. (historical)" = "17",
           "18. Daily mean temp. (vs. percentiles)" = "18",
           "19. Daily mean temp. (anomalies)" = "19"
@@ -227,10 +213,10 @@ server <- function(input, output) {
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "10" = AnualPcpDistributionPlot(
+      "10" = AnnualPcpDistributionPlot(
         data = data_pcp, max_date = max_date
       ),
-      "11" = MonthlyTmeanPlot(
+      "11" = MonthlyTmeanAnomaliesPlot(
         data = data_temp, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
@@ -246,16 +232,16 @@ server <- function(input, output) {
         data = data_clean, selected_year = input$year,
         max_date = max_date
       ),
-      "14" = AnualTmeanAnomaliesPlot(
+      "14" = AnnualTmeanAnomaliesPlot(
         data = data_temp,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "15" = AnualTmeanDistributionPlot(
+      "15" = AnnualTmeanDistributionPlot(
         data = data_temp, max_date = max_date
       ),
-      "16" = AnualPcpAnomaliesPlot(
+      "16" = AnnualPcpAnomaliesPlot(
         data = data_pcp,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),

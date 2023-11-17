@@ -48,8 +48,11 @@ MonthlyPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, ma
     ggh4x::geom_box(aes(ymin = q40pcp, ymax = q60pcp, fill = "P60", width = 0.9), alpha = 0.5) +
     ggh4x::geom_box(aes(ymin = q60pcp, ymax = q80pcp, fill = "P80", width = 0.9), alpha = 0.5) +
     ggh4x::geom_box(aes(ymin = q80pcp, ymax = q100pcp, fill = "P100", width = 0.9), alpha = 0.5) +
-    ggplot2::geom_segment(aes(x = month, xend = month, y = 0, yend = sumpcp), na.rm = TRUE) +
-    ggplot2::geom_point(aes(y = sumpcp), na.rm = TRUE) +
+    ggplot2::geom_segment(aes(x = month, xend = month, y = 0, yend = sumpcp, color = "sumpcp"), na.rm = TRUE) +
+    ggplot2::scale_color_manual(values = c("sumpcp" = "black"),
+                                label = paste0("Monthly total precip. (", selected_year, ")"), 
+                                guide = guide_legend(order = 1)) +
+    ggplot2::geom_point(aes(y = sumpcp, color = "sumpcp"), na.rm = TRUE) +
     ggplot2::geom_text(aes(y = sumpcp, label = paste(diffq50pcp, "*mm~vs.~italic(P)[50]")), 
                        parse = TRUE, vjust = -2.5, na.rm = TRUE) +
     ggplot2::geom_text(aes(y = sumpcp, label = diffq50pcp_x), vjust = -1.5, na.rm = TRUE) +
@@ -60,59 +63,44 @@ MonthlyPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, ma
 #      label = selected_year, family = "sans", fontface = "bold", hjust = -0.25, vjust = -0.7
 #    ) +
     ggplot2::scale_fill_manual(
-      values = c(
-        "P100" = "#abd9e9", "P80" = "#e0f3f8", "P60" = "white",
-        "P40" = "#fee090", "P20" = "#fdae61", "P00" = "#f46d43"
-      ),
-      labels = c(
-        "P00" = "Extrem. dry month", "P20" = "Very dry month",
-        "P40" = "Dry month", "P80" = "Wet month",
-        "P100" = "Very wet month", "P60" = "Normal month"
-      ),
-      breaks = c("P100", "P80", "P60", "P40", "P20", "P00") # To give order
-    ) + 
+      values = c("P100" = "#abd9e9", "P80" = "#e0f3f8", "P60" = "white", "P40" = "#fee090", 
+                 "P20" = "#fdae61", "P00" = "#f46d43"),
+      labels = c("P100" = expr(paste("Very wet month (", italic(P[80]), " - ", italic(P[100]), ") (", 
+                                     !!ref_start_year, " - ", !!ref_end_year, ")")), 
+                 "P80" = expr(paste("Wet month (", italic(P[60]), " - ", italic(P[80]), ") (", 
+                                    !!ref_start_year, " - ", !!ref_end_year, ")")), 
+                 "P60" = expr(paste("Normal month (", italic(P[40]), " - ", italic(P[60]), ") (", 
+                                    !!ref_start_year, " - ", !!ref_end_year, ")")),
+                 "P40" = expr(paste("Dry month (", italic(P[20]), " - ", italic(P[40]), ") (", 
+                                    !!ref_start_year, " - ", !!ref_end_year, ")")),
+                 "P20" = expr(paste("Very dry month (", italic(P[00]), " - ", italic(P[20]), ") (", 
+                                    !!ref_start_year, " - ", !!ref_end_year, ")")),
+                 "P00" = expr(paste("Extrem. dry month (<", italic(P[00]), ") (", 
+                                    !!ref_start_year, " - ", !!ref_end_year, ")"))),
+      breaks = c("P100", "P80", "P60", "P40", "P20", "P00")) + # to give order
     ggplot2::scale_x_discrete(
-      limits = c(
-        "01", "02", "03", "04", "05", "06", "07", "08",
-        "09", "10", "11", "12"
-      ),
-      labels = c(
-        "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug",
-        "Sep", "Oct", "Nov", "Dec"
-      )
-    ) +
+      limits = c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"),
+      labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")) +
     ggplot2::scale_y_continuous(
       labels = function(x) paste0(x, "mm"),
-      breaks = seq(
-        from = 0, to = max(max(plot_data$q100pcp), max(plot_data$sumpcp, na.rm = TRUE))
-        + 50, by = 25
-      ),
-      limits = c(0, max(max(plot_data$q100pcp), max(plot_data$sumpcp, na.rm = TRUE)) + 50)
-    ) +
+      breaks = seq(from = 0, to = max(max(plot_data$q100pcp), max(plot_data$sumpcp, na.rm = TRUE)) + 125, by = 50),
+      limits = c(0, max(max(plot_data$q100pcp), max(plot_data$sumpcp, na.rm = TRUE)) + 100)) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
       x = "", y = "", title = paste0("Precipitation in Madrid - Retiro ", selected_year),
-      subtitle = paste0(
-        "Monthly precipitation vs. historical values (",
-        ref_start_year, " - ", ref_end_year, ")"
-      ),
-      caption = paste0(
-        "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"
-      ),
+      subtitle = paste0("Monthly precipitation vs. historical percentiles (", ref_start_year, " - ", ref_end_year, ")"),
+      caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"),
       color = NULL, fill = NULL
     ) +
     ggplot2::theme(
       plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),
       plot.subtitle = ggplot2::element_text(hjust = 1, size = 25),
       legend.background = ggplot2::element_blank(),
-      legend.box.background = ggplot2::element_rect(
-        fill = "white", color = "black",
-        linewidth = 0.75
-      ),
-      legend.position = c(0.075, 0.85),
+      legend.box.background = ggplot2::element_rect(fill = "white", color = "black", linewidth = 0.75),
+      legend.position = c(0.125, 0.85),
       legend.spacing = ggplot2::unit(0, "cm"),
       legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
-      legend.text = ggtext::element_markdown()
+      legend.title = ggplot2::element_blank()
     )
   
   return(p)

@@ -1,7 +1,7 @@
 
-AnualTmeanDistributionPlot <- function(data, max_date) {
+AnnualTmeanDistributionPlot <- function(data, max_date) {
   # Calculate mean temperature by year
-  reference_anual_tmean <- data |>
+  reference_annual_tmean <- data |>
     dtplyr::lazy_dt() |>
     dplyr::group_by(year) |> 
     dplyr::summarise(tmean = mean(tmean, na.rm = TRUE)) |> 
@@ -9,7 +9,7 @@ AnualTmeanDistributionPlot <- function(data, max_date) {
     dplyr::arrange(tmean)
   
   # Calculate histogram data
-  h <- hist(reference_anual_tmean$tmean, breaks = 10, freq = FALSE)
+  h <- hist(reference_annual_tmean$tmean, breaks = 10, freq = FALSE)
   df_points = data.frame(
     x = unlist(sapply(1:length(h$mids), function(i) rep(h$mids[i], each = h$counts[i]))), # pcp value (x)
     y = unlist(sapply(1:length(h$mids), function(i) seq(0 + 0.009, h$density[i] - 0.009,  length.out = h$counts[i]))) 
@@ -17,7 +17,7 @@ AnualTmeanDistributionPlot <- function(data, max_date) {
   )
   
   # Join data
-  plot_data <- cbind(df_points, reference_anual_tmean)
+  plot_data <- cbind(df_points, reference_annual_tmean)
   
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = tmean)) +
@@ -30,7 +30,7 @@ AnualTmeanDistributionPlot <- function(data, max_date) {
     ggplot2::labs(
       x = "", y = "", title = "Temperature in Madrid - Retiro",
       subtitle = paste0(
-        "Anual mean temperatures distribution (",
+        "Annual mean temperatures distribution (",
         min(plot_data$year), " - ", max(plot_data$year), ")"
       ),
       caption = paste0(

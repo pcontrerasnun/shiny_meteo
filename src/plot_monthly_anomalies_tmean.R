@@ -1,7 +1,7 @@
 
-MonthlyTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
+MonthlyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
   # Calculate mean temperature for each month
-  reference_monthly_tmean <- data |>     
+  reference_monthly_tmean <- data_temp |>     
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(ref_start_year, "-01-01")) &
                     date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
@@ -12,7 +12,7 @@ MonthlyTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, 
     dplyr::as_tibble()
   
   # Calculate mean temperature for each month in selected year
-  selected_year_tmean <- data |> 
+  selected_year_tmean <- data_temp |> 
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(selected_year, "-01-01")) &
                     date <= as.Date(paste0(selected_year, "-12-31"))) |>
@@ -28,7 +28,7 @@ MonthlyTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, 
   
   # Create a bunch of point to color plot with geom_segment()
   color_data <- plot_data |> 
-    dplyr::reframe(x = seq(1, 12, length = 500),
+    dplyr::reframe(x = seq(1, 12, length = 1000),
             y1 = approx(month, tmean, xout = x)$y,
             y2 = approx(month, tmean_ref, xout = x)$y,
             diff = y1 - y2)
@@ -37,11 +37,15 @@ MonthlyTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, 
   p <- ggplot2::ggplot(data = plot_data, aes(x = month, y = tmean, group = 1)) +
     ggplot2::geom_segment(data = color_data, aes(x = x, y = y1, xend = x, yend = y2, color = diff),
                  linewidth = 1, na.rm = TRUE) +
-    ggplot2::scale_color_gradient2(high = "#d7191c", mid = "white", low = "#2c7bb6") +
-    ggplot2::geom_line(linewidth = 0.85, lineend = "round", na.rm = TRUE) +
-    ggplot2::geom_line(aes(y = tmean_ref, group = 1), linetype = "longdash", na.rm = TRUE) +
+    ggplot2::scale_color_gradient2(high = "#d7191c", mid = "white", low = "#2c7bb6", guide = guide_none()) +
+    ggplot2::geom_line(aes(linetype = "tmean"), linewidth = 0.85, lineend = "round", na.rm = TRUE) +
+    ggplot2::geom_line(aes(y = tmean_ref, linetype = "tmean_ref"), na.rm = TRUE, show.legend = FALSE) +
+    ggplot2::scale_linetype_manual(values = c("tmean" = "solid", "tmean_ref" = "longdash"),
+                                   labels = c("tmean" = paste0("Monthly mean temp. (", selected_year, ")"),
+                                              "tmean_ref" = paste0("Monthly mean temp. (", ref_start_year, 
+                                                                   " - ", ref_end_year, ")"))) +
     ggplot2::geom_point(na.rm = TRUE) +
-    ggrepel::geom_label_repel(aes(label = tano_label), segment.color = NA, na.rm = TRUE) +
+    ggrepel::geom_label_repel(aes(label = paste0(tano_label, "ºC")), segment.color = NA, na.rm = TRUE) +
     ggplot2::scale_x_continuous(breaks = seq(1, 12), 
                                 labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug",
                                 "Sep", "Oct", "Nov", "Dec")) +
@@ -67,9 +71,18 @@ MonthlyTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, 
     ) +
     ggplot2::theme(
       plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),
-      plot.subtitle = ggplot2::element_text(hjust = 1, size = 25), 
-      legend.position = "none"
-    )
+      plot.subtitle = ggplot2::element_text(hjust = 1, size = 25),
+      legend.background = ggplot2::element_blank(),
+      legend.box.background = ggplot2::element_rect(fill = "white", color = "black", linewidth = 0.75),
+      legend.position = c(0.125, 0.85),
+      legend.spacing = ggplot2::unit(0, "cm"),
+      legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
+      legend.title = element_blank()
+    ) +
+    ggplot2::guides(linetype = guide_legend(override.aes = list(
+      linewidth = c(0.75, 0.5),
+      lineend = c("square", "round")
+    )))
   
   return(p)
 }

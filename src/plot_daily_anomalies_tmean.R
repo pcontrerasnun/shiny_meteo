@@ -25,11 +25,11 @@ DailyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_end
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(selected_year, "-01-01")) &
                     date <= as.Date(paste0(selected_year, "-12-31"))) |>
-    dplyr::select(date, tmean) |> 
+    dplyr::select(day, month, tmean) |> 
     dplyr::as_tibble()
   
   # Join data and calculate anomalies (diff with median)
-  plot_data <- dplyr::left_join(reference_daily_pcts_tmean, selected_year_daily_tmean, by = "date") |> 
+  plot_data <- dplyr::left_join(reference_daily_pcts_tmean, selected_year_daily_tmean, by = c("day", "month")) |> 
     dplyr::mutate(diffmedian = round(tmean - q50tmean, 1)) |> 
     dplyr::arrange(-diffmedian) |> 
     dplyr::select(date, q05tmean, q50tmean, q95tmean, tmean, diffmedian)
@@ -39,22 +39,26 @@ DailyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_end
     dplyr::reframe(x = seq(min(plot_data$date, na.rm = TRUE), max(plot_data$date, na.rm = TRUE), length = 1000),
                    y1 = approx(date, tmean, xout = x)$y,
                    y2 = approx(date, q50tmean, xout = x)$y,
-                   diff = y1 - y2)
+                   diff = y1 - y2) |> 
+    # Remove dates also not present in plot_data to be consistent
+    dplyr::filter(!(as.character(x) %in% as.character(plot_data$date[is.na(plot_data$tmean)])))
   
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = date, y = tmean)) +
     ggplot2::geom_segment(data = color_data, aes(x = x, y = y1, xend = x, yend = y2, color = diff),
                           linewidth = 1, na.rm = TRUE) +
     ggplot2::scale_color_gradient2(high = "#d7191c", mid = "white", low = "#2c7bb6", guide = guide_none()) +
-    ggplot2::geom_line(linewidth = 0.65, na.rm = TRUE) +
+    ggplot2::geom_line(aes(linetype = "tmean"), linewidth = 0.65, na.rm = TRUE, show.legend = FALSE) +
     ggplot2::geom_line(aes(y = q50tmean, linetype = "q50"), na.rm = TRUE) +
     ggplot2::geom_line(aes(y = q05tmean, linetype = "q05"), na.rm = TRUE) +
     ggplot2::geom_line(aes(y = q95tmean, linetype = "q95"), na.rm = TRUE) +
-    ggplot2::scale_linetype_manual(values = c("q50" = "longdash", "q05" = "dotted", "q95" = "dotted"),
+    ggplot2::scale_linetype_manual(values = c("q50" = "longdash", "q05" = "dotted", "q95" = "dotted",
+                                              "tmean" = "solid"),
                                    labels = c("q50" = paste0("Normal mean temp. (", ref_start_year, " - ", ref_end_year, ")"),
                                               "q05" = expr(paste(italic(P[5]), " (", !!ref_start_year, " - ", !!ref_end_year, ")")),
-                                              "q95" = expr(paste(italic(P[95]), " (", !!ref_start_year, " - ", !!ref_end_year, ")"))),
-                                   breaks = c("q95", "q50", "q05")) + # To give order
+                                              "q95" = expr(paste(italic(P[95]), " (", !!ref_start_year, " - ", !!ref_end_year, ")")),
+                                              "tmean" = paste0("Daily mean temp. (", selected_year, ")")),
+                                   breaks = c("q95", "q50", "tmean", "q05")) + # To give order
     ggrepel::geom_label_repel(data = rbind(head(plot_data, 3), tail(plot_data |> na.omit(), 3)),
                               aes(y = tmean, label = paste0(ifelse(diffmedian > 0, "+", ""), diffmedian, "ºC")),
                               na.rm = TRUE) +
@@ -72,7 +76,7 @@ DailyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_end
     ggplot2::labs(
       x = "", y = "", title = "Temperature in Madrid - Retiro",
       subtitle = paste0(
-        "Daily mean temperatures anomalies (",
+        "Daily mean temperatures anomalies vs historical median (",
         ref_start_year, " - ", ref_end_year, ")"
       ),
       caption = paste0(

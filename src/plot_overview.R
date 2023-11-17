@@ -37,23 +37,22 @@ OverviewPcpTempPlot <- function(data, selected_year, max_date) {
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
       x = "", y = "", title = paste0("Precipitation and temperature in Madrid - Retiro ", selected_year),
-      subtitle = paste0("Daily precipitation and mean temperature"),
+      subtitle = paste0("Daily precipitation and daily mean temperature"),
       caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)")) +
     ggplot2::theme(
       plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),
       plot.subtitle = ggplot2::element_text(hjust = 1, size = 25), 
       legend.background = ggplot2::element_blank(),
       legend.box.background = ggplot2::element_rect(fill = "white", color = "black", linewidth = 0.75),
-      legend.position = c(0.095, 0.85),
-      legend.justification = c(0.095, 0.85),
+      legend.position = c(0.095, 0.75),
       legend.spacing = ggplot2::unit(0, "cm"),
       legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
-      legend.title = element_blank()) 
+      legend.title = element_blank()) +
     ggplot2::guides(
       size = guide_legend(override.aes = list(color = c("#6baed6", "#4292c6", "#2171b5", "#08519c", 
                                                         "#08306b")[1:cut(head(plot_data_pcp$pcp, 1), 
-                                                                          breaks = c(0.1, 5, 10, 25, 60), 
-                                                                          labels = FALSE, 
+                                                                          breaks = c(0.1, 5, 10, 25, 60, Inf), 
+                                                                          labels = FALSE, right = FALSE,
                                                                           include.lowest = TRUE)]))
       # The cut() is to adapt number of colors to number of groups depending on max pcp in the year
       )

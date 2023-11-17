@@ -19,7 +19,7 @@ DataCleaning <- function(data) {
   
   last_data <- data.frame()
   
-  for (i in files) {
+  for (i in tail(files, 8)) { # only 8 last files, enough to fill the gap of 4 days
     tmp <- read.csv(paste0(path, i))
     last_data <- rbind(last_data, tmp)
   }
