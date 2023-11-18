@@ -1,6 +1,5 @@
 # TODO:
-# - active style para todos scripts
-# - documentar funcion YearlyPcpPlot
+# - <freq> <stat> <metric>
 # - versiones librerias, rproj?
 # - añadir cabecera doc al archivo app.R
 # - docmumentar funciones sin documentar
@@ -8,11 +7,7 @@
 # - cajita en grafico temperatura con top 3 días mas cálidos y más frios
 # - cajita tmp minima mas baja
 # - cajita tmp maxima mas alta
-# - mapa evolucion tmax a lo largo años, tmin a lo largo años, tmean a lo largo años
 # - theme temperatura dominic royé
-# - leyenda dotted y solid en graficos 2 y 9
-# - poner misma escala eje y en gráficos season (y reducir breaks)
-# - en leyenda cumulativa monthly precip <selected_year>
 # - en gráfico pcp > 25mm si 2023 vs 1981-2010, poner 2023 junto a 2010 no a tomar por culo
 # - en algun sitio meter num total de dias con lluvia en el año, o gráfico evolutivo (tbn mensual?)
 # - en gráfico torrencialidad winter, summer, spring, autumn primera letra en mayus
@@ -25,6 +20,7 @@
 # - preguntar SO por annotate box junto a leyenda
 # - nuevo grafico temp perceetniles hoy extremo
 # - nuevo grafico cuanto dura invierno
+# - nuevo grafico overview twitter grafico dividido en 4
 # - num dias seguidos de lluvia
 
 library(shiny)
@@ -116,29 +112,14 @@ ui <- shiny::fluidPage(
         )
       ),
       shiny::selectInput(
+        inputId = "variable",
+        label = "Variable",
+        choices = c("Mean temperature", "Precipitation")
+      ),
+      shiny::selectInput(
         inputId = "plot",
         label = "Metric",
-        choices = c(
-          "1. Cumulative daily precip. vs. percentiles" = "1",
-          "2. Cumulative daily precip. vs. avg" = "2",
-          "3. Number of days with more than 25mm of precip." = "3",
-          "4. Seasonal precip." = "4",
-          "5. Seasonal precip. (ranking)" = "5",
-          "6. Monthly precip." = "6",
-          "7. Monthly precip. (ranking)" = "7",
-          "8. Monthly precip. (historical)" = "8",
-          "9. Precip. intensity" = "9",
-          "10. Annual precip. (distribution)" = "10",
-          "11. Monthly mean temp. anomalies" = "11",
-          "12. Rolling daily mean temp." = "12",
-          "13. Overview" = "13",
-          "14. Annual mean temp. (anomalies)" = "14",
-          "15. Annual mean temp. (distribution)" = "15",
-          "16. Annual precip. (anomalies)" = "16",
-          "17. Monthly mean temp. (historical)" = "17",
-          "18. Daily mean temp. (vs. percentiles)" = "18",
-          "19. Daily mean temp. (anomalies)" = "19"
-        )
+        choices = NULL
       ),
       shiny::actionButton(
         inputId = "updatePlot",
@@ -154,112 +135,145 @@ ui <- shiny::fluidPage(
 )
 
 # Define server logic ----
-server <- function(input, output) {
+server <- function(input, output, session) {
+  # Update plot selection depending on variable selection
+  observe({
+    if (input$variable == "Mean temperature") {
+      plot_choices <- c(
+        "1. Overview" = "1",
+        "2. Daily rolling mean temp." = "2-tmean",
+        "3. Daily mean temp. (vs. percentiles)" = "3-tmean",
+        "4. Daily mean temp. (anomalies)" = "4-tmean",
+        "5. Monthly mean temp. (anomalies)" = "5-tmean",
+        "6. Monthly mean temp. (historical)" = "6-tmean",
+        "7. Annual mean temp. (anomalies)" = "7-tmean",
+        "8. Annual mean temp. (distribution)" = "8-tmean"
+      )
+    } else if (input$variable == "Precipitation") {
+      plot_choices <- c(
+        "1. Overview" = "1",
+        "2. Daily cumulative precip. (vs. percentiles)" = "2-pcp",
+        "3. Daily cumulative precip. (vs. mean)" = "3-pcp",
+        "4. Number of days with more than 25mm of precip." = "4-pcp",
+        "5. Monthly precip. (vs. percentiles)" = "5-pcp",
+        "6. Monthly precip. (ranking)" = "6-pcp",
+        "7. Monthly precip. (historical)" = "7-pcp",
+        "8. Seasonal precip. (vs. percentiles)" = "8-pcp",
+        "9. Seasonal precip. (ranking)" = "9-pcp",
+        "10. Seasonal precip. intensity" = "10-pcp",
+        "11. Annual precip. (anomalies)" = "11-pcp",
+        "12. Annual precip. (distribution)" = "12-pcp"
+      )
+    }
+    
+    updateSelectInput(session, "plot", choices = plot_choices)
+  })
+  
   plot <- eventReactive(input$updatePlot, { # Do not change plot until button is pressed
 
     # Draw plot
     switch(input$plot,
-      "1" = DailyCumPcpPctsPlot(
+      "2-pcp" = DailyCumPcpPctsPlot(
         data = data_pcp, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "2" = DailyCumPcpPlot(
+      "3-pcp" = DailyCumPcpPlot(
         data = data_pcp, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "3" = HighPcpDaysPlot(
+      "4-pcp" = HighPcpDaysPlot(
         data = data_pcp, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "4" = SeasonPcpPlot(
+      "8-pcp" = SeasonPcpPlot(
         data = data_pcp, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "5" = SeasonRankingPcpPlot(
+      "9-pcp" = SeasonRankingPcpPlot(
         data = data_pcp, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "6" = MonthlyPcpPlot(
+      "5-pcp" = MonthlyPcpPlot(
         data = data_pcp, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "7" = MonthlyRankingPcpPlot(
+      "6-pcp" = MonthlyRankingPcpPlot(
         data = data_pcp, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "8" = MonthlyAnomaliesPcpPlot(
+      "7-pcp" = MonthlyAnomaliesPcpPlot(
         data = data_pcp,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "9" = IntensityPcpPlot(
+      "10-pcp" = IntensityPcpPlot(
         data = data_pcp, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "10" = AnnualPcpDistributionPlot(
+      "12-pcp" = AnnualPcpDistributionPlot(
         data = data_pcp, max_date = max_date
       ),
-      "11" = MonthlyTmeanAnomaliesPlot(
+      "5-tmean" = MonthlyTmeanAnomaliesPlot(
         data = data_temp, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "12" = DailyRollingTmeanPlot(
+      "2-tmean" = DailyRollingTmeanPlot(
         data = data_temp, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "13" = OverviewPcpTempPlot(
+      "1" = OverviewPcpTempPlot(
         data = data_clean, selected_year = input$year,
         max_date = max_date
       ),
-      "14" = AnnualTmeanAnomaliesPlot(
+      "7-tmean" = AnnualTmeanAnomaliesPlot(
         data = data_temp,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "15" = AnnualTmeanDistributionPlot(
+      "8-tmean" = AnnualTmeanDistributionPlot(
         data = data_temp, max_date = max_date
       ),
-      "16" = AnnualPcpAnomaliesPlot(
+      "11-pcp" = AnnualPcpAnomaliesPlot(
         data = data_pcp,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "17" = MonthlyAnomaliesTmeanPlot(
+      "6-tmean" = MonthlyHistoricalTmeanPlot(
         data = data_temp,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "18" = DailyTmeanPlot(
+      "3-tmean" = DailyTmeanPlot(
         data = data_temp, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "19" = DailyTmeanAnomaliesPlot(
+      "4-tmean" = DailyTmeanAnomaliesPlot(
         data = data_temp, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),

@@ -48,10 +48,11 @@ DailyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_end
     ggplot2::geom_segment(data = color_data, aes(x = x, y = y1, xend = x, yend = y2, color = diff),
                           linewidth = 1, na.rm = TRUE) +
     ggplot2::scale_color_gradient2(high = "#d7191c", mid = "white", low = "#2c7bb6", guide = guide_none()) +
-    ggplot2::geom_line(aes(linetype = "tmean"), linewidth = 0.65, na.rm = TRUE, show.legend = FALSE) +
-    ggplot2::geom_line(aes(y = q50tmean, linetype = "q50"), na.rm = TRUE) +
-    ggplot2::geom_line(aes(y = q05tmean, linetype = "q05"), na.rm = TRUE) +
-    ggplot2::geom_line(aes(y = q95tmean, linetype = "q95"), na.rm = TRUE) +
+    ggplot2::geom_line(aes(linetype = "tmean"), linewidth = 0.65, lineend = "round", 
+                       na.rm = TRUE, show.legend = FALSE) +
+    ggplot2::geom_line(aes(y = q50tmean, linetype = "q50"), lineend = "round", na.rm = TRUE) +
+    ggplot2::geom_line(aes(y = q05tmean, linetype = "q05"), lineend = "round", na.rm = TRUE) +
+    ggplot2::geom_line(aes(y = q95tmean, linetype = "q95"), lineend = "round", na.rm = TRUE) +
     ggplot2::scale_linetype_manual(values = c("q50" = "longdash", "q05" = "dotted", "q95" = "dotted",
                                               "tmean" = "solid"),
                                    labels = c("q50" = paste0("Normal mean temp. (", ref_start_year, "-", ref_end_year, ")"),
@@ -76,7 +77,7 @@ DailyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_end
     ggplot2::labs(
       x = "", y = "", title = "Temperature in Madrid - Retiro",
       subtitle = paste0(
-        "Daily mean temperatures anomalies vs historical median (",
+        "Daily mean temperature anomalies vs historical median (",
         ref_start_year, "-", ref_end_year, ")"
       ),
       caption = paste0(

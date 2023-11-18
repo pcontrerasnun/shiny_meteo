@@ -100,8 +100,9 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
     ggplot2::geom_line(aes(linetype = "Cumsumpcp"), linewidth = 0.85, lineend = "round", na.rm = TRUE) +
     ggplot2::geom_line(aes(y = cummeanpcp, linetype = "Cummeanpcp"), na.rm = TRUE, show.legend = FALSE) +
     ggplot2::scale_linetype_manual(values = c("Cummeanpcp" = "longdash", "Cumsumpcp" = "solid"),
-                                   labels = c(paste0("Historical mean (", ref_start_year, "-", ref_end_year, ")"), 
-                                              selected_year)) +
+                                   labels = c(paste0("Cumulative daily mean precip. (", 
+                                                     ref_start_year, "-", ref_end_year, ")"), 
+                                              paste0("Cumulative daily precip. (", selected_year, ")"))) +
     ggplot2::geom_point(data = annotate_data, fill = colors, 
                         size = 2, stroke = 1, shape = 21) +
     ggrepel::geom_label_repel(data = annotate_data, aes(label = annotate_labels$label), parse = TRUE) +
@@ -151,7 +152,6 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
       legend.background = ggplot2::element_blank(),
       legend.box.background = ggplot2::element_rect(fill = "white", color = "black", linewidth = 0.75),
       legend.position = c(0.095, 0.85),
-      legend.justification = c(0.095, 0.85),
       legend.spacing = ggplot2::unit(0, "cm"),
       legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
       legend.title = element_blank()

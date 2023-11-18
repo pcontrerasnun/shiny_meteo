@@ -1,5 +1,5 @@
 
-MonthlyAnomaliesTmeanPlot <- function(data, ref_start_year, ref_end_year, max_date) {
+MonthlyHistoricalTmeanPlot <- function(data, ref_start_year, ref_end_year, max_date) {
   # Calculate normal mean temp of each month in reference period
   reference_monthly_pcts_tmean <- data |>
     dtplyr::lazy_dt() |>
@@ -38,7 +38,8 @@ MonthlyAnomaliesTmeanPlot <- function(data, ref_start_year, ref_end_year, max_da
                                                                    "10" = "Oct", "11" = "Nov", "12" = "Dec"))) +
     ggplot2::scale_color_manual(values = c("trend" = "blue", "q50" = "black", "tmean" = "black"), 
                                 labels = c("trend" = "Trend", "tmean" = "Monthly mean temp.",
-                                           "q50" = paste0("Median mean temp. (", ref_start_year, "-", ref_end_year, ")")),
+                                           "q50" = paste0("Monthly median mean temp. (", ref_start_year,
+                                                          "-", ref_end_year, ")")),
                                 breaks = c("tmean", "q50", "trend")) +
     ggplot2::scale_x_continuous(breaks = seq(from = min(plot_data$year), to = max(plot_data$year), by = 10)) +
     ggplot2::scale_y_continuous(labels = function(x) paste0(x, "ºC"),

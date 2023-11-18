@@ -1,5 +1,5 @@
 
-AnualPcpDistributionPlot <- function(data, max_date) {
+AnnualPcpDistributionPlot <- function(data, max_date) {
   # Calculate total precipitation by year
   reference_anual_total_pcp <- data |>
     dtplyr::lazy_dt() |>

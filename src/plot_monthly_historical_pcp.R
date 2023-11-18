@@ -35,16 +35,18 @@ MonthlyAnomaliesPcpPlot <- function(data, ref_start_year, ref_end_year, max_date
   
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = year, y = sumpcp)) +
-    ggplot2::geom_line(aes(group = 1), show.legend = FALSE) +
+    ggplot2::geom_line(aes(color = "sumpcp"), show.legend = FALSE) +
     ggplot2::geom_line(aes(y = q50pcp, color = "q50"), linetype = "dashed") +
     ggplot2::geom_smooth(aes(color = "trend", group = month), method = lm, se = FALSE, na.rm = TRUE, show.legend = FALSE) + 
     ggplot2::facet_wrap(vars(month), labeller = labeller(month = c("01" = "Jan", "02" = "Feb", "03" = "Mar", 
                                                                    "04" = "Apr", "05" = "May", "06" = "Jun", 
                                                                    "07" = "Jul", "08" = "Aug", "09" = "Sep", 
                                                                    "10" = "Oct", "11" = "Nov", "12" = "Dec"))) +
-    ggplot2::scale_color_manual(values = c("trend" = "blue", "q50" = "black"), 
-                                labels = c("trend" = "Trend", 
-                                           "q50" = paste0("Median precip. (", ref_start_year, "-", ref_end_year, ")"))) +
+    ggplot2::scale_color_manual(
+      breaks = c("sumpcp", "q50", "trend"),
+      values = c("trend" = "blue", "q50" = "black", "sumpcp" = "black"), 
+      labels = c("trend" = "Trend", "sumpcp" = "Monthly precip.",
+                 "q50" = paste0("Monthly median precip. (", ref_start_year, "-", ref_end_year, ")"))) +
     ggplot2::scale_x_continuous(breaks = seq(from = min(plot_data$year), to = max(plot_data$year), by = 10)) +
     ggplot2::scale_y_continuous(labels = function(x) paste0(x, "mm")) +
     ggthemes::theme_hc(base_size = 15) +
@@ -69,8 +71,8 @@ MonthlyAnomaliesPcpPlot <- function(data, ref_start_year, ref_end_year, max_date
       legend.title = element_blank(),
       axis.text.x = element_text(angle = 0, size = 10)
     ) +
-    ggplot2::guides(color = guide_legend(override.aes = list(linetype = c("dashed", "solid"),
-                                                             linewidth = c(0.5, 0.85))))
+    ggplot2::guides(color = guide_legend(override.aes = list(linetype = c("solid", "dashed", "solid"),
+                                                             linewidth = c(0.5, 0.5, 0.85))))
 
   return(p)  
 }

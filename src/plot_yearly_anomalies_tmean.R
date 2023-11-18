@@ -35,7 +35,7 @@ AnnualTmeanAnomaliesPlot <- function(data, ref_start_year, ref_end_year, max_dat
     ggplot2::geom_segment(data = color_data, aes(x = x, y = y1, xend = x, yend = y2, color = diff),
                           linewidth = 1, na.rm = TRUE) +
     ggplot2::scale_color_gradient2(high = "#d7191c", mid = "white", low = "#2c7bb6", guide = guide_none()) +
-    ggplot2::geom_line(aes(linetype = "tmean")) +
+    ggplot2::geom_line(aes(linetype = "tmean"), linewidth = 0.75, lineend = "round", linejoin = "round") +
     ggplot2::geom_line(aes(y = q50tmean, linetype = "q50")) +
     ggplot2::geom_smooth(aes(linetype = "trend"), color = "blue", linewidth = 0.85,
                          method = lm, se = FALSE, na.rm = TRUE, show.legend = FALSE) + 

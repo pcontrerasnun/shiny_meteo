@@ -97,100 +97,50 @@ SeasonRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_ye
 
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = row)) +
-    ggh4x::geom_box(aes(
-      ymin = cumminpcp, ymax = cummaxpcp,
-      width = 0.9
-    ), fill = "white", color = "black") +
-    ggplot2::geom_col(aes(y = seasoncumsumpcp, fill = "Cumulative season precip.")) +
-    ggplot2::geom_errorbar(
-      aes(
-        y = cumavgpcp, ymin = cumavgpcp, ymax = cumavgpcp,
-        color = "Historical season avg precip."
-      ),
-      linetype = "dashed"
-    ) +
-    ggplot2::geom_errorbar(
-      aes(
-        y = cummaxpcp, ymin = cummaxpcp, ymax = cummaxpcp,
-        color = "Historical season max precip."
-      ),
-      linetype = "solid", linewidth = 1
-    ) +
-    ggplot2::geom_errorbar(
-      aes(
-        y = cumminpcp, ymin = cumminpcp, ymax = cumminpcp,
-        color = "Historical season min precip."
-      ),
-      linetype = "solid", linewidth = 1
-    ) +
+    ggh4x::geom_box(aes(ymin = cumminpcp, ymax = cummaxpcp, width = 0.9), fill = "white", color = "black") +
+    ggplot2::geom_col(aes(y = seasoncumsumpcp, fill = "cumsumpcp")) +
+    ggplot2::geom_errorbar(aes(y = cumavgpcp, ymin = cumavgpcp, ymax = cumavgpcp, color = "mean"), 
+                           linetype = "dashed") +
+    ggplot2::geom_errorbar(aes(y = cummaxpcp, ymin = cummaxpcp, ymax = cummaxpcp, color = "max"), 
+                           linetype = "solid", linewidth = 1) +
+    ggplot2::geom_errorbar(aes(y = cumminpcp, ymin = cumminpcp, ymax = cumminpcp, color = "min"), 
+                           linetype = "solid", linewidth = 1) +
     ggplot2::scale_x_discrete(limits = plot_data$row, labels = c(
       paste0("Dec", (as.numeric(selected_year) - 1) %% 100), "Jan", "Feb", "Mar", "Apr", "May",
       "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
       paste0("Jan", (as.numeric(selected_year) + 1) %% 100),
       paste0("Feb", (as.numeric(selected_year) + 1) %% 100)
     )) +
-    ggplot2::scale_color_manual(
-      breaks = c(
-        "Historical season avg precip.", "Historical season max precip.",
-        "Historical season min precip."
-      ),
-      values = c(
-        "Historical season avg precip." = "black",
-        "Historical season max precip." = "#4daf4a",
-        "Historical season min precip." = "#d7191c"
-      )
-    ) +
+    ggplot2::scale_color_manual(breaks = c("max", "mean", "min"),
+      values = c("mean" = "black", "max" = "#4daf4a", "min" = "#d7191c"),
+      labels = c("mean" = paste0("Cumulative mean seasonal precip. (", ref_start_year, "-", ref_end_year, ")"),
+                 "max" = paste0("Cumulative max seasonal precip. (", ref_start_year, "-", ref_end_year, ")"),
+                 "min" = paste0("Cumulative min seasonal precip. (", ref_start_year, "-", ref_end_year, ")"))) +
     ggplot2::scale_fill_manual(
-      values = c("Cumulative season precip." = "#2c7bb6"),
-      labels = c(
-        "Cumulative season precip." =
-          glue::glue("<span style = 'color: #2c7bb6; '>Cumulative season precip.</span>")
-      )
-    ) +
+      values = c("cumsumpcp" = "#2c7bb6"),
+      labels = c("cumsumpcp" = paste0("Cumulative seasonal precip. (", selected_year, ")"))) +
     ggplot2::scale_y_continuous(
       labels = function(x) paste0(x, "mm"),
-      breaks = seq(
-        from = 0,
-        to = max(
-          max(plot_data$seasoncumsumpcp, na.rm = TRUE),
-          plot_data$cummaxpcp
-        )
-        + 50, by = 25
-      ),
-      limits = c(0, max(
-        max(plot_data$seasoncumsumpcp, na.rm = TRUE),
-        plot_data$cummaxpcp
-      ) + 50)
-    ) +
+      breaks = seq(from = 0, to = max(max(plot_data$seasoncumsumpcp, na.rm = TRUE), 
+                                      plot_data$cummaxpcp) + 125, by = 50),
+      limits = c(0, max(max(plot_data$seasoncumsumpcp, na.rm = TRUE), plot_data$cummaxpcp) + 100)) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
       x = "", y = "", title = paste0("Precipitation in Madrid - Retiro ", selected_year),
-      subtitle = paste0(
-        "Ranking season precipitation vs. historical values (",
-        ref_start_year, "-", ref_end_year, ")"
-      ),
-      caption = paste0(
-        "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"
-      ),
-      color = NULL, fill = NULL
-    ) +
+      subtitle = paste0("Ranking seasonal precipitation vs. historical values (", 
+                        ref_start_year, "-", ref_end_year, ")"),
+      caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"),
+      color = NULL, fill = NULL) +
     ggplot2::theme(
       plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),
       plot.subtitle = ggplot2::element_text(hjust = 1, size = 25),
       legend.background = ggplot2::element_blank(),
-      legend.box.background = ggplot2::element_rect(
-        fill = "white", color = "black",
-        linewidth = 0.75
-      ),
-      legend.position = c(0.09, 0.875),
+      legend.box.background = ggplot2::element_rect(fill = "white", color = "black", linewidth = 0.75),
+      legend.position = c(0.135, 0.85),
       legend.spacing = ggplot2::unit(0, "cm"),
-      legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
-      legend.text = ggtext::element_markdown()
+      legend.margin = ggplot2::margin(r = 5, l = 5, b = 5)
     ) +
-    ggplot2::guides(color = guide_legend(
-      order = 1,
-      override.aes = list(linetype = c("dotted", "solid", "solid"))
-    ))
+    ggplot2::guides(color = guide_legend(override.aes = list(linetype = c("solid", "dotted", "solid"))))
 
   # Add position in ranking of selected year
   for (row_loop in plot_data[!is.na(plot_data$seasoncumsumpcp), ]$row) { # Loop over months with data in selected year

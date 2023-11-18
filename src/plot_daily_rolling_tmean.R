@@ -59,7 +59,8 @@ DailyRollingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_y
     ggplot2::geom_line(aes(color = "selected_year"), linewidth = 0.85, lineend = "round", na.rm = TRUE) +
     ggrepel::geom_label_repel(data = tail(na.omit(plot_data), 1), aes(label = paste0(tmean_acumulated, "ºC"))) +
     ggplot2::scale_color_manual(values = c("selected_year" = "black"),
-                                label = paste0("Daily mean temp. (", selected_year, ")"), guide = guide_legend(order = 1)) +
+                                label = paste0("Daily rolling mean temp. (", selected_year, ")"), 
+                                guide = guide_legend(order = 1)) +
     ggplot2::scale_fill_manual(
       values = c("Very hot" = "#d7191c", "Hot" = "#fdae61", "Normal" = "white", "Cold" = "#abd9e9", "Very cold" = "#2c7bb6"), 
       breaks = c("Very hot", "Hot", "Normal", "Cold", "Very cold"), # To give order,
@@ -79,42 +80,23 @@ DailyRollingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_y
       breaks = as.numeric(seq(ymd("2023-01-01"), ymd("2023-12-31"), by = "month")),
       labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"),
       limits = c(as.numeric(ymd("2023-01-01")), as.numeric(ymd("2024-01-09"))),
-      expand = expansion(mult = c(0.02, 0))
-    ) +
+      expand = expansion(mult = c(0.02, 0))) +
     ggplot2::scale_y_continuous(
       labels = function(x) paste0(x, "ºC"),
-      limits = c(
-        floor(min(
-          min(plot_data$tmean_acumulated, na.rm = TRUE),
-          min(plot_data$cumq00tmean, na.rm = TRUE)
-        ) - 2),
-        ceiling(max(
-          max(plot_data$tmean_acumulated, na.rm = TRUE),
-          max(plot_data$cumq100tmean, na.rm = TRUE)
-        ) + 2)
-      ),
-      breaks = seq(
-        from = floor(min(
-          min(plot_data$tmean_acumulated, na.rm = TRUE),
-          min(plot_data$cumq00tmean, na.rm = TRUE)
-        ) - 2),
-        to = ceiling(max(
-          max(plot_data$tmean_acumulated, na.rm = TRUE),
-          max(plot_data$cumq100tmean, na.rm = TRUE)
-        )) + 2, by = 2
-      )
-    ) +
+      limits = c(floor(min(min(plot_data$tmean_acumulated, na.rm = TRUE),
+                           min(plot_data$cumq00tmean, na.rm = TRUE)) - 2),
+                 ceiling(max(max(plot_data$tmean_acumulated, na.rm = TRUE),
+                             max(plot_data$cumq100tmean, na.rm = TRUE)) + 2)),
+      breaks = seq(from = floor(min(min(plot_data$tmean_acumulated, na.rm = TRUE),
+                                    min(plot_data$cumq00tmean, na.rm = TRUE)) - 2),
+                   to = ceiling(max(max(plot_data$tmean_acumulated, na.rm = TRUE),
+                                    max(plot_data$cumq100tmean, na.rm = TRUE))) + 2, by = 2)) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
       x = "", y = "", title = paste0("Temperature in Madrid - Retiro ", selected_year),
-      subtitle = paste0(
-        "Rolling daily mean temperature vs. historical percentiles (",
-        ref_start_year, "-", ref_end_year, ")"
-      ),
-      caption = paste0(
-        "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"
-      )
-    ) +
+      subtitle = paste0("Rolling daily mean temperature vs. historical percentiles (",
+                        ref_start_year, "-", ref_end_year, ")"),
+      caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)")) +
     ggplot2::theme(
       plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),
       plot.subtitle = ggplot2::element_text(hjust = 1, size = 25),
@@ -124,8 +106,7 @@ DailyRollingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_y
       legend.spacing = ggplot2::unit(0, "cm"),
       legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
       legend.title = element_blank(),
-      legend.text.align = 0
-    )
+      legend.text.align = 0)
 
   return(p)
 }

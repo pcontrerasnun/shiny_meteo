@@ -61,102 +61,52 @@ MonthlyRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_y
 
   # Draw the plot
   p <- ggplot2::ggplot(data = selected_year_monthly_pcp, aes(x = month)) +
-    ggh4x::geom_box(data = reference_stats_monthly_pcp, aes(
-      ymin = minpcp, ymax = maxpcp,
-      width = 0.9
-    ), fill = "white", color = "black") +
-    ggplot2::geom_col(aes(y = sumpcp, fill = "Cumulative monthly precip.")) +
-    ggplot2::geom_errorbar(
-      data = reference_stats_monthly_pcp,
-      aes(
-        y = meanpcp, ymin = meanpcp, ymax = meanpcp,
-        color = "Historical monthly avg precip."
-      ), linetype = "dashed"
-    ) +
-    ggplot2::geom_errorbar(
-      data = reference_stats_monthly_pcp,
-      aes(
-        y = maxpcp, ymin = maxpcp, ymax = maxpcp,
-        color = "Historical monthly max precip."
-      ), linetype = "solid", linewidth = 1
-    ) +
-    ggplot2::geom_errorbar(
-      data = reference_stats_monthly_pcp,
-      aes(
-        y = minpcp, ymin = minpcp, ymax = minpcp,
-        color = "Historical monthly min precip."
-      ), linetype = "solid", linewidth = 1
-    ) +
-    ggplot2::scale_x_discrete(
-      limits = c(
-        "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"
-      ),
-      labels = c(
-        "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-      )
-    ) +
-    ggplot2::scale_color_manual(
-      breaks = c(
-        "Historical monthly avg precip.", "Historical monthly max precip.",
-        "Historical monthly min precip."
-      ),
-      values = c(
-        "Historical monthly avg precip." = "black",
-        "Historical monthly max precip." = "#4daf4a",
-        "Historical monthly min precip." = "#d7191c"
-      )
-    ) +
+    ggh4x::geom_box(data = reference_stats_monthly_pcp, aes(ymin = minpcp, ymax = maxpcp, width = 0.9), 
+                    fill = "white", color = "black") +
+    ggplot2::geom_col(aes(y = sumpcp, fill = "sumpcp")) +
+    ggplot2::geom_errorbar(data = reference_stats_monthly_pcp, 
+                           aes(y = meanpcp, ymin = meanpcp, ymax = meanpcp, color = "mean"), 
+                           linetype = "dashed") +
+    ggplot2::geom_errorbar(data = reference_stats_monthly_pcp, 
+                           aes(y = maxpcp, ymin = maxpcp, ymax = maxpcp,color = "max"), 
+                           linetype = "solid", linewidth = 1) +
+    ggplot2::geom_errorbar(data = reference_stats_monthly_pcp, 
+                           aes(y = minpcp, ymin = minpcp, ymax = minpcp, color = "min"), 
+                           linetype = "solid", linewidth = 1) +
+    ggplot2::scale_x_discrete(limits = c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10",
+                                         "11", "12"),
+      labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")) +
+    ggplot2::scale_color_manual(breaks = c("max", "mean", "min"),
+      values = c("mean" = "black", "max" = "#4daf4a", "min" = "#d7191c"),      
+      labels = c("mean" = paste0("Cumulative mean monthly precip. (", ref_start_year, "-", ref_end_year, ")"),
+                 "max" = paste0("Cumulative max monthly precip. (", ref_start_year, "-", ref_end_year, ")"),
+                 "min" = paste0("Cumulative min monthly precip. (", ref_start_year, "-", ref_end_year, ")"))) +
     ggplot2::scale_fill_manual(
-      values = c("Cumulative monthly precip." = "#2c7bb6"),
-      labels = c(
-        "Cumulative monthly precip." =
-          glue::glue("<span style = 'color: #2c7bb6; '>Cumulative monthly precip.</span>")
-      )
-    ) +
+      values = c("sumpcp" = "#2c7bb6"),
+      labels = c("sumpcp" = paste0("Cumulative monthly precip. (", selected_year, ")"))) +
     ggplot2::scale_y_continuous(
-      labels = function(x) paste0(x, "mm"),
-      breaks = seq(
-        from = 0,
-        to = max(
-          max(selected_year_monthly_pcp$sumpcp, na.rm = TRUE),
-          reference_stats_monthly_pcp$maxpcp
-        )
-        + 50, by = 25
-      ),
-      limits = c(0, max(
-        max(selected_year_monthly_pcp$sumpcp, na.rm = TRUE),
-        reference_stats_monthly_pcp$maxpcp
-      ) + 50)
-    ) +
+      labels = function(x) paste0(x, "mm"), 
+      breaks = seq(from = 0, to = max(max(selected_year_monthly_pcp$sumpcp, na.rm = TRUE), 
+                                      reference_stats_monthly_pcp$maxpcp) + 50, by = 25),
+      limits = c(0, max(max(selected_year_monthly_pcp$sumpcp, na.rm = TRUE), 
+                        reference_stats_monthly_pcp$maxpcp) + 50)) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
       x = "", y = "", title = paste0("Precipitation in Madrid - Retiro ", selected_year),
-      subtitle = paste0(
-        "Ranking monthly precipitation vs. historical values (",
-        ref_start_year, "-", ref_end_year, ")"
-      ),
-      caption = paste0(
-        "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"
-      ),
-      color = NULL, fill = NULL
-    ) +
+      subtitle = paste0("Ranking monthly precipitation vs. historical values (",
+                        ref_start_year, "-", ref_end_year, ")"),
+      caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"),
+      color = NULL, fill = NULL) +
     ggplot2::theme(
       plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),
       plot.subtitle = ggplot2::element_text(hjust = 1, size = 25),
       legend.background = ggplot2::element_blank(),
-      legend.box.background = ggplot2::element_rect(
-        fill = "white", color = "black",
-        linewidth = 0.75
-      ),
-      legend.position = c(0.1, 0.85),
+      legend.box.background = ggplot2::element_rect(fill = "white", color = "black",linewidth = 0.75),
+      legend.position = c(0.135, 0.85),
       legend.spacing = ggplot2::unit(0, "cm"),
-      legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
-      legend.text = ggtext::element_markdown()
+      legend.margin = ggplot2::margin(r = 5, l = 5, b = 5)
     ) +
-    ggplot2::guides(color = guide_legend(
-      order = 1,
-      override.aes = list(linetype = c("dotted", "solid", "solid"))
-    ))
+    ggplot2::guides(color = guide_legend(override.aes = list(linetype = c("solid", "dotted", "solid"))))
 
   # Add position in ranking of selected year
   for (mes in unique(selected_year_monthly_pcp$month)) { # Loop over 12 months

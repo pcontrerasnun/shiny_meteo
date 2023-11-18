@@ -59,24 +59,22 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
 
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = date, y = cumsumpcp)) +
-    ggplot2::geom_ribbon(aes(ymin = cumq00pcp, ymax = cumq20pcp),
-      alpha = 0.3, color = "#d7191c", fill = "#d7191c", linetype = "51", lineend = "round", linejoin = "round"
-    ) +
-    ggplot2::geom_ribbon(aes(ymin = cumq20pcp, ymax = cumq40pcp),
-      alpha = 0.1, color = "#fdae61", fill = "#fdae61", linetype = "51", lineend = "round", linejoin = "round"
-    ) +
-    ggplot2::geom_ribbon(aes(ymin = cumq60pcp, ymax = cumq80pcp),
-      alpha = 0.1, color = "#abd9e9", fill = "#abd9e9", linetype = "51", lineend = "round", linejoin = "round"
-    ) +
-    ggplot2::geom_ribbon(aes(ymin = cumq80pcp, ymax = cumq100pcp),
-      alpha = 0.3, color = "#2c7bb6", fill = "#2c7bb6", linetype = "51", lineend = "round", linejoin = "round"
-    ) +
+    ggplot2::geom_ribbon(aes(ymin = cumq00pcp, ymax = cumq20pcp), alpha = 0.3, color = "#d7191c", 
+                         fill = "#d7191c", linetype = "51", lineend = "round", linejoin = "round") +
+    ggplot2::geom_ribbon(aes(ymin = cumq20pcp, ymax = cumq40pcp), alpha = 0.1, color = "#fdae61", 
+                         fill = "#fdae61", linetype = "51", lineend = "round", linejoin = "round") +
+    ggplot2::geom_ribbon(aes(ymin = cumq60pcp, ymax = cumq80pcp), alpha = 0.1, color = "#abd9e9", 
+                         fill = "#abd9e9", linetype = "51", lineend = "round", linejoin = "round") +
+    ggplot2::geom_ribbon(aes(ymin = cumq80pcp, ymax = cumq100pcp), alpha = 0.3, color = "#2c7bb6",
+                         fill = "#2c7bb6", linetype = "51", lineend = "round", linejoin = "round") +
     #  ggplot2::geom_ribbon_pattern(aes(ymin = cumq80pcp, ymax = cumq100pcp), pattern = 'gradient',
     #                      na.rm = TRUE, pattern_fill  = '#abd9e9', pattern_fill2 = '#2c7bb6',
     #                      pattern_alpha = 0.01, pattern_linetype = '51', lineend = 'round',
     #                      linejoin = 'round', pattern_orientation = 'vertical') +
     #  geom_line(aes(y = cumq50pcp)) +
-    ggplot2::geom_line(linewidth = 0.85, lineend = "round", na.rm = TRUE) +
+    ggplot2::geom_line(aes(color = "cumsumpcp"), linewidth = 0.85, lineend = "round", na.rm = TRUE) +
+    ggplot2::scale_color_manual(values = c("cumsumpcp" = "black"), 
+                               label = paste0("Cumulative daily precip. (", selected_year, ")")) +
     #  ggplot2::geom_ribbon_pattern(aes(x = date, ymin = cumq50pcp, ymax = cumsumpcp),
     #                               pattern = 'gradient', na.rm = TRUE, pattern_fill  = '#377eb8',
     #                               pattern_fill2 = '#e41a1c') +
@@ -105,7 +103,13 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
     ) +
     ggplot2::theme(
       plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),
-      plot.subtitle = ggplot2::element_text(hjust = 1, size = 25)
+      plot.subtitle = ggplot2::element_text(hjust = 1, size = 25),
+      legend.background = ggplot2::element_blank(),
+      legend.box.background = ggplot2::element_rect(fill = "white", color = "black", linewidth = 0.75),
+      legend.position = c(0.095, 0.85),
+      legend.spacing = ggplot2::unit(0, "cm"),
+      legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
+      legend.title = ggplot2::element_blank()
     ) +
     ggplot2::annotate(
       geom = "text", x = max(plot_data$date, na.rm = TRUE), y = max(plot_data$cumq100pcp),
