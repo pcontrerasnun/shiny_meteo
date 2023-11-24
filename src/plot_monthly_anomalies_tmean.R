@@ -46,18 +46,20 @@ MonthlyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_e
                                                                    "-", ref_end_year, ")"))) +
     ggplot2::geom_point(na.rm = TRUE) +
     ggrepel::geom_label_repel(aes(label = paste0(tano_label, "ºC")), segment.color = NA, na.rm = TRUE) +
-    ggplot2::scale_x_continuous(breaks = seq(1, 12), 
-                                labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug",
-                                "Sep", "Oct", "Nov", "Dec")) +
-    ggplot2::scale_y_continuous(labels = function(x) paste0(x, "ºC"), 
-                                limits = c(floor(min(min(plot_data$tmean, na.rm = TRUE),
-                                               min(plot_data$tmean_ref, na.rm = TRUE)) - 2), 
-                                           ceiling(max(max(plot_data$tmean, na.rm = TRUE),
-                                               max(plot_data$tmean_ref, na.rm = TRUE)) + 2)),
-                                breaks = seq(from = floor(min(min(plot_data$tmean, na.rm = TRUE),
-                                                        min(plot_data$tmean_ref, na.rm = TRUE)) - 2), 
-                                             to = ceiling(max(max(plot_data$tmean, na.rm = TRUE),
-                                                      max(plot_data$tmean_ref, na.rm = TRUE))) + 2, by = 5)) +
+    ggplot2::scale_x_continuous(
+      breaks = seq(1, 12), 
+      labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug",
+                 "Sep", "Oct", "Nov", "Dec")) +
+    ggplot2::scale_y_continuous(
+      labels = function(x) paste0(x, "ºC"), 
+      limits = c(floor(min(min(plot_data$tmean, na.rm = TRUE),
+                           min(plot_data$tmean_ref, na.rm = TRUE)) - 2), 
+                 ceiling(max(max(plot_data$tmean, na.rm = TRUE),
+                             max(plot_data$tmean_ref, na.rm = TRUE)) + 2)),
+      breaks = seq(from = floor(min(min(plot_data$tmean, na.rm = TRUE),
+                                    min(plot_data$tmean_ref, na.rm = TRUE)) - 2), 
+                   to = ceiling(max(max(plot_data$tmean, na.rm = TRUE),
+                                    max(plot_data$tmean_ref, na.rm = TRUE))) + 2, by = 5)) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
       x = "", y = "", title = paste0("Temperature in Madrid - Retiro ", selected_year),

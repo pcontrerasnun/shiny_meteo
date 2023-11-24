@@ -61,7 +61,7 @@ MonthlyHistoricalTmeanPlot <- function(data, ref_start_year, ref_end_year, max_d
         fill = "white", color = "black",
         linewidth = 0.75
       ),
-      legend.position = c(0.095, 0.925),
+      legend.position = c(0.125, 0.925),
       legend.spacing = ggplot2::unit(0, "cm"),
       legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
       legend.text = ggtext::element_markdown(),

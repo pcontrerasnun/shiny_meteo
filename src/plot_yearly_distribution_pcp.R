@@ -41,8 +41,9 @@ AnnualPcpDistributionPlot <- function(data, max_date) {
   p <- ggplot2::ggplot(data = plot_data, aes(x = sumpcp)) +
     ggplot2::geom_histogram(aes(y = after_stat(density)), breaks = h$breaks, color = "black", fill = "white") +
     # ggplot2::geom_line(data = data_distr, aes(x = x, y = y)) +
-    ggplot2::geom_label(aes(x = x, y = y, label = year, color = as.numeric(year))) +
-    ggplot2::scale_color_viridis_c(option = "B", end = 0.8) +
+    ggplot2::geom_label(aes(x = x, y = y, label = year, fill = as.numeric(year)), color = "white",
+                        fontface = "bold") +
+    ggplot2::scale_fill_gradientn(colors = wes_palette("Zissou1", 100, type = "continuous")) + 
     ggplot2::scale_x_continuous(labels = function(x) paste0(x, "mm"), breaks = h$breaks) +
 #    ggplot2::annotate(geom = "text", x = mean(h$breaks), y = 0.0035,
 #                      label = paste("Gamma(alpha==", round(shape_fit, 2), ", lambda==", round(rate_fit, 2), ")"), 
@@ -56,7 +57,7 @@ AnnualPcpDistributionPlot <- function(data, max_date) {
       ),
       caption = paste0(
         "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"
-      ), color = "Year"
+      ), fill = "Year"
     ) +
     ggplot2::theme(
       plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),
@@ -67,7 +68,7 @@ AnnualPcpDistributionPlot <- function(data, max_date) {
       legend.background = ggplot2::element_blank(),
       legend.box.background = ggplot2::element_rect(fill = "white", color = "black", linewidth = 0.75)
     ) +
-    ggplot2::guides(color = guide_colorbar(ticks.colour = NA))
+    ggplot2::guides(fill = guide_colorbar(ticks.colour = NA))
   
   return(p)
 

@@ -1,7 +1,10 @@
 # TODO:
 # - <freq> <stat> <metric>
+# - nombre var plot_datas sin guiones bajos
+# - vignette('ggplot2-specs')   
 # - versiones librerias, rproj?
 # - añadir cabecera doc al archivo app.R
+# - acordarse quitar cargar funciones graficos de la parte de server
 # - docmumentar funciones sin documentar
 # - revisar torrencialidad, otoño 2023 deberia ser el max de la distrubcion, darle una vuelta (total lluvia / num dias con lluvia)
 # - cajita en grafico temperatura con top 3 días mas cálidos y más frios
@@ -21,7 +24,11 @@
 # - nuevo grafico temp perceetniles hoy extremo
 # - nuevo grafico cuanto dura invierno
 # - nuevo grafico overview twitter grafico dividido en 4
-# - num dias seguidos de lluvia
+# - a gráficos anomalias añadir lineas desv tipicas
+# - seasonly graficos para tmean
+# - amplitud termicas
+# - ranking año más seco?
+
 
 library(shiny)
 library(shinyjs)
@@ -42,10 +49,11 @@ library(mlr3misc)
 library(MASS)
 library(zoo)
 library(ggtext)
+library(wesanderson)
 
 # Code outside 'ui' and 'server' only runs once when app is launched
 # Load all functions
-invisible(lapply(list.files(path = here::here("src"), full.names = TRUE), source))
+# invisible(lapply(list.files(path = here::here("src"), full.names = TRUE), source))
 
 # Parameters
 station <- 3195
@@ -114,7 +122,8 @@ ui <- shiny::fluidPage(
       shiny::selectInput(
         inputId = "variable",
         label = "Variable",
-        choices = c("Mean temperature", "Precipitation")
+        choices = c("Mean temperature (00h-24h)", 
+                    paste0("Precipitation (07h-07h", "\u207A", "\u00B9", ")"))
       ),
       shiny::selectInput(
         inputId = "plot",
@@ -136,9 +145,10 @@ ui <- shiny::fluidPage(
 
 # Define server logic ----
 server <- function(input, output, session) {
+  invisible(lapply(list.files(path = here::here("src"), full.names = TRUE), source))
   # Update plot selection depending on variable selection
   observe({
-    if (input$variable == "Mean temperature") {
+    if (input$variable == "Mean temperature (00h-24h)") {
       plot_choices <- c(
         "1. Overview" = "1",
         "2. Daily rolling mean temp." = "2-tmean",
@@ -146,10 +156,11 @@ server <- function(input, output, session) {
         "4. Daily mean temp. (anomalies)" = "4-tmean",
         "5. Monthly mean temp. (anomalies)" = "5-tmean",
         "6. Monthly mean temp. (historical)" = "6-tmean",
-        "7. Annual mean temp. (anomalies)" = "7-tmean",
-        "8. Annual mean temp. (distribution)" = "8-tmean"
+        "7. Monthly mean temp. (ranking)" = "7-tmean",
+        "8. Annual mean temp. (anomalies)" = "8-tmean",
+        "9. Annual mean temp. (distribution)" = "9-tmean"
       )
-    } else if (input$variable == "Precipitation") {
+    } else if (input$variable == paste0("Precipitation (07h-07h", "\u207A", "\u00B9", ")")) {
       plot_choices <- c(
         "1. Overview" = "1",
         "2. Daily cumulative precip. (vs. percentiles)" = "2-pcp",
@@ -162,7 +173,8 @@ server <- function(input, output, session) {
         "9. Seasonal precip. (ranking)" = "9-pcp",
         "10. Seasonal precip. intensity" = "10-pcp",
         "11. Annual precip. (anomalies)" = "11-pcp",
-        "12. Annual precip. (distribution)" = "12-pcp"
+        "12. Annual precip. (distribution)" = "12-pcp",
+        "13. Annual precip. (days with precip.)" = "13-pcp"
       )
     }
     
@@ -246,13 +258,13 @@ server <- function(input, output, session) {
         data = data_clean, selected_year = input$year,
         max_date = max_date
       ),
-      "7-tmean" = AnnualTmeanAnomaliesPlot(
+      "8-tmean" = AnnualTmeanAnomaliesPlot(
         data = data_temp,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "8-tmean" = AnnualTmeanDistributionPlot(
+      "9-tmean" = AnnualTmeanDistributionPlot(
         data = data_temp, max_date = max_date
       ),
       "11-pcp" = AnnualPcpAnomaliesPlot(
@@ -274,6 +286,18 @@ server <- function(input, output, session) {
         max_date = max_date
       ),
       "4-tmean" = DailyTmeanAnomaliesPlot(
+        data = data_temp, selected_year = input$year,
+        ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
+        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+        max_date = max_date
+      ),
+      "13-pcp" = AnnualDaysWithPcpPlot(
+        data = data_pcp, selected_year = input$year,
+        ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
+        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+        max_date = max_date
+      ),
+      "7-tmean" = MonthlyRankingTmeanPlot(
         data = data_temp, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),

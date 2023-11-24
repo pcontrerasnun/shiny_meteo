@@ -19,7 +19,7 @@ MonthlyRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_y
     dplyr::filter((date >= as.Date(paste0(ref_start_year, "-01-01")) &
       date <= as.Date(paste0(ref_end_year, "-12-31"))) |
       (date >= as.Date(paste0(as.numeric(selected_year), "-01-01")) &
-        date <= as.Date(paste0(as.numeric(selected_year), "-12-31")))) |>
+        date <= as.Date(paste0(as.numeric(selected_year), "-12-31")))) |> # Include year of study
     dplyr::group_by(year, month) |>
     dplyr::summarise(sumpcp = sum(pcp, na.rm = TRUE), .groups = "keep") |>
     dplyr::ungroup() |>
@@ -48,7 +48,7 @@ MonthlyRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_y
     dplyr::arrange(month) |>
     dplyr::as_tibble()
 
-  # Calculated cumulated precipitacion in each month of selected year
+  # Calculated total precipitacion in each month of selected year
   selected_year_monthly_pcp <- data |>
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(as.numeric(selected_year), "-01-01")) &
@@ -78,12 +78,12 @@ MonthlyRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_y
       labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")) +
     ggplot2::scale_color_manual(breaks = c("max", "mean", "min"),
       values = c("mean" = "black", "max" = "#4daf4a", "min" = "#d7191c"),      
-      labels = c("mean" = paste0("Cumulative mean monthly precip. (", ref_start_year, "-", ref_end_year, ")"),
-                 "max" = paste0("Cumulative max monthly precip. (", ref_start_year, "-", ref_end_year, ")"),
-                 "min" = paste0("Cumulative min monthly precip. (", ref_start_year, "-", ref_end_year, ")"))) +
+      labels = c("mean" = paste0("Monthly mean precip. (", ref_start_year, "-", ref_end_year, ")"),
+                 "max" = paste0("Monthly max precip. (", ref_start_year, "-", ref_end_year, ")"),
+                 "min" = paste0("Monthly mean precip. (", ref_start_year, "-", ref_end_year, ")"))) +
     ggplot2::scale_fill_manual(
       values = c("sumpcp" = "#2c7bb6"),
-      labels = c("sumpcp" = paste0("Cumulative monthly precip. (", selected_year, ")"))) +
+      labels = c("sumpcp" = paste0("Monthly total precip. (", selected_year, ")"))) +
     ggplot2::scale_y_continuous(
       labels = function(x) paste0(x, "mm"), 
       breaks = seq(from = 0, to = max(max(selected_year_monthly_pcp$sumpcp, na.rm = TRUE), 

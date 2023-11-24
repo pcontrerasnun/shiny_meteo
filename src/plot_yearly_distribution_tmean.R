@@ -22,8 +22,10 @@ AnnualTmeanDistributionPlot <- function(data, max_date) {
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = tmean)) +
     ggplot2::geom_histogram(aes(y = after_stat(density)), breaks = h$breaks, color = "black", fill = "white") +
-    ggplot2::geom_label(aes(x = x, y = y, label = year, color = as.numeric(year))) +
-    ggplot2::scale_color_viridis_c(option = "B", end = 0.8) +
+    ggplot2::geom_label(aes(x = x, y = y, label = year, fill = as.numeric(year)), color = "white",
+                        fontface = "bold") +
+    #ggplot2::scale_color_viridis_c(option = "B", end = 0.8) +
+    ggplot2::scale_fill_gradientn(colors = wes_palette("Zissou1", 100, type = "continuous")) + 
     ggplot2::scale_x_continuous(breaks = seq(round(min(plot_data$tmean)), round(max(plot_data$tmean)),
                                            by = 1), labels = function(x) paste0(x, "ºC")) +
     ggthemes::theme_hc(base_size = 15) +
@@ -35,7 +37,7 @@ AnnualTmeanDistributionPlot <- function(data, max_date) {
       ),
       caption = paste0(
         "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"
-      ), color = "Year"
+      ), fill = "Year"
     ) +
     ggplot2::theme(
       plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),
@@ -46,7 +48,7 @@ AnnualTmeanDistributionPlot <- function(data, max_date) {
       legend.background = ggplot2::element_blank(),
       legend.box.background = ggplot2::element_rect(fill = "white", color = "black", linewidth = 0.75)
     ) +
-    ggplot2::guides(color = guide_colorbar(ticks.colour = NA))
+    ggplot2::guides(fill = guide_colorbar(ticks.colour = NA))
   
   return(p)
 }

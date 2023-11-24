@@ -1,13 +1,13 @@
 OverviewPcpTempPlot <- function(data, selected_year, max_date) {
   # Precipitation data
-  plot_data_pcp <- data |>     
+  plot_data_pcp <- data_pcp |>     
     dplyr::filter(date >= as.Date(paste0(as.numeric(selected_year), "-01-01")) & 
                     date <= as.Date(paste0(as.numeric(selected_year), "-12-31"))) |> 
     dplyr::filter(pcp >= 0.1) |> 
     dplyr::arrange(-pcp)
   
   # Temperature data
-  plot_data_temp <- data |> 
+  plot_data_temp <- data_temp |> 
     dplyr::filter(date >= as.Date(paste0(as.numeric(selected_year), "-01-01")) & 
                     date <= as.Date(paste0(as.numeric(selected_year), "-12-31")))
   

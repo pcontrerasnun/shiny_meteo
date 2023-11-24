@@ -49,10 +49,10 @@ MonthlyPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, ma
     ggh4x::geom_box(aes(ymin = q60pcp, ymax = q80pcp, fill = "P80", width = 0.9), alpha = 0.5) +
     ggh4x::geom_box(aes(ymin = q80pcp, ymax = q100pcp, fill = "P100", width = 0.9), alpha = 0.5) +
     ggplot2::geom_segment(aes(x = month, xend = month, y = 0, yend = sumpcp, color = "sumpcp"), na.rm = TRUE) +
+    ggplot2::geom_point(aes(y = sumpcp, color = "sumpcp"), na.rm = TRUE) +
     ggplot2::scale_color_manual(values = c("sumpcp" = "black"),
                                 label = paste0("Monthly total precip. (", selected_year, ")"), 
                                 guide = guide_legend(order = 1)) +
-    ggplot2::geom_point(aes(y = sumpcp, color = "sumpcp"), na.rm = TRUE) +
     ggplot2::geom_text(aes(y = sumpcp, label = paste(diffq50pcp, "*mm~vs.~italic(P)[50]")), 
                        parse = TRUE, vjust = -2.5, na.rm = TRUE) +
     ggplot2::geom_text(aes(y = sumpcp, label = diffq50pcp_x), vjust = -1.5, na.rm = TRUE) +
