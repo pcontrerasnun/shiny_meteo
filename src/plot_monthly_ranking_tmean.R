@@ -1,6 +1,6 @@
 MonthlyRankingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
   # Calculate historical monthly percentiles
-  reference_pcts_monthly_tmean <- data_temp |>
+  reference_pcts_monthly_tmean <- data |>
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(ref_start_year, "-01-01")) &
                     date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
@@ -21,7 +21,7 @@ MonthlyRankingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end
     dplyr::as_tibble()
   
   # Calculate each month's rank
-  reference_monthly_rank_tmean <- data_temp |>
+  reference_monthly_rank_tmean <- data |>
     dtplyr::lazy_dt() |>
     dplyr::filter((date >= as.Date(paste0(ref_start_year, "-01-01")) &
                      date <= as.Date(paste0(ref_end_year, "-12-31"))) |
@@ -36,7 +36,7 @@ MonthlyRankingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end
     dplyr::as_tibble()
   
   # Calculate mean temperature in each month for selected year
-  selected_year_monthly_tmean <- data_temp |>
+  selected_year_monthly_tmean <- data |>
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(as.numeric(selected_year), "-01-01")) &
                     date <= as.Date(paste0(as.numeric(selected_year), "-12-31"))) |>
@@ -57,13 +57,16 @@ MonthlyRankingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end
     ggh4x::geom_box(aes(ymin = p40tmean, ymax = p60tmean, fill = "P60", width = 0.9), alpha = 0.5) +
     ggh4x::geom_box(aes(ymin = p60tmean, ymax = p80tmean, fill = "P80", width = 0.9), alpha = 0.5) +
     ggh4x::geom_box(aes(ymin = p80tmean, ymax = p100tmean, fill = "P100", width = 0.9), alpha = 0.5) +
-    ggplot2::geom_segment(aes(x = month, xend = month, y = 0, yend = tmean, color = "tmean"), na.rm = TRUE) +
+    ggplot2::geom_segment(
+      aes(x = month, xend = month, 
+          y = floor(min(min(tmean, na.rm = TRUE), min(p00tmean, na.rm = TRUE)) - 2),
+          yend = tmean, color = "tmean"), na.rm = TRUE) +
     ggplot2::geom_point(aes(y = tmean, color = "tmean"), na.rm = TRUE) +
     ggplot2::scale_color_manual(values = c("tmean" = "red"),
                                 label = paste0("Monthly mean temp. (", selected_year, ")"), 
                                 guide = guide_legend(order = 1)) +
     ggplot2::scale_fill_manual(
-      values = c("P40" = "#abd9e9", "P20" = "#e0f3f8", "P60" = "white", "P80" = "#fee090", 
+      values = c("P20" = "#abd9e9", "P40" = "#e0f3f8", "P60" = "white", "P80" = "#fee090", 
                  "P100" = "#fdae61"), 
       labels = c("P100" = expr(paste("Very hot month (", italic(P[80]), "-", italic(P[100]), ") (", 
                                      !!ref_start_year, "-", !!ref_end_year, ")")), 

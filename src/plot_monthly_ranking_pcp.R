@@ -73,8 +73,8 @@ MonthlyRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_y
     ggplot2::geom_errorbar(data = reference_stats_monthly_pcp, 
                            aes(y = minpcp, ymin = minpcp, ymax = minpcp, color = "min"), 
                            linetype = "solid", linewidth = 1) +
-    ggplot2::scale_x_discrete(limits = c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10",
-                                         "11", "12"),
+    ggplot2::scale_x_discrete(
+      limits = c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"),
       labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")) +
     ggplot2::scale_color_manual(breaks = c("max", "mean", "min"),
       values = c("mean" = "black", "max" = "#4daf4a", "min" = "#d7191c"),      

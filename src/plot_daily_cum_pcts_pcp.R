@@ -85,14 +85,14 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
 
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = date, y = cumsumpcp)) +
-    ggplot2::geom_ribbon(aes(ymin = cumq00pcp, ymax = cumq20pcp), alpha = 0.3, color = "#d7191c", 
-                         fill = "#d7191c", linetype = "51", lineend = "round", linejoin = "round") +
-    ggplot2::geom_ribbon(aes(ymin = cumq20pcp, ymax = cumq40pcp), alpha = 0.1, color = "#fdae61", 
-                         fill = "#fdae61", linetype = "51", lineend = "round", linejoin = "round") +
-    ggplot2::geom_ribbon(aes(ymin = cumq60pcp, ymax = cumq80pcp), alpha = 0.1, color = "#abd9e9", 
-                         fill = "#abd9e9", linetype = "51", lineend = "round", linejoin = "round") +
-    ggplot2::geom_ribbon(aes(ymin = cumq80pcp, ymax = cumq100pcp), alpha = 0.3, color = "#2c7bb6",
-                         fill = "#2c7bb6", linetype = "51", lineend = "round", linejoin = "round") +
+    ggplot2::geom_ribbon(aes(ymin = cumq00pcp, ymax = cumq20pcp), alpha = 0.3, color = "#ca0020", 
+                         fill = "#ca0020", linetype = "51", lineend = "round", linejoin = "round") +
+    ggplot2::geom_ribbon(aes(ymin = cumq20pcp, ymax = cumq40pcp), alpha = 0.1, color = "#f4a582", 
+                         fill = "#f4a582", linetype = "51", lineend = "round", linejoin = "round") +
+    ggplot2::geom_ribbon(aes(ymin = cumq60pcp, ymax = cumq80pcp), alpha = 0.1, color = "#92c5de", 
+                         fill = "#92c5de", linetype = "51", lineend = "round", linejoin = "round") +
+    ggplot2::geom_ribbon(aes(ymin = cumq80pcp, ymax = cumq100pcp), alpha = 0.3, color = "#0571b0",
+                         fill = "#0571b0", linetype = "51", lineend = "round", linejoin = "round") +
     #  ggplot2::geom_ribbon_pattern(aes(ymin = cumq80pcp, ymax = cumq100pcp), pattern = 'gradient',
     #                      na.rm = TRUE, pattern_fill  = '#abd9e9', pattern_fill2 = '#2c7bb6',
     #                      pattern_alpha = 0.01, pattern_linetype = '51', lineend = 'round',

@@ -154,11 +154,12 @@ server <- function(input, output, session) {
         "2. Daily rolling mean temp." = "2-tmean",
         "3. Daily mean temp. (vs. percentiles)" = "3-tmean",
         "4. Daily mean temp. (anomalies)" = "4-tmean",
-        "5. Monthly mean temp. (anomalies)" = "5-tmean",
-        "6. Monthly mean temp. (historical)" = "6-tmean",
-        "7. Monthly mean temp. (ranking)" = "7-tmean",
-        "8. Annual mean temp. (anomalies)" = "8-tmean",
-        "9. Annual mean temp. (distribution)" = "9-tmean"
+        "5. Daily mean temp. (heatmap) " = "5-tmean",
+        "6. Monthly mean temp. (anomalies)" = "6-tmean",
+        "7. Monthly mean temp. (historical)" = "7-tmean",
+        "8. Monthly mean temp. (ranking)" = "8-tmean",
+        "9. Annual mean temp. (anomalies)" = "9-tmean",
+        "10. Annual mean temp. (distribution)" = "10-tmean"
       )
     } else if (input$variable == paste0("Precipitation (07h-07h", "\u207A", "\u00B9", ")")) {
       plot_choices <- c(
@@ -242,7 +243,7 @@ server <- function(input, output, session) {
       "12-pcp" = AnnualPcpDistributionPlot(
         data = data_pcp, max_date = max_date
       ),
-      "5-tmean" = MonthlyTmeanAnomaliesPlot(
+      "7-tmean" = MonthlyTmeanAnomaliesPlot(
         data = data_temp, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
@@ -258,13 +259,13 @@ server <- function(input, output, session) {
         data = data_clean, selected_year = input$year,
         max_date = max_date
       ),
-      "8-tmean" = AnnualTmeanAnomaliesPlot(
+      "9-tmean" = AnnualTmeanAnomaliesPlot(
         data = data_temp,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "9-tmean" = AnnualTmeanDistributionPlot(
+      "10-tmean" = AnnualTmeanDistributionPlot(
         data = data_temp, max_date = max_date
       ),
       "11-pcp" = AnnualPcpAnomaliesPlot(
@@ -297,7 +298,13 @@ server <- function(input, output, session) {
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "7-tmean" = MonthlyRankingTmeanPlot(
+      "8-tmean" = MonthlyRankingTmeanPlot(
+        data = data_temp, selected_year = input$year,
+        ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
+        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+        max_date = max_date
+      ),
+      "5-tmean" = DailyHeatmapTmeanPlot(
         data = data_temp, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
