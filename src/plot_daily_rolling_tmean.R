@@ -7,18 +7,19 @@ DailyRollingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_y
     dplyr::filter((date < as.Date(paste0(selected_year, "-01-01")) | # Not include year of study in calculations
       date > as.Date(paste0(selected_year, "-12-31")))) |>
     dplyr::group_by(year) |>
-    dplyr::mutate(tmean_acumulated = round(cumsum(tmean) / row_number(), 1)) |> 
+    dplyr::mutate(cumtmean = round(replace(tmean, complete.cases(tmean), cummean(na.omit(tmean))), 1)) |>
+    tidyr::fill(cumtmean) |> 
     dplyr::group_by(day, month) |>
     dplyr::summarise(
-      cumq00tmean = round(quantile(tmean_acumulated, probs = 0.00, na.rm = TRUE), 1),
-      cumq05tmean = round(quantile(tmean_acumulated, probs = 0.05, na.rm = TRUE), 1),
-      cumq20tmean = round(quantile(tmean_acumulated, probs = 0.20, na.rm = TRUE), 1),
-      cumq40tmean = round(quantile(tmean_acumulated, probs = 0.40, na.rm = TRUE), 1),
-      cumq50tmean = round(quantile(tmean_acumulated, probs = 0.50, na.rm = TRUE), 1),
-      cumq60tmean = round(quantile(tmean_acumulated, probs = 0.60, na.rm = TRUE), 1),
-      cumq80tmean = round(quantile(tmean_acumulated, probs = 0.80, na.rm = TRUE), 1),
-      cumq95tmean = round(quantile(tmean_acumulated, probs = 0.95, na.rm = TRUE), 1),
-      cumq100tmean = round(quantile(tmean_acumulated, probs = 1, na.rm = TRUE), 1),
+      cump00tmean = round(quantile(cumtmean, probs = 0.00, na.rm = TRUE), 1),
+      cump05tmean = round(quantile(cumtmean, probs = 0.05, na.rm = TRUE), 1),
+      cump20tmean = round(quantile(cumtmean, probs = 0.20, na.rm = TRUE), 1),
+      cump40tmean = round(quantile(cumtmean, probs = 0.40, na.rm = TRUE), 1),
+      cump50tmean = round(quantile(cumtmean, probs = 0.50, na.rm = TRUE), 1),
+      cump60tmean = round(quantile(cumtmean, probs = 0.60, na.rm = TRUE), 1),
+      cump80tmean = round(quantile(cumtmean, probs = 0.80, na.rm = TRUE), 1),
+      cump95tmean = round(quantile(cumtmean, probs = 0.95, na.rm = TRUE), 1),
+      cump100tmean = round(quantile(cumtmean, probs = 1, na.rm = TRUE), 1),
       .groups = "keep"
     ) |>
     dplyr::as_tibble()
@@ -30,34 +31,46 @@ DailyRollingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_y
       date <= as.Date(paste0(selected_year, "-12-31"))) |>
     dplyr::filter(complete.cases(tmean)) |> 
     dplyr::group_by(year) |>
-    dplyr::mutate(tmean_acumulated = round(cumsum(tmean) / row_number(), 1)) |>
+    dplyr::mutate(cumtmean = round(replace(tmean, complete.cases(tmean), cummean(na.omit(tmean))), 1)) |>
+    tidyr::fill(cumtmean) |> 
     dplyr::as_tibble()
 
   # Join data
   plot_data <- left_join(reference_daily_rolling_tmean, selected_year_rolling_tmean, by = c("day", "month")) |>
     dplyr::select(
-      day, month, tmean_acumulated, cumq00tmean, cumq05tmean, cumq20tmean, cumq40tmean,
-      cumq50tmean, cumq60tmean, cumq80tmean, cumq95tmean, cumq100tmean
+      day, month, cumtmean, cump00tmean, cump05tmean, cump20tmean, cump40tmean,
+      cump50tmean, cump60tmean, cump80tmean, cump95tmean, cump100tmean
     ) |>
+    dplyr::mutate(diffmedian = round(cumtmean - cump50tmean, 1)) |> 
     dplyr::mutate(date = as.Date(paste0(day, "-", month, "2023"), format = "%d-%m%Y")) |> # We choose
   # 2023 since it doesn't have 29th Feb, it doesn't matter what year we choose but it can't be
   # a leap year
     dplyr::arrange(date)
+  
+  # For labelling anomaly purposes
+  if (tail(na.omit(plot_data), 1)$diffmedian < 0){
+    sign <- ""
+  } else {
+    sign <- "+"
+  }
 
   # Draw the plot
-  p <- ggplot2::ggplot(data = plot_data, aes(x = date, y = tmean_acumulated)) +
-    ggplot2::geom_ribbon(aes(ymin = cumq80tmean, ymax = cumq100tmean, fill = "Very hot"),
+  p <- ggplot2::ggplot(data = plot_data, aes(x = date, y = cumtmean)) +
+    ggplot2::geom_ribbon(aes(ymin = cump80tmean, ymax = cump100tmean, fill = "Very hot"),
       alpha = 0.3, color = "#d7191c", linetype = "51", lineend = "round", linejoin = "round") +
-    ggplot2::geom_ribbon(aes(ymin = cumq60tmean, ymax = cumq80tmean, fill = "Hot"),
+    ggplot2::geom_ribbon(aes(ymin = cump60tmean, ymax = cump80tmean, fill = "Hot"),
       alpha = 0.1, color = "#fdae61", linetype = "51", lineend = "round", linejoin = "round") +
-    ggplot2::geom_ribbon(aes(ymin = cumq40tmean, ymax = cumq60tmean, fill = "Normal"),
+    ggplot2::geom_ribbon(aes(ymin = cump40tmean, ymax = cump60tmean, fill = "Normal"),
       alpha = 0.1, linetype = "51", lineend = "round", linejoin = "round") +
-    ggplot2::geom_ribbon(aes(ymin = cumq20tmean, ymax = cumq40tmean, fill = "Cold"),
+    ggplot2::geom_ribbon(aes(ymin = cump20tmean, ymax = cump40tmean, fill = "Cold"),
       alpha = 0.1, color = "#abd9e9", linetype = "51", lineend = "round", linejoin = "round") +
-    ggplot2::geom_ribbon(aes(ymin = cumq00tmean, ymax = cumq20tmean, fill = "Very cold"),
+    ggplot2::geom_ribbon(aes(ymin = cump00tmean, ymax = cump20tmean, fill = "Very cold"),
       alpha = 0.3, color = "#2c7bb6", linetype = "51", lineend = "round", linejoin = "round") +
     ggplot2::geom_line(aes(color = "selected_year"), linewidth = 0.85, lineend = "round", na.rm = TRUE) +
-    ggrepel::geom_label_repel(data = tail(na.omit(plot_data), 1), aes(label = paste0(tmean_acumulated, "ºC"))) +
+    ggrepel::geom_label_repel(
+      data = tail(na.omit(plot_data), 1), 
+      aes(label = paste0("atop(Rolling~mean~temp.~", cumtmean, "*ºC,", sign, diffmedian, "*ºC~vs.~italic(P[50]))")),
+      parse = TRUE) +
     ggplot2::scale_color_manual(values = c("selected_year" = "black"),
                                 label = paste0("Daily rolling mean temp. (", selected_year, ")"), 
                                 guide = guide_legend(order = 1)) +
@@ -83,14 +96,14 @@ DailyRollingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_y
       expand = expansion(mult = c(0.02, 0))) +
     ggplot2::scale_y_continuous(
       labels = function(x) paste0(x, "ºC"),
-      limits = c(floor(min(min(plot_data$tmean_acumulated, na.rm = TRUE),
-                           min(plot_data$cumq00tmean, na.rm = TRUE)) - 2),
-                 ceiling(max(max(plot_data$tmean_acumulated, na.rm = TRUE),
-                             max(plot_data$cumq100tmean, na.rm = TRUE)) + 2)),
-      breaks = seq(from = floor(min(min(plot_data$tmean_acumulated, na.rm = TRUE),
-                                    min(plot_data$cumq00tmean, na.rm = TRUE)) - 2),
-                   to = ceiling(max(max(plot_data$tmean_acumulated, na.rm = TRUE),
-                                    max(plot_data$cumq100tmean, na.rm = TRUE))) + 2, by = 2)) +
+      limits = c(floor(min(min(plot_data$cumtmean, na.rm = TRUE),
+                           min(plot_data$cump00tmean, na.rm = TRUE)) - 2),
+                 ceiling(max(max(plot_data$cumtmean, na.rm = TRUE),
+                             max(plot_data$cump100tmean, na.rm = TRUE)) + 2)),
+      breaks = seq(from = floor(min(min(plot_data$cumtmean, na.rm = TRUE),
+                                    min(plot_data$cump00tmean, na.rm = TRUE)) - 2),
+                   to = ceiling(max(max(plot_data$cumtmean, na.rm = TRUE),
+                                    max(plot_data$cump100tmean, na.rm = TRUE))) + 2, by = 2)) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
       x = "", y = "", title = paste0("Temperature in Madrid - Retiro ", selected_year),

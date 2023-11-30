@@ -50,7 +50,7 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
       cumq60pcp = round(quantile(cumsumpcp, probs = 0.60, na.rm = TRUE), 1),
       cumq80pcp = round(quantile(cumsumpcp, probs = 0.80, na.rm = TRUE), 1),
       cumq100pcp = round(quantile(cumsumpcp, probs = 1, na.rm = TRUE), 1)
-        ) |>
+    ) |>
     dplyr::ungroup() |>
     dplyr::mutate(month = dplyr::case_when(
       month %in% "12" ~ "00", # to put December first

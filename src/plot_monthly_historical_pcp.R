@@ -38,10 +38,11 @@ MonthlyAnomaliesPcpPlot <- function(data, ref_start_year, ref_end_year, max_date
     ggplot2::geom_line(aes(color = "sumpcp"), show.legend = FALSE) +
     ggplot2::geom_line(aes(y = q50pcp, color = "q50"), linetype = "dashed") +
     ggplot2::geom_smooth(aes(color = "trend", group = month), method = lm, se = FALSE, na.rm = TRUE, show.legend = FALSE) + 
-    ggplot2::facet_wrap(vars(month), labeller = labeller(month = c("01" = "Jan", "02" = "Feb", "03" = "Mar", 
-                                                                   "04" = "Apr", "05" = "May", "06" = "Jun", 
-                                                                   "07" = "Jul", "08" = "Aug", "09" = "Sep", 
-                                                                   "10" = "Oct", "11" = "Nov", "12" = "Dec"))) +
+    ggplot2::facet_wrap(
+      vars(month), 
+      labeller = labeller(month = c("01" = "Jan", "02" = "Feb", "03" = "Mar", "04" = "Apr", 
+                                    "05" = "May", "06" = "Jun", "07" = "Jul", "08" = "Aug", 
+                                    "09" = "Sep", "10" = "Oct", "11" = "Nov", "12" = "Dec"))) +
     ggplot2::scale_color_manual(
       breaks = c("sumpcp", "q50", "trend"),
       values = c("trend" = "blue", "q50" = "black", "sumpcp" = "black"), 
@@ -60,11 +61,8 @@ MonthlyAnomaliesPcpPlot <- function(data, ref_start_year, ref_end_year, max_date
       plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),
       plot.subtitle = ggplot2::element_text(hjust = 1, size = 25),
       legend.background = ggplot2::element_blank(),
-      legend.box.background = ggplot2::element_rect(
-        fill = "white", color = "black",
-        linewidth = 0.75
-      ),
-      legend.position = c(0.58, 0.59),
+      legend.box.background = ggplot2::element_rect(fill = "white", color = "black", linewidth = 0.75),
+      legend.position = c(0.61, 0.59),
       legend.spacing = ggplot2::unit(0, "cm"),
       legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
       legend.text = ggtext::element_markdown(),

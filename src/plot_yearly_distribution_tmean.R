@@ -42,8 +42,8 @@ AnnualTmeanDistributionPlot <- function(data, max_date) {
     ggplot2::theme(
       plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),
       plot.subtitle = ggplot2::element_text(hjust = 1, size = 25), 
-      axis.text.y = element_blank(),
-      axis.ticks.y = element_blank(),
+      axis.text.y = ggplot2::element_blank(),
+      axis.ticks.y = ggplot2::element_blank(),
       legend.position = c(0.85, 0.8),
       legend.background = ggplot2::element_blank(),
       legend.box.background = ggplot2::element_rect(fill = "white", color = "black", linewidth = 0.75)

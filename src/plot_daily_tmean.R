@@ -7,22 +7,25 @@ DailyTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, ma
                     date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
     dplyr::filter((date < as.Date(paste0(selected_year, "-01-01")) | # Not include year of study in calculations
                      date > as.Date(paste0(selected_year, "-12-31")))) |>
-    # Smoothing with +- 15 days
-    dplyr::mutate(rolling_tmean = round(zoo::rollapply(tmean, width = 2 * 15 + 1, FUN = mean, 
-                                                 align = "center", fill = NA), 2)) |>
+    dplyr::as_tibble() |> 
+    # Get previous and next 15 days
+    dplyr::reframe(ref_date = seq.Date(date - 15, date + 15, "day"), .by = c(date, tmean)) |>
+    dplyr::left_join(data |> rename(climate_tmean = tmean), join_by(ref_date == date)) |> 
+    dplyr::select(-ref_date) |> 
     dplyr::group_by(day, month) |> 
     dplyr::summarise(
-      q00tmean = round(quantile(rolling_tmean, probs = 0.00, na.rm = TRUE), 1),
-      q20tmean = round(quantile(rolling_tmean, probs = 0.20, na.rm = TRUE), 1),
-      q40tmean = round(quantile(rolling_tmean, probs = 0.40, na.rm = TRUE), 1),
-      q60tmean = round(quantile(rolling_tmean, probs = 0.60, na.rm = TRUE), 1),
-      q80tmean = round(quantile(rolling_tmean, probs = 0.80, na.rm = TRUE), 1),
-      q100tmean = round(quantile(rolling_tmean, probs = 1, na.rm = TRUE), 1),
+      p00tmean = round(quantile(climate_tmean, probs = 0.00, na.rm = TRUE), 1),
+      p20tmean = round(quantile(climate_tmean, probs = 0.20, na.rm = TRUE), 1),
+      p40tmean = round(quantile(climate_tmean, probs = 0.40, na.rm = TRUE), 1),
+      p60tmean = round(quantile(climate_tmean, probs = 0.60, na.rm = TRUE), 1),
+      p80tmean = round(quantile(climate_tmean, probs = 0.80, na.rm = TRUE), 1),
+      p100tmean = round(quantile(climate_tmean, probs = 1, na.rm = TRUE), 1),
       .groups = "keep" # to avoid warning
     ) |>
+    dplyr::ungroup() |> # Don't know why but necessary cause not plot_data fails
     # We choose 2023 as year because it doesn't have 29th Feb
     dplyr::mutate(date = as.Date(paste("2023", month, day, sep = "-"), format = "%Y-%m-%d")) |> 
-    dplyr::as_tibble()
+    dplyr::filter(!is.na(date))
   
   # Get daily mean temperatures
   selected_year_daily_tmean <- data |>     
@@ -37,19 +40,19 @@ DailyTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, ma
   
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = date)) +
-    ggplot2::geom_ribbon(aes(ymin = q80tmean, ymax = q100tmean, fill = "P100"),
+    ggplot2::geom_ribbon(aes(ymin = p80tmean, ymax = p100tmean, fill = "P100"),
                          alpha = 0.3, color = "#d7191c", linetype = "51", 
                          lineend = "round", linejoin = "round") +
-    ggplot2::geom_ribbon(aes(ymin = q60tmean, ymax = q80tmean, fill = "P80"),
+    ggplot2::geom_ribbon(aes(ymin = p60tmean, ymax = p80tmean, fill = "P80"),
                          alpha = 0.1, color = "#fdae61", linetype = "51", 
                          lineend = "round", linejoin = "round") +
-    ggplot2::geom_ribbon(aes(ymin = q40tmean, ymax = q60tmean, fill = "P60"),
+    ggplot2::geom_ribbon(aes(ymin = p40tmean, ymax = p60tmean, fill = "P60"),
                          alpha = 0.1, color = NA, linetype = "51", 
                          lineend = "round", linejoin = "round") +
-    ggplot2::geom_ribbon(aes(ymin = q20tmean, ymax = q40tmean, fill = "P40"),
+    ggplot2::geom_ribbon(aes(ymin = p20tmean, ymax = p40tmean, fill = "P40"),
                          alpha = 0.1, color = "#abd9e9", linetype = "51", 
                          lineend = "round", linejoin = "round") +
-    ggplot2::geom_ribbon(aes(ymin = q00tmean, ymax = q20tmean, fill = "P20"),
+    ggplot2::geom_ribbon(aes(ymin = p00tmean, ymax = p20tmean, fill = "P20"),
                          alpha = 0.3, color = "#2c7bb6", linetype = "51", 
                          lineend = "round", linejoin = "round") +
     ggplot2::geom_line(aes(y = tmean, color = "tmean"), linewidth = 0.75, lineend = "round", na.rm = TRUE) +
@@ -77,10 +80,10 @@ DailyTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, ma
     ) +
     ggplot2::scale_y_continuous(
       labels = function(x) paste0(x, "ºC"),
-      breaks = round(seq(from = min(min(plot_data$q00tmean), min(plot_data$tmean, na.rm = TRUE)) - 2, 
-                   to = max(max(plot_data$q100tmean), max(plot_data$tmean, na.rm = TRUE)) + 2, by = 5), 0),
-      limits = c(min(min(plot_data$q00tmean), min(plot_data$tmean, na.rm = TRUE)) - 2, 
-                 max(max(plot_data$q100tmean), max(plot_data$tmean, na.rm = TRUE)) + 2)
+      breaks = round(seq(from = min(min(plot_data$p00tmean), min(plot_data$tmean, na.rm = TRUE)) - 2, 
+                   to = max(max(plot_data$p100tmean), max(plot_data$tmean, na.rm = TRUE)) + 2, by = 5), 0),
+      limits = c(min(min(plot_data$p00tmean), min(plot_data$tmean, na.rm = TRUE)) - 2, 
+                 max(max(plot_data$p100tmean), max(plot_data$tmean, na.rm = TRUE)) + 2)
     ) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
