@@ -40,7 +40,7 @@ SeasonRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_ye
     dplyr::group_by(month) |>
     dplyr::summarise(
       cummaxpcp = max(cumsumpcp, na.rm = TRUE),
-      cumavgpcp = mean(cumsumpcp, na.rm = TRUE),
+      cummeanpcp = mean(cumsumpcp, na.rm = TRUE),
       cumminpcp = min(cumsumpcp, na.rm = TRUE)
     ) |>
     dplyr::mutate(month = dplyr::case_when(
@@ -99,7 +99,7 @@ SeasonRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_ye
   p <- ggplot2::ggplot(data = plot_data, aes(x = row)) +
     ggh4x::geom_box(aes(ymin = cumminpcp, ymax = cummaxpcp, width = 0.9), fill = "white", color = "black") +
     ggplot2::geom_col(aes(y = seasoncumsumpcp, fill = "cumsumpcp")) +
-    ggplot2::geom_errorbar(aes(y = cumavgpcp, ymin = cumavgpcp, ymax = cumavgpcp, color = "mean"), 
+    ggplot2::geom_errorbar(aes(y = cummeanpcp, ymin = cummeanpcp, ymax = cummeanpcp, color = "mean"), 
                            linetype = "dashed") +
     ggplot2::geom_errorbar(aes(y = cummaxpcp, ymin = cummaxpcp, ymax = cummaxpcp, color = "max"), 
                            linetype = "solid", linewidth = 1) +

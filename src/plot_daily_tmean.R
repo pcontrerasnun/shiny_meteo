@@ -1,4 +1,3 @@
-
 DailyTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
   # Calculate percentiles of tmean across every day of the year
   reference_daily_pcts_tmean <- data |> 
@@ -12,19 +11,19 @@ DailyTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, ma
     dplyr::reframe(ref_date = seq.Date(date - 15, date + 15, "day"), .by = c(date, tmean)) |>
     dplyr::left_join(data |> rename(climate_tmean = tmean), join_by(ref_date == date)) |> 
     dplyr::select(-ref_date) |> 
+    dplyr::mutate(day = format(date, "%d"), month = format(date, "%m")) |> 
     dplyr::group_by(day, month) |> 
     dplyr::summarise(
-      p00tmean = round(quantile(climate_tmean, probs = 0.00, na.rm = TRUE), 1),
+      p05tmean = round(quantile(climate_tmean, probs = 0.05, na.rm = TRUE), 1),
       p20tmean = round(quantile(climate_tmean, probs = 0.20, na.rm = TRUE), 1),
       p40tmean = round(quantile(climate_tmean, probs = 0.40, na.rm = TRUE), 1),
       p60tmean = round(quantile(climate_tmean, probs = 0.60, na.rm = TRUE), 1),
       p80tmean = round(quantile(climate_tmean, probs = 0.80, na.rm = TRUE), 1),
-      p100tmean = round(quantile(climate_tmean, probs = 1, na.rm = TRUE), 1),
+      p95tmean = round(quantile(climate_tmean, probs = 0.95, na.rm = TRUE), 1),
       .groups = "keep" # to avoid warning
     ) |>
-    dplyr::ungroup() |> # Don't know why but necessary cause not plot_data fails
-    # We choose 2023 as year because it doesn't have 29th Feb
-    dplyr::mutate(date = as.Date(paste("2023", month, day, sep = "-"), format = "%Y-%m-%d")) |> 
+    dplyr::ungroup() |> 
+    dplyr::mutate(date = as.Date(paste(selected_year, month, day, sep = "-"), format = "%Y-%m-%d")) |> 
     dplyr::filter(!is.na(date))
   
   # Get daily mean temperatures
@@ -36,33 +35,42 @@ DailyTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, ma
     dplyr::as_tibble()
   
   # Join data
-  plot_data <- dplyr::left_join(reference_daily_pcts_tmean, selected_year_daily_tmean, by = c("day", "month"))
+  plot_data <- dplyr::left_join(reference_daily_pcts_tmean, selected_year_daily_tmean, by = c("day", "month")) |> 
+    dplyr::select(date, tmean, everything(), -c(day, month))
   
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = date)) +
-    ggplot2::geom_ribbon(aes(ymin = p80tmean, ymax = p100tmean, fill = "P100"),
-                         alpha = 0.3, color = "#d7191c", linetype = "51", 
+    ggplot2::geom_ribbon(aes(ymin = p95tmean, ymax = p95tmean + 4, fill = "P100"),
+                         alpha = 0.3, color = "#b2182b", linetype = "51", 
+                         lineend = "round", linejoin = "round") +
+    ggplot2::geom_ribbon(aes(ymin = p80tmean, ymax = p95tmean, fill = "P95"),
+                         alpha = 0.3, color = "#ef8a62", linetype = "51", 
                          lineend = "round", linejoin = "round") +
     ggplot2::geom_ribbon(aes(ymin = p60tmean, ymax = p80tmean, fill = "P80"),
-                         alpha = 0.1, color = "#fdae61", linetype = "51", 
+                         alpha = 0.3, color = "#fddbc7", linetype = "51", 
                          lineend = "round", linejoin = "round") +
     ggplot2::geom_ribbon(aes(ymin = p40tmean, ymax = p60tmean, fill = "P60"),
-                         alpha = 0.1, color = NA, linetype = "51", 
+                         alpha = 0.3, color = NA, linetype = "51", 
                          lineend = "round", linejoin = "round") +
     ggplot2::geom_ribbon(aes(ymin = p20tmean, ymax = p40tmean, fill = "P40"),
-                         alpha = 0.1, color = "#abd9e9", linetype = "51", 
+                         alpha = 0.3, color = "#d1e5f0", linetype = "51", 
                          lineend = "round", linejoin = "round") +
-    ggplot2::geom_ribbon(aes(ymin = p00tmean, ymax = p20tmean, fill = "P20"),
-                         alpha = 0.3, color = "#2c7bb6", linetype = "51", 
+    ggplot2::geom_ribbon(aes(ymin = p05tmean, ymax = p20tmean, fill = "P20"),
+                         alpha = 0.3, color = "#67a9cf", linetype = "51", 
+                         lineend = "round", linejoin = "round") +
+    ggplot2::geom_ribbon(aes(ymin = p05tmean - 4, ymax = p05tmean, fill = "P00"),
+                         alpha = 0.3, color = "#2166ac", linetype = "51", 
                          lineend = "round", linejoin = "round") +
     ggplot2::geom_line(aes(y = tmean, color = "tmean"), linewidth = 0.75, lineend = "round", na.rm = TRUE) +
     ggplot2::scale_color_manual(values = c("tmean" = "black"),
                                 label = paste0("Daily mean temp. (", selected_year, ")"), guide = guide_legend(order = 1)) +
     ggplot2::scale_fill_manual(
-      values = c("P100" = "#d7191c", "P80" = "#fdae61", "P60" = "white",
-                 "P40" = "#abd9e9", "P20" = "#2c7bb6"),
-      breaks = c("P100", "P80", "P60", "P40", "P20"), # To give order
-      labels = c("P100" = expr(paste("Very hot day (", italic(P[80]), "-", italic(P[100]), ") (", 
+      values = c("P100" = "#b2182b", "P95" = "#ef8a62", "P80" = "#fddbc7", "P60" = "#f7f7f7",
+                 "P40" = "#d1e5f0", "P20" = "#67a9cf", "P00" = "#2166ac"),
+      breaks = c("P100", "P95", "P80", "P60", "P40", "P20", "P00"), # To give order
+      labels = c("P100" = expr(paste("Extrem. hot day (>", italic(P[95]), ") (", 
+                                     !!ref_start_year, "-", !!ref_end_year, ")")), 
+                 "P95" = expr(paste("Very hot day (", italic(P[80]), "-", italic(P[95]), ") (", 
                                      !!ref_start_year, "-", !!ref_end_year, ")")), 
                  "P80" = expr(paste("Hot day (", italic(P[60]), "-", italic(P[80]), ") (", 
                                     !!ref_start_year, "-", !!ref_end_year, ")")), 
@@ -70,20 +78,22 @@ DailyTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, ma
                                     !!ref_start_year, "-", !!ref_end_year, ")")),
                  "P40" = expr(paste("Cold day (", italic(P[20]), "-", italic(P[40]), ") (", 
                                     !!ref_start_year, "-", !!ref_end_year, ")")),
-                 "P20" = expr(paste("Very cold day (", italic(P[00]), "-", italic(P[20]), ") (", 
+                 "P20" = expr(paste("Very cold day (", italic(P[05]), "-", italic(P[20]), ") (", 
+                                    !!ref_start_year, "-", !!ref_end_year, ")")),
+                 "P00" = expr(paste("Extrem. cold day (<", italic(P[05]), ") (", 
                                     !!ref_start_year, "-", !!ref_end_year, ")"))),
       guide = guide_legend(override.aes = list(colour = NA), order = 2)) +
     ggplot2::scale_x_continuous(
-      breaks = as.numeric(seq(ymd("2023-01-01"), ymd("2023-12-31"), by = "month")),
+      breaks = as.numeric(seq(ymd(paste0(selected_year, "-01-01")), ymd(paste0(selected_year, "-12-31")), by = "month")),
       labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"),
-      limits = c(as.numeric(ymd("2023-01-01")), as.numeric(ymd("2023-12-31")))
+      limits = c(as.numeric(ymd(paste0(selected_year, "-01-01"))), as.numeric(ymd(paste0(selected_year, "-12-31"))))
     ) +
     ggplot2::scale_y_continuous(
       labels = function(x) paste0(x, "ºC"),
-      breaks = round(seq(from = min(min(plot_data$p00tmean), min(plot_data$tmean, na.rm = TRUE)) - 2, 
-                   to = max(max(plot_data$p100tmean), max(plot_data$tmean, na.rm = TRUE)) + 2, by = 5), 0),
-      limits = c(min(min(plot_data$p00tmean), min(plot_data$tmean, na.rm = TRUE)) - 2, 
-                 max(max(plot_data$p100tmean), max(plot_data$tmean, na.rm = TRUE)) + 2)
+      breaks = round(seq(from = min(min(plot_data$p05tmean) - 4, min(plot_data$tmean, na.rm = TRUE)) - 2, 
+                   to = max(max(plot_data$p95tmean) + 4, max(plot_data$tmean, na.rm = TRUE)) + 2, by = 5), 0),
+      limits = c(min(min(plot_data$p05tmean) - 4, min(plot_data$tmean, na.rm = TRUE)) - 2, 
+                 max(max(plot_data$p95tmean) + 4, max(plot_data$tmean, na.rm = TRUE)) + 2)
     ) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(

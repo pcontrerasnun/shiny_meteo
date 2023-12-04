@@ -24,15 +24,15 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
     dplyr::arrange(year, month, day) |>
     dplyr::group_by(day, month) |>
     dplyr::summarise(
-      cumq00pcp = round(quantile(cumsumpcp, probs = 0.00, na.rm = TRUE), 1),
-      cumq05pcp = round(quantile(cumsumpcp, probs = 0.05, na.rm = TRUE), 1),
-      cumq20pcp = round(quantile(cumsumpcp, probs = 0.20, na.rm = TRUE), 1),
-      cumq40pcp = round(quantile(cumsumpcp, probs = 0.40, na.rm = TRUE), 1),
-      cumq50pcp = round(quantile(cumsumpcp, probs = 0.50, na.rm = TRUE), 1),
-      cumq60pcp = round(quantile(cumsumpcp, probs = 0.60, na.rm = TRUE), 1),
-      cumq80pcp = round(quantile(cumsumpcp, probs = 0.80, na.rm = TRUE), 1),
-      cumq95pcp = round(quantile(cumsumpcp, probs = 0.95, na.rm = TRUE), 1),
-      cumq100pcp = round(quantile(cumsumpcp, probs = 1, na.rm = TRUE), 1),
+      cump00pcp = round(quantile(cumsumpcp, probs = 0.00, na.rm = TRUE), 1),
+      cump05pcp = round(quantile(cumsumpcp, probs = 0.05, na.rm = TRUE), 1),
+      cump20pcp = round(quantile(cumsumpcp, probs = 0.20, na.rm = TRUE), 1),
+      cump40pcp = round(quantile(cumsumpcp, probs = 0.40, na.rm = TRUE), 1),
+      cump50pcp = round(quantile(cumsumpcp, probs = 0.50, na.rm = TRUE), 1),
+      cump60pcp = round(quantile(cumsumpcp, probs = 0.60, na.rm = TRUE), 1),
+      cump80pcp = round(quantile(cumsumpcp, probs = 0.80, na.rm = TRUE), 1),
+      cump95pcp = round(quantile(cumsumpcp, probs = 0.95, na.rm = TRUE), 1),
+      cump100pcp = round(quantile(cumsumpcp, probs = 1, na.rm = TRUE), 1),
       .groups = "keep" # .groups to avoid warnings
     ) |>
     dplyr::arrange(month, day) |>
@@ -49,13 +49,11 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
   # Join previous two datasets and create new columns 'diffmedian' and 'date'
   plot_data <- left_join(reference_pcts_pcp, selected_year_pcp, by = c("day", "month")) |>
     dplyr::select(
-      day, month, cumq00pcp, cumq05pcp, cumq20pcp, cumq40pcp, cumq50pcp,
-      cumq60pcp, cumq80pcp, cumq95pcp, cumq100pcp, cumsumpcp
+      day, month, cump00pcp, cump05pcp, cump20pcp, cump40pcp, cump50pcp,
+      cump60pcp, cump80pcp, cump95pcp, cump100pcp, cumsumpcp
     ) |>
-    dplyr::mutate(diffmedian = cumsumpcp - cumq50pcp) |>
-    dplyr::mutate(date = as.Date(paste0(day, "-", month, "2023"), format = "%d-%m%Y")) # We choose
-  # 2023 since it doesn't have 29th Feb, it doesn't matter what year we choose but it can't be
-  # a leap year
+    dplyr::mutate(diffmedian = cumsumpcp - cump50pcp) |>
+    dplyr::mutate(date = as.Date(paste0(day, "-", month, selected_year), format = "%d-%m%Y"))
   
   # For ranking of max consecutive days of precip.
   ranking_max_consec_days_pcp <- data |> 
@@ -85,35 +83,42 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
 
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = date, y = cumsumpcp)) +
-    ggplot2::geom_ribbon(aes(ymin = cumq00pcp, ymax = cumq20pcp), alpha = 0.3, color = "#ca0020", 
-                         fill = "#ca0020", linetype = "51", lineend = "round", linejoin = "round") +
-    ggplot2::geom_ribbon(aes(ymin = cumq20pcp, ymax = cumq40pcp), alpha = 0.1, color = "#f4a582", 
-                         fill = "#f4a582", linetype = "51", lineend = "round", linejoin = "round") +
-    ggplot2::geom_ribbon(aes(ymin = cumq60pcp, ymax = cumq80pcp), alpha = 0.1, color = "#92c5de", 
-                         fill = "#92c5de", linetype = "51", lineend = "round", linejoin = "round") +
-    ggplot2::geom_ribbon(aes(ymin = cumq80pcp, ymax = cumq100pcp), alpha = 0.3, color = "#0571b0",
-                         fill = "#0571b0", linetype = "51", lineend = "round", linejoin = "round") +
-    #  ggplot2::geom_ribbon_pattern(aes(ymin = cumq80pcp, ymax = cumq100pcp), pattern = 'gradient',
+    ggplot2::geom_ribbon(aes(ymin = 0, ymax = cump00pcp), alpha = 0.3, color = "#b2182b", 
+                         fill = "#b2182b", linetype = "51", lineend = "round", linejoin = "round") +
+    ggplot2::geom_ribbon(aes(ymin = cump00pcp, ymax = cump20pcp), alpha = 0.3, color = "#ef8a62", 
+                         fill = "#ef8a62", linetype = "51", lineend = "round", linejoin = "round") +
+    ggplot2::geom_ribbon(aes(ymin = cump20pcp, ymax = cump40pcp), alpha = 0.3, color = "#fddbc7", 
+                         fill = "#fddbc7", linetype = "51", lineend = "round", linejoin = "round") +
+    ggplot2::geom_ribbon(aes(ymin = cump40pcp, ymax = cump60pcp), alpha = 0.3, color = "#f7f7f7", 
+                         fill = "#f7f7f7", linetype = "51", lineend = "round", linejoin = "round") +
+    ggplot2::geom_ribbon(aes(ymin = cump60pcp, ymax = cump80pcp), alpha = 0.3, color = "#d1e5f0", 
+                         fill = "#d1e5f0", linetype = "51", lineend = "round", linejoin = "round") +
+    ggplot2::geom_ribbon(aes(ymin = cump80pcp, ymax = cump100pcp), alpha = 0.3, color = "#67a9cf",
+                         fill = "#67a9cf", linetype = "51", lineend = "round", linejoin = "round") +
+    ggplot2::geom_ribbon(aes(ymin = cump100pcp, ymax = cump100pcp + 100), alpha = 0.3, color = "#2166ac",
+                         fill = "#2166ac", linetype = "51", lineend = "round", linejoin = "round") +
+    #  ggplot2::geom_ribbon_pattern(aes(ymin = cump80pcp, ymax = cump100pcp), pattern = 'gradient',
     #                      na.rm = TRUE, pattern_fill  = '#abd9e9', pattern_fill2 = '#2c7bb6',
     #                      pattern_alpha = 0.01, pattern_linetype = '51', lineend = 'round',
     #                      linejoin = 'round', pattern_orientation = 'vertical') +
-    #  geom_line(aes(y = cumq50pcp)) +
+    #  geom_line(aes(y = cump50pcp)) +
     ggplot2::geom_line(aes(color = "cumsumpcp"), linewidth = 0.85, lineend = "round", na.rm = TRUE) +
     ggplot2::scale_color_manual(values = c("cumsumpcp" = "black"), 
                                label = paste0("Cumulative daily precip. (", selected_year, ")")) +
-    #  ggplot2::geom_ribbon_pattern(aes(x = date, ymin = cumq50pcp, ymax = cumsumpcp),
+    #  ggplot2::geom_ribbon_pattern(aes(x = date, ymin = cump50pcp, ymax = cumsumpcp),
     #                               pattern = 'gradient', na.rm = TRUE, pattern_fill  = '#377eb8',
     #                               pattern_fill2 = '#e41a1c') +
     ggplot2::scale_x_continuous(
-      breaks = as.numeric(seq(ymd("2023-01-01"), ymd("2023-12-31"), by = "month")),
+      breaks = as.numeric(seq(ymd(paste0(selected_year, "-01-01")), ymd(paste0(selected_year, "-12-31")), by = "month")),
       labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"),
-      limits = c(as.numeric(ymd("2023-01-01")), as.numeric(ymd("2024-02-04"))),
+      limits = c(as.numeric(ymd(paste0(selected_year, "-01-01"))), 
+                 as.numeric(ymd(paste0(as.numeric(selected_year) + 1, "-02-04")))),
       expand = expansion(mult = c(0.02, 0))
     ) +
     ggplot2::scale_y_continuous(
       labels = function(x) paste0(x, "mm"),
-      breaks = seq(from = 0, to = max(plot_data$cumq100pcp) + 100, by = 100),
-      limits = c(0, max(plot_data$cumq100pcp) + 100),
+      breaks = seq(from = 0, to = max(plot_data$cump100pcp) + 200, by = 100),
+      limits = c(0, max(plot_data$cump100pcp) + 200),
       expand = c(0, 20, 0, 0)
     ) +
     ggplot2::annotate(
@@ -178,37 +183,37 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
       legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
       legend.title = ggplot2::element_blank()) +
     ggplot2::annotate(
-      geom = "text", x = max(plot_data$date, na.rm = TRUE), y = max(plot_data$cumq100pcp),
+      geom = "text", x = max(plot_data$date, na.rm = TRUE), y = max(plot_data$cump100pcp),
       label = paste("Extrem.~wet~(italic(max))"),
       parse = TRUE, family = "sans", hjust = -0.05, vjust = 0.5
     ) +
     ggplot2::annotate(
-      geom = "text", x = max(plot_data$date, na.rm = TRUE), y = max(plot_data$cumq80pcp),
+      geom = "text", x = max(plot_data$date, na.rm = TRUE), y = max(plot_data$cump80pcp),
       label = paste("Very~wet~(italic(P)[80])"),
       parse = TRUE, family = "sans", hjust = -0.05, vjust = 0.5
     ) +
     ggplot2::annotate(
-      geom = "text", x = max(plot_data$date, na.rm = TRUE), y = max(plot_data$cumq60pcp),
+      geom = "text", x = max(plot_data$date, na.rm = TRUE), y = max(plot_data$cump60pcp),
       label = paste("Wet~(italic(P)[60])"),
       parse = TRUE, family = "sans", hjust = -0.05, vjust = 0.5
     ) +
     ggplot2::annotate(
-      geom = "text", x = max(plot_data$date, na.rm = TRUE), y = max(plot_data$cumq50pcp),
+      geom = "text", x = max(plot_data$date, na.rm = TRUE), y = max(plot_data$cump50pcp),
       label = paste("Normal~(italic(P)[50])"),
       parse = TRUE, family = "sans", hjust = -0.05, vjust = 0.5
     ) +
     ggplot2::annotate(
-      geom = "text", x = max(plot_data$date, na.rm = TRUE), y = max(plot_data$cumq40pcp),
+      geom = "text", x = max(plot_data$date, na.rm = TRUE), y = max(plot_data$cump40pcp),
       label = paste("Dry~(italic(P)[40])"),
       parse = TRUE, family = "sans", hjust = -0.05, vjust = 0.5
     ) +
     ggplot2::annotate(
-      geom = "text", x = max(plot_data$date, na.rm = TRUE), y = max(plot_data$cumq20pcp),
+      geom = "text", x = max(plot_data$date, na.rm = TRUE), y = max(plot_data$cump20pcp),
       label = paste("Very~dry~(italic(P)[20])"),
       parse = TRUE, family = "sans", hjust = -0.05, vjust = 0.5
     ) +
     ggplot2::annotate(
-      geom = "text", x = max(plot_data$date, na.rm = TRUE), y = max(plot_data$cumq00pcp),
+      geom = "text", x = max(plot_data$date, na.rm = TRUE), y = max(plot_data$cump00pcp),
       label = paste("Extrem.~dry~(italic(min))"),
       parse = TRUE, family = "sans", hjust = -0.05, vjust = 0.5
     )

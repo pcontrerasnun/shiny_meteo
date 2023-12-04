@@ -1,4 +1,3 @@
-
 AnnualTmeanAnomaliesPlot <- function(data, ref_start_year, ref_end_year, max_date) {
   # Calculate median tmean in reference period
   reference_annual_pcts_tmean <- data |>

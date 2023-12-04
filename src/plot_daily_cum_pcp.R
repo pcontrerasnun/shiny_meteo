@@ -43,9 +43,8 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
       day, month, cummeanpcp, cumsumpcp
     ) |>
     mutate(diffmean = cumsumpcp - cummeanpcp) |>
-    dplyr::mutate(date = as.Date(paste0(day, "-", month, "2023"), format = "%d-%m%Y")) # We choose
-    # 2023 since it doesn't have 29th Feb, it doesn't matter what year we choose but it can't be
-    # a leap year, otherwise it will plot NA values for 29th Feb
+    dplyr::mutate(date = as.Date(paste0(day, "-", month, selected_year), format = "%d-%m%Y")) |> 
+    dplyr::select(date, cummeanpcp, cumsumpcp, diffmean)
   
   # For geom_segment coloring purposes
   color_data <- plot_data |> 
@@ -131,9 +130,9 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
       hjust = 0, vjust = 0.5, label.size = 0.75, label.padding = unit(0.5, "lines")
     ) + 
     ggplot2::scale_x_continuous(
-      breaks = as.numeric(seq(ymd("2023-01-01"), ymd("2023-12-31"), by = "month")),
+      breaks = as.numeric(seq(ymd(paste0(selected_year, "-01-01")), ymd(paste0(selected_year, "-12-31")), by = "month")),
       labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"),
-      limits = c(as.numeric(ymd("2023-01-01")), as.numeric(ymd("2023-12-31"))),
+      limits = c(as.numeric(ymd(paste0(selected_year, "-01-01"))), as.numeric(ymd(paste0(selected_year, "-12-31")))),
       expand = ggplot2::expansion(mult = c(0.04, 0.05))
     ) +
     ggplot2::scale_y_continuous(

@@ -43,13 +43,13 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
     dplyr::filter(lubridate::day(date) == lubridate::days_in_month(date)) |>
     dplyr::group_by(month) |>
     dplyr::summarise(
-      cumq00pcp = round(quantile(cumsumpcp, probs = 0.00, na.rm = TRUE), 1),
-      cumq20pcp = round(quantile(cumsumpcp, probs = 0.20, na.rm = TRUE), 1),
-      cumq40pcp = round(quantile(cumsumpcp, probs = 0.40, na.rm = TRUE), 1),
-      cumq50pcp = round(quantile(cumsumpcp, probs = 0.50, na.rm = TRUE), 1),
-      cumq60pcp = round(quantile(cumsumpcp, probs = 0.60, na.rm = TRUE), 1),
-      cumq80pcp = round(quantile(cumsumpcp, probs = 0.80, na.rm = TRUE), 1),
-      cumq100pcp = round(quantile(cumsumpcp, probs = 1, na.rm = TRUE), 1)
+      cump00pcp = round(quantile(cumsumpcp, probs = 0.00, na.rm = TRUE), 1),
+      cump20pcp = round(quantile(cumsumpcp, probs = 0.20, na.rm = TRUE), 1),
+      cump40pcp = round(quantile(cumsumpcp, probs = 0.40, na.rm = TRUE), 1),
+      cump50pcp = round(quantile(cumsumpcp, probs = 0.50, na.rm = TRUE), 1),
+      cump60pcp = round(quantile(cumsumpcp, probs = 0.60, na.rm = TRUE), 1),
+      cump80pcp = round(quantile(cumsumpcp, probs = 0.80, na.rm = TRUE), 1),
+      cump100pcp = round(quantile(cumsumpcp, probs = 1, na.rm = TRUE), 1)
     ) |>
     dplyr::ungroup() |>
     dplyr::mutate(month = dplyr::case_when(
@@ -103,36 +103,39 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
     reference_cumpcts_season_pcp,
     selected_year_season_cumpcp
   ) |> 
-    dplyr::mutate(diffq50pcp = round(seasoncumsumpcp - cumq50pcp, 1)) |>
-    dplyr::mutate(diffq50pcp_x = ifelse(diffq50pcp > 0, paste0("x", round(seasoncumsumpcp / cumq50pcp, 1)), 
-                                 paste0("/", round(cumq50pcp / seasoncumsumpcp, 1)))) |> 
-    dplyr::mutate(diffq50pcp_x = ifelse(diffq50pcp_x == "/Inf", "-", diffq50pcp_x)) |> # Replace Inf with -
-    dplyr::mutate(diffq50pcp_x = ifelse(diffq50pcp_x %in% c("/1", "x1"), "=", diffq50pcp_x)) |> # Replace /1 and x1 with =
-    dplyr::mutate(diffq50pcp = ifelse(diffq50pcp > 0, paste0("+", diffq50pcp), diffq50pcp))
+    dplyr::mutate(diffmedian = round(seasoncumsumpcp - cump50pcp, 1)) |>
+    dplyr::mutate(diffmedian_x = ifelse(diffmedian > 0, paste0("x", round(seasoncumsumpcp / cump50pcp, 1)), 
+                                 paste0("/", round(cump50pcp / seasoncumsumpcp, 1)))) |> 
+    dplyr::mutate(diffmedian_x = ifelse(diffmedian_x == "/Inf", "-", diffmedian_x)) |> # Replace Inf with -
+    dplyr::mutate(diffmedian_x = ifelse(diffmedian_x %in% c("/1", "x1"), "=", diffmedian_x)) |> # Replace /1 and x1 with =
+    dplyr::mutate(diffmedian = ifelse(diffmedian > 0, paste0("+", diffmedian), diffmedian))
 
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = row)) +
-    ggh4x::geom_box(aes(ymin = 0, ymax = cumq00pcp, fill = "P00", width = 0.9), alpha = 0.5) +
-    ggh4x::geom_box(aes(ymin = cumq00pcp, ymax = cumq20pcp, fill = "P20", width = 0.9), alpha = 0.5) +
-    ggh4x::geom_box(aes(ymin = cumq20pcp, ymax = cumq40pcp, fill = "P40", width = 0.9), alpha = 0.5) +
-    ggh4x::geom_box(aes(ymin = cumq40pcp, ymax = cumq60pcp, fill = "P60", width = 0.9), alpha = 0.5) +
-    ggh4x::geom_box(aes(ymin = cumq60pcp, ymax = cumq80pcp, fill = "P80", width = 0.9), alpha = 0.5) +
-    ggh4x::geom_box(aes(ymin = cumq80pcp, ymax = cumq100pcp, fill = "P100", width = 0.9), alpha = 0.5) +
+    ggh4x::geom_box(aes(ymin = 0, ymax = cump00pcp, fill = "P00", width = 0.9), alpha = 0.5) +
+    ggh4x::geom_box(aes(ymin = cump00pcp, ymax = cump20pcp, fill = "P20", width = 0.9), alpha = 0.5) +
+    ggh4x::geom_box(aes(ymin = cump20pcp, ymax = cump40pcp, fill = "P40", width = 0.9), alpha = 0.5) +
+    ggh4x::geom_box(aes(ymin = cump40pcp, ymax = cump60pcp, fill = "P60", width = 0.9), alpha = 0.5) +
+    ggh4x::geom_box(aes(ymin = cump60pcp, ymax = cump80pcp, fill = "P80", width = 0.9), alpha = 0.5) +
+    ggh4x::geom_box(aes(ymin = cump80pcp, ymax = cump100pcp, fill = "P100", width = 0.9), alpha = 0.5) +
+    ggh4x::geom_box(aes(ymin = cump100pcp, ymax = cump100pcp + 50, fill = ">P100", width = 0.9), alpha = 0.5) +
     # https://github.com/tidyverse/ggplot2/issues/3532
     ggplot2::geom_col(aes(y = seasoncumsumpcp, fill = "seasoncumsumpcp"), na.rm = TRUE) +
-    ggplot2::geom_col(aes(y = cumq50pcp, color = "cumq50pcp"), fill = NA, linewidth = 1) +
-    ggplot2::geom_text(aes(y = seasoncumsumpcp, label = paste(diffq50pcp, "*mm~vs.~italic(P)[50]")), 
+    ggplot2::geom_col(aes(y = cump50pcp, color = "cump50pcp"), fill = NA, linewidth = 1) +
+    ggplot2::geom_text(aes(y = seasoncumsumpcp, label = paste(diffmedian, "*mm~vs.~italic(P)[50]")), 
                        parse = TRUE, vjust = -2.5, na.rm = TRUE, size = 3.5) +
-    ggplot2::geom_text(aes(y = seasoncumsumpcp, label = diffq50pcp_x), vjust = -1.5, na.rm = TRUE, size = 3.5) +
+    ggplot2::geom_text(aes(y = seasoncumsumpcp, label = diffmedian_x), vjust = -1.5, na.rm = TRUE, size = 3.5) +
     ggplot2::scale_color_manual(
-      values = c("cumq50pcp" = "#d7191c"),
-      labels = c("cumq50pcp" = paste0("Cumulative seasonal median precip. (", ref_start_year, "-", 
+      values = c("cump50pcp" = "#d7191c"),
+      labels = c("cump50pcp" = paste0("Cumulative seasonal median precip. (", ref_start_year, "-", 
                                       ref_end_year, ")"))) +
     ggplot2::scale_fill_manual(
-      values = c("seasoncumsumpcp" = "#2c7bb6", "P100" = "#abd9e9",
-                 "P80" = "#e0f3f8", "P60" = "white", "P40" = "#fee090", "P20" = "#fdae61",
-                 "P00" = "#f46d43"), 
+      values = c("seasoncumsumpcp" = "#2c7bb6", ">P100" = "#2166ac", "P100" = "#67a9cf",
+                 "P80" = "#d1e5f0", "P60" = "#f7f7f7", "P40" = "#fddbc7", "P20" = "#ef8a62",
+                 "P00" = "#b2182b"), 
       labels = c("seasoncumsumpcp" = paste0("Cumulative seasonal precip. (", selected_year, ")"),
+                 ">P100" = expr(paste("Extrem. wet season (>", italic(P[100]), ") (", 
+                                     !!ref_start_year, "-", !!ref_end_year, ")")), 
                  "P100" = expr(paste("Very wet season (", italic(P[80]), "-", italic(P[100]), ") (", 
                                      !!ref_start_year, "-", !!ref_end_year, ")")), 
                  "P80" = expr(paste("Wet season (", italic(P[60]), "-", italic(P[80]), ") (", 
@@ -145,7 +148,7 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
                                     !!ref_start_year, "-", !!ref_end_year, ")")),
                  "P00" = expr(paste("Extrem. dry season (<", italic(P[00]), ") (", 
                                     !!ref_start_year, "-", !!ref_end_year, ")"))),
-      breaks = c("P100", "P80", "P60", "P40", "P20", "P00", "seasoncumsumpcp") # To give order
+      breaks = c(">P100", "P100", "P80", "P60", "P40", "P20", "P00", "seasoncumsumpcp") # To give order
     ) +
     ggplot2::scale_x_discrete(
       limits = plot_data$row,
@@ -159,9 +162,9 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
     ggplot2::scale_y_continuous(
       labels = function(x) paste0(x, "mm"),
       breaks = seq(
-        from = 0, to = max(max(plot_data$cumq100pcp), max(plot_data$seasoncumsumpcp, na.rm = TRUE))
-        + 125, by = 50),
-      limits = c(0, max(max(plot_data$cumq100pcp), max(plot_data$seasoncumsumpcp, na.rm = TRUE)) + 100)) + # expand = c(0, 20, 0, 50)
+        from = 0, to = max(max(plot_data$cump100pcp), max(plot_data$seasoncumsumpcp, na.rm = TRUE))
+        + 275, by = 50),
+      limits = c(0, max(max(plot_data$cump100pcp), max(plot_data$seasoncumsumpcp, na.rm = TRUE)) + 250)) + # expand = c(0, 20, 0, 50)
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
       x = "", y = "", title = paste0("Precipitation in Madrid - Retiro ", selected_year),

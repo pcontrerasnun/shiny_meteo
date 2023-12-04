@@ -1,6 +1,6 @@
-DailyRollingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
-  # Calculate mean rolling temperature percentiles
-  reference_daily_rolling_tmean <- data |>
+DailyCumulativeTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
+  # Calculate mean cumulative temperature percentiles
+  reference_daily_cum_tmean <- data |>
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(ref_start_year, "-01-01")) &
       date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
@@ -12,20 +12,18 @@ DailyRollingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_y
     dplyr::group_by(day, month) |>
     dplyr::summarise(
       cump00tmean = round(quantile(cumtmean, probs = 0.00, na.rm = TRUE), 1),
-      cump05tmean = round(quantile(cumtmean, probs = 0.05, na.rm = TRUE), 1),
       cump20tmean = round(quantile(cumtmean, probs = 0.20, na.rm = TRUE), 1),
       cump40tmean = round(quantile(cumtmean, probs = 0.40, na.rm = TRUE), 1),
       cump50tmean = round(quantile(cumtmean, probs = 0.50, na.rm = TRUE), 1),
       cump60tmean = round(quantile(cumtmean, probs = 0.60, na.rm = TRUE), 1),
       cump80tmean = round(quantile(cumtmean, probs = 0.80, na.rm = TRUE), 1),
-      cump95tmean = round(quantile(cumtmean, probs = 0.95, na.rm = TRUE), 1),
       cump100tmean = round(quantile(cumtmean, probs = 1, na.rm = TRUE), 1),
       .groups = "keep"
     ) |>
     dplyr::as_tibble()
 
-  # Calculate rolling mean temperature for selected year
-  selected_year_rolling_tmean <- data |>
+  # Calculate cumulative mean temperature for selected year
+  selected_year_cum_tmean <- data |>
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(selected_year, "-01-01")) &
       date <= as.Date(paste0(selected_year, "-12-31"))) |>
@@ -36,16 +34,15 @@ DailyRollingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_y
     dplyr::as_tibble()
 
   # Join data
-  plot_data <- left_join(reference_daily_rolling_tmean, selected_year_rolling_tmean, by = c("day", "month")) |>
+  plot_data <- left_join(reference_daily_cum_tmean, selected_year_cum_tmean, by = c("day", "month")) |>
     dplyr::select(
-      day, month, cumtmean, cump00tmean, cump05tmean, cump20tmean, cump40tmean,
-      cump50tmean, cump60tmean, cump80tmean, cump95tmean, cump100tmean
+      day, month, cumtmean, cump00tmean, cump20tmean, cump40tmean,
+      cump50tmean, cump60tmean, cump80tmean, cump100tmean
     ) |>
     dplyr::mutate(diffmedian = round(cumtmean - cump50tmean, 1)) |> 
-    dplyr::mutate(date = as.Date(paste0(day, "-", month, "2023"), format = "%d-%m%Y")) |> # We choose
-  # 2023 since it doesn't have 29th Feb, it doesn't matter what year we choose but it can't be
-  # a leap year
-    dplyr::arrange(date)
+    dplyr::mutate(date = as.Date(paste0(day, "-", month, selected_year), format = "%d-%m%Y")) |> 
+    dplyr::arrange(date) |> 
+    dplyr::select(date, everything(), -c(day, month))
   
   # For labelling anomaly purposes
   if (tail(na.omit(plot_data), 1)$diffmedian < 0){
@@ -56,43 +53,54 @@ DailyRollingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_y
 
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = date, y = cumtmean)) +
+    ggplot2::geom_ribbon(aes(ymin = cump100tmean, ymax = cump100tmean + 1.5, fill = "Extrem. hot"),
+      alpha = 0.3, color = "#b2182b", linetype = "51", lineend = "round", linejoin = "round") +
     ggplot2::geom_ribbon(aes(ymin = cump80tmean, ymax = cump100tmean, fill = "Very hot"),
-      alpha = 0.3, color = "#d7191c", linetype = "51", lineend = "round", linejoin = "round") +
+      alpha = 0.3, color = "#ef8a62", linetype = "51", lineend = "round", linejoin = "round") +
     ggplot2::geom_ribbon(aes(ymin = cump60tmean, ymax = cump80tmean, fill = "Hot"),
-      alpha = 0.1, color = "#fdae61", linetype = "51", lineend = "round", linejoin = "round") +
+      alpha = 0.3, color = "#fddbc7", linetype = "51", lineend = "round", linejoin = "round") +
     ggplot2::geom_ribbon(aes(ymin = cump40tmean, ymax = cump60tmean, fill = "Normal"),
-      alpha = 0.1, linetype = "51", lineend = "round", linejoin = "round") +
+      alpha = 0.3, linetype = "51", lineend = "round", linejoin = "round") +
     ggplot2::geom_ribbon(aes(ymin = cump20tmean, ymax = cump40tmean, fill = "Cold"),
-      alpha = 0.1, color = "#abd9e9", linetype = "51", lineend = "round", linejoin = "round") +
+      alpha = 0.3, color = "#d1e5f0", linetype = "51", lineend = "round", linejoin = "round") +
     ggplot2::geom_ribbon(aes(ymin = cump00tmean, ymax = cump20tmean, fill = "Very cold"),
-      alpha = 0.3, color = "#2c7bb6", linetype = "51", lineend = "round", linejoin = "round") +
+      alpha = 0.3, color = "#67a9cf", linetype = "51", lineend = "round", linejoin = "round") +
+    ggplot2::geom_ribbon(aes(ymin = cump00tmean, ymax = cump00tmean - 1.5, fill = "Extrem. cold"),
+      alpha = 0.3, color = "#2166ac", linetype = "51", lineend = "round", linejoin = "round") +
     ggplot2::geom_line(aes(color = "selected_year"), linewidth = 0.85, lineend = "round", na.rm = TRUE) +
     ggrepel::geom_label_repel(
       data = tail(na.omit(plot_data), 1), 
-      aes(label = paste0("atop(Rolling~mean~temp.~", cumtmean, "*ºC,", sign, diffmedian, "*ºC~vs.~italic(P[50]))")),
+      aes(label = paste0("atop(Cumulative~mean~temp.~", cumtmean, "*ºC,", sign, diffmedian, "*ºC~vs.~italic(P[50]))")),
       parse = TRUE) +
     ggplot2::scale_color_manual(values = c("selected_year" = "black"),
-                                label = paste0("Daily rolling mean temp. (", selected_year, ")"), 
+                                label = paste0("Daily cumulative mean temp. (", selected_year, ")"), 
                                 guide = guide_legend(order = 1)) +
     ggplot2::scale_fill_manual(
-      values = c("Very hot" = "#d7191c", "Hot" = "#fdae61", "Normal" = "white", "Cold" = "#abd9e9", "Very cold" = "#2c7bb6"), 
-      breaks = c("Very hot", "Hot", "Normal", "Cold", "Very cold"), # To give order,
-      labels = c("Very hot" = expr(paste("Very hot (", italic(P[80]), "-", italic(P[100]), ") (", 
-                                               !!ref_start_year, "-", !!ref_end_year, ")")), 
-                 "Hot" = expr(paste("Hot (", italic(P[60]), "-", italic(P[80]), ") (", 
-                                          !!ref_start_year, "-", !!ref_end_year, ")")), 
-                 "Normal" = expr(paste("Normal (", italic(P[40]), "-", italic(P[60]), ") (", 
-                                             !!ref_start_year, "-", !!ref_end_year, ")")),
-                 "Cold" = expr(paste("Cold (", italic(P[20]), "-", italic(P[40]), ") (", 
-                                           !!ref_start_year, "-", !!ref_end_year, ")")),
-                 "Very cold" = expr(paste("Very cold (", italic(P[00]), "-", italic(P[20]), ") (", 
-                                                !!ref_start_year, "-", !!ref_end_year, ")"))),
+      values = c("Extrem. hot" = "#b2182b", "Very hot" = "#ef8a62", "Hot" = "#fddbc7", 
+                 "Normal" = "#f7f7f7", "Cold" = "#d1e5f0", "Very cold" = "#67a9cf", "Extrem. cold" = "#2166ac"), 
+      breaks = c("Extrem. hot", "Very hot", "Hot", "Normal", "Cold", "Very cold", "Extrem. cold"), # To give order,
+      labels = c(
+        "Extrem. hot" = expr(paste("Extrem. hot (>", italic(P[100]), ") (", 
+                                !!ref_start_year, "-", !!ref_end_year, ")")), 
+        "Very hot" = expr(paste("Very hot (", italic(P[80]), "-", italic(P[100]), ") (", 
+                                !!ref_start_year, "-", !!ref_end_year, ")")), 
+        "Hot" = expr(paste("Hot (", italic(P[60]), "-", italic(P[80]), ") (", 
+                           !!ref_start_year, "-", !!ref_end_year, ")")), 
+        "Normal" = expr(paste("Normal (", italic(P[40]), "-", italic(P[60]), ") (", 
+                              !!ref_start_year, "-", !!ref_end_year, ")")),
+        "Cold" = expr(paste("Cold (", italic(P[20]), "-", italic(P[40]), ") (", 
+                            !!ref_start_year, "-", !!ref_end_year, ")")),
+        "Very cold" = expr(paste("Very cold (", italic(P[00]), "-", italic(P[20]), ") (", 
+                                 !!ref_start_year, "-", !!ref_end_year, ")")),
+        "Extrem. cold" = expr(paste("Extrem. cold (<", italic(P[00]), ") (", 
+                                 !!ref_start_year, "-", !!ref_end_year, ")"))),
       guide = guide_legend(override.aes = list(colour = NA), guide = guide_legend(order = 2))
     ) +
     ggplot2::scale_x_continuous(
-      breaks = as.numeric(seq(ymd("2023-01-01"), ymd("2023-12-31"), by = "month")),
+      breaks = as.numeric(seq(ymd(paste0(selected_year, "-01-01")), 
+                              ymd(paste0(selected_year, "-12-31")), by = "month")),
       labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"),
-      limits = c(as.numeric(ymd("2023-01-01")), as.numeric(ymd("2024-01-09"))),
+      limits = c(as.numeric(ymd(paste0(selected_year, "-01-01"))), as.numeric(ymd(paste0(selected_year, "-12-31")))),
       expand = expansion(mult = c(0.02, 0))) +
     ggplot2::scale_y_continuous(
       labels = function(x) paste0(x, "ºC"),
@@ -107,7 +115,7 @@ DailyRollingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_y
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
       x = "", y = "", title = paste0("Temperature in Madrid - Retiro ", selected_year),
-      subtitle = paste0("Rolling daily mean temperature vs. historical percentiles (",
+      subtitle = paste0("Cumulative daily mean temperature vs. historical percentiles (",
                         ref_start_year, "-", ref_end_year, ")"),
       caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)")) +
     ggplot2::theme(
@@ -115,7 +123,7 @@ DailyRollingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_y
       plot.subtitle = ggplot2::element_text(hjust = 1, size = 25),
       legend.background = ggplot2::element_blank(),
       legend.box.background = ggplot2::element_rect(fill = "white", color = "black", linewidth = 0.75),
-      legend.position = c(0.125, 0.8),
+      legend.position = c(0.125, 0.825),
       legend.spacing = ggplot2::unit(0, "cm"),
       legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
       legend.title = element_blank(),

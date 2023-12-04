@@ -1,6 +1,6 @@
 MonthlyAnomaliesPcpPlot <- function(data, ref_start_year, ref_end_year, max_date) {
   # Calculate percentiles of total precip. per month in reference period
-  reference_monthly_pcts_pcp <- data |>
+  reference_monthly_pcts_pcp <- data_pcp |>
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(ref_start_year, "-01-01")) &
                     date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
@@ -8,21 +8,13 @@ MonthlyAnomaliesPcpPlot <- function(data, ref_start_year, ref_end_year, max_date
     dplyr::summarise(sumpcp = sum(pcp, na.rm = TRUE), .groups = "keep") |> # .groups to avoid warnings
     dplyr::group_by(month) |> 
     dplyr::summarise(
-      q00pcp = round(quantile(sumpcp, probs = 0.00, na.rm = TRUE), 1),
-      q05pcp = round(quantile(sumpcp, probs = 0.05, na.rm = TRUE), 1),
-      q20pcp = round(quantile(sumpcp, probs = 0.20, na.rm = TRUE), 1),
-      q40pcp = round(quantile(sumpcp, probs = 0.40, na.rm = TRUE), 1),
-      q50pcp = round(quantile(sumpcp, probs = 0.50, na.rm = TRUE), 1),
-      q60pcp = round(quantile(sumpcp, probs = 0.60, na.rm = TRUE), 1),
-      q80pcp = round(quantile(sumpcp, probs = 0.80, na.rm = TRUE), 1),
-      q95pcp = round(quantile(sumpcp, probs = 0.95, na.rm = TRUE), 1),
-      q100pcp = round(quantile(sumpcp, probs = 1, na.rm = TRUE), 1),
+      p50pcp = round(quantile(sumpcp, probs = 0.50, na.rm = TRUE), 1),
       .groups = "keep" # .groups to avoid warnings
     ) |> 
     dplyr::as_tibble()
   
-  # Calculate total precip. per month in all history
-  all_monthly_pcp <- data |> 
+   # Calculate total precip. per month in all history
+  all_monthly_pcp <- data_pcp |> 
     dtplyr::lazy_dt() |>
     dplyr::group_by(year, month) |> 
     dplyr::summarise(sumpcp = sum(pcp, na.rm = TRUE), .groups = "keep") |> # .groups to avoid warnings
@@ -30,13 +22,13 @@ MonthlyAnomaliesPcpPlot <- function(data, ref_start_year, ref_end_year, max_date
   
   # Join data and calculate anomalies
   plot_data <- dplyr::left_join(all_monthly_pcp, reference_monthly_pcts_pcp, by = "month") |> 
-    mutate(diffmedian = round(sumpcp - q50pcp, 1)) |> 
+    mutate(diffmedian = round(sumpcp - p50pcp, 1)) |> 
     dplyr::mutate(year = as.numeric(year))
   
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = year, y = sumpcp)) +
     ggplot2::geom_line(aes(color = "sumpcp"), show.legend = FALSE) +
-    ggplot2::geom_line(aes(y = q50pcp, color = "q50"), linetype = "dashed") +
+    ggplot2::geom_line(aes(y = p50pcp, color = "p50"), linetype = "dashed") +
     ggplot2::geom_smooth(aes(color = "trend", group = month), method = lm, se = FALSE, na.rm = TRUE, show.legend = FALSE) + 
     ggplot2::facet_wrap(
       vars(month), 
@@ -44,10 +36,10 @@ MonthlyAnomaliesPcpPlot <- function(data, ref_start_year, ref_end_year, max_date
                                     "05" = "May", "06" = "Jun", "07" = "Jul", "08" = "Aug", 
                                     "09" = "Sep", "10" = "Oct", "11" = "Nov", "12" = "Dec"))) +
     ggplot2::scale_color_manual(
-      breaks = c("sumpcp", "q50", "trend"),
-      values = c("trend" = "blue", "q50" = "black", "sumpcp" = "black"), 
+      breaks = c("sumpcp", "p50", "trend"),
+      values = c("trend" = "blue", "p50" = "black", "sumpcp" = "black"), 
       labels = c("trend" = "Trend", "sumpcp" = "Monthly precip.",
-                 "q50" = paste0("Monthly median precip. (", ref_start_year, "-", ref_end_year, ")"))) +
+                 "p50" = paste0("Monthly median precip. (", ref_start_year, "-", ref_end_year, ")"))) +
     ggplot2::scale_x_continuous(breaks = seq(from = min(plot_data$year), to = max(plot_data$year), by = 10)) +
     ggplot2::scale_y_continuous(labels = function(x) paste0(x, "mm")) +
     ggthemes::theme_hc(base_size = 15) +

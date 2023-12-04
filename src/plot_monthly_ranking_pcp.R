@@ -58,20 +58,21 @@ MonthlyRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_y
     dplyr::arrange(year, month) |>
     dplyr::ungroup() |>
     dplyr::as_tibble()
+  
+  # Join data
+  plot_data <- dplyr::left_join(reference_stats_monthly_pcp, selected_year_monthly_pcp, by = "month") |> 
+    dplyr::select(-year)
 
   # Draw the plot
-  p <- ggplot2::ggplot(data = selected_year_monthly_pcp, aes(x = month)) +
-    ggh4x::geom_box(data = reference_stats_monthly_pcp, aes(ymin = minpcp, ymax = maxpcp, width = 0.9), 
+  p <- ggplot2::ggplot(data = plot_data, aes(x = month)) +
+    ggh4x::geom_box(aes(ymin = minpcp, ymax = maxpcp, width = 0.9), 
                     fill = "white", color = "black") +
     ggplot2::geom_col(aes(y = sumpcp, fill = "sumpcp")) +
-    ggplot2::geom_errorbar(data = reference_stats_monthly_pcp, 
-                           aes(y = meanpcp, ymin = meanpcp, ymax = meanpcp, color = "mean"), 
+    ggplot2::geom_errorbar(aes(y = meanpcp, ymin = meanpcp, ymax = meanpcp, color = "mean"), 
                            linetype = "dashed") +
-    ggplot2::geom_errorbar(data = reference_stats_monthly_pcp, 
-                           aes(y = maxpcp, ymin = maxpcp, ymax = maxpcp,color = "max"), 
+    ggplot2::geom_errorbar(aes(y = maxpcp, ymin = maxpcp, ymax = maxpcp,color = "max"), 
                            linetype = "solid", linewidth = 1) +
-    ggplot2::geom_errorbar(data = reference_stats_monthly_pcp, 
-                           aes(y = minpcp, ymin = minpcp, ymax = minpcp, color = "min"), 
+    ggplot2::geom_errorbar(aes(y = minpcp, ymin = minpcp, ymax = minpcp, color = "min"), 
                            linetype = "solid", linewidth = 1) +
     ggplot2::scale_x_discrete(
       limits = c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"),
@@ -80,16 +81,16 @@ MonthlyRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_y
       values = c("mean" = "black", "max" = "#4daf4a", "min" = "#d7191c"),      
       labels = c("mean" = paste0("Monthly mean precip. (", ref_start_year, "-", ref_end_year, ")"),
                  "max" = paste0("Monthly max precip. (", ref_start_year, "-", ref_end_year, ")"),
-                 "min" = paste0("Monthly mean precip. (", ref_start_year, "-", ref_end_year, ")"))) +
+                 "min" = paste0("Monthly min precip. (", ref_start_year, "-", ref_end_year, ")"))) +
     ggplot2::scale_fill_manual(
       values = c("sumpcp" = "#2c7bb6"),
       labels = c("sumpcp" = paste0("Monthly total precip. (", selected_year, ")"))) +
     ggplot2::scale_y_continuous(
       labels = function(x) paste0(x, "mm"), 
-      breaks = seq(from = 0, to = max(max(selected_year_monthly_pcp$sumpcp, na.rm = TRUE), 
-                                      reference_stats_monthly_pcp$maxpcp) + 50, by = 25),
-      limits = c(0, max(max(selected_year_monthly_pcp$sumpcp, na.rm = TRUE), 
-                        reference_stats_monthly_pcp$maxpcp) + 50)) +
+      breaks = seq(from = 0, to = max(max(plot_data$sumpcp, na.rm = TRUE), 
+                                      plot_data$maxpcp) + 50, by = 25),
+      limits = c(0, max(max(plot_data$sumpcp, na.rm = TRUE), 
+                        plot_data$maxpcp) + 50)) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
       x = "", y = "", title = paste0("Precipitation in Madrid - Retiro ", selected_year),

@@ -1,4 +1,3 @@
-
 AnnualTmeanDistributionPlot <- function(data, max_date) {
   # Calculate mean temperature by year
   reference_annual_tmean <- data |>

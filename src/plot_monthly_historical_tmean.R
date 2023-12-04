@@ -1,4 +1,3 @@
-
 MonthlyHistoricalTmeanPlot <- function(data, ref_start_year, ref_end_year, max_date) {
   # Calculate normal mean temp of each month in reference period
   reference_monthly_pcts_tmean <- data |>

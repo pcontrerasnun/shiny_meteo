@@ -11,6 +11,7 @@ DailyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_end
     dplyr::reframe(ref_date = seq.Date(date - 15, date + 15, "day"), .by = c(date, tmean)) |>
     dplyr::left_join(data |> rename(climate_tmean = tmean), join_by(ref_date == date)) |> 
     dplyr::select(-ref_date) |> 
+    dplyr::mutate(day = format(date, "%d"), month = format(date, "%m")) |> 
     dplyr::group_by(day, month) |> 
     dplyr::summarise(
       p05tmean = round(quantile(climate_tmean, probs = 0.05, na.rm = TRUE), 1),
@@ -35,7 +36,7 @@ DailyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_end
   plot_data <- dplyr::left_join(reference_daily_pcts_tmean, selected_year_daily_tmean, by = c("day", "month")) |> 
     dplyr::mutate(diffmedian = round(tmean - p50tmean, 1)) |> 
     dplyr::arrange(-diffmedian) |> 
-    dplyr::select(date, p05tmean, p50tmean, p95tmean, tmean, diffmedian)
+    dplyr::select(date, tmean, p05tmean, p50tmean, p95tmean, diffmedian)
   
   # For geom_segment coloring purposes
   color_data <- plot_data |> 

@@ -1,4 +1,3 @@
-
 SeasonRankingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
   # Calculate cumulative historical tmean percentiles for each season
   reference_season_cumtmean <- data |> 
@@ -31,9 +30,11 @@ SeasonRankingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_
     dplyr::group_by(month) |>
     dplyr::summarise(
       cump00tmean = round(quantile(cumtmean, probs = 0.00, na.rm = TRUE), 1),
-      cump05tmean = round(quantile(cumtmean, probs = 0.05, na.rm = TRUE), 1),
+      cump20tmean = round(quantile(cumtmean, probs = 0.20, na.rm = TRUE), 1),
+      cump40tmean = round(quantile(cumtmean, probs = 0.40, na.rm = TRUE), 1),
       cump50tmean = round(quantile(cumtmean, probs = 0.50, na.rm = TRUE), 1),
-      cump95tmean = round(quantile(cumtmean, probs = 0.95, na.rm = TRUE), 1),
+      cump60tmean = round(quantile(cumtmean, probs = 0.60, na.rm = TRUE), 1),
+      cump80tmean = round(quantile(cumtmean, probs = 0.80, na.rm = TRUE), 1),
       cump100tmean = round(quantile(cumtmean, probs = 1, na.rm = TRUE), 1)
     ) |> 
     dplyr::ungroup() |>
@@ -126,22 +127,66 @@ SeasonRankingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_
   plot_data <- qpcR:::cbind.na(
     reference_season_cumtmean,
     selected_year_season_cumtmean
-  )
+    ) |> 
+    dplyr::select(row, month, cumtmean, everything(), -c(date, day, year, season, year_season, tmin,
+                                                         tmax, tmean, season_aux)) 
   
   # Draw the plot
-  p <- ggplot2::ggplot(data = plot_data, aes(x = row)) +
-    ggplot2::geom_point(aes(y = cumtmean), color = "red", na.rm = TRUE) +
-    ggplot2::geom_line(aes(y = cumtmean, group = 1, linetype = "cumtmean"), color = "red", na.rm = TRUE) +
-    ggplot2::geom_line(aes(y = cump50tmean, group = 1, linetype = "cump50")) +
-    ggplot2::geom_line(aes(y = cump05tmean, group = 1, linetype = "cump05")) +
-    ggplot2::geom_line(aes(y = cump95tmean, group = 1, linetype = "cump95")) +
-    ggplot2::scale_linetype_manual(
-      values = c("cump50" = "longdash", "cump05" = "dotdash", "cump95" = "dotdash", "cumtmean" = "solid"),
-      labels = c("cump50" = paste0("Cumulative seasonal normal mean temp. (", ref_start_year, "-", ref_end_year, ")"),
-                 "cump05" = expr(paste(italic(P[5]), " (", !!ref_start_year, "-", !!ref_end_year, ")")),
-                 "cump95" = expr(paste(italic(P[95]), " (", !!ref_start_year, "-", !!ref_end_year, ")")),
-                 "cumtmean" = paste0("Cumulative seasonal mean temp. (", selected_year, ")")),
-      breaks = c("cump95", "cump50", "cumtmean", "cump05")) + # To give order
+  p <- ggplot2::ggplot(data = plot_data, aes(x = row, group = 1)) +
+    ggplot2::geom_ribbon(
+      aes(ymin = cump100tmean, ymax = cump100tmean + 4, fill = ">P100", group = 1), alpha = 0.3, 
+      color = "#b2182b", linetype = "51", lineend = "round", linejoin = "round") +
+    ggplot2::geom_ribbon(
+      aes(ymin = cump80tmean, ymax = cump100tmean, fill = "P100"), alpha = 0.3, 
+      color = "#ef8a62", linetype = "51", lineend = "round", linejoin = "round") +
+    ggplot2::geom_ribbon(
+      aes(ymin = cump60tmean, ymax = cump80tmean, fill = "P80"), alpha = 0.3, 
+      color = "#fddbc7", linetype = "51", lineend = "round", linejoin = "round") +
+    ggplot2::geom_ribbon(
+      aes(ymin = cump40tmean, ymax = cump60tmean, fill = "P60"), alpha = 0.3, 
+      color = NA, linetype = "51", lineend = "round", linejoin = "round") +
+    ggplot2::geom_ribbon(
+      aes(ymin = cump20tmean, ymax = cump40tmean, fill = "P40"), alpha = 0.3, 
+      color = "#d1e5f0", linetype = "51", lineend = "round", linejoin = "round") +
+    ggplot2::geom_ribbon(
+      aes(ymin = cump00tmean, ymax = cump20tmean, fill = "P20"), alpha = 0.3, 
+      color = "#67a9cf", linetype = "51", lineend = "round", linejoin = "round") +
+    ggplot2::geom_ribbon(
+      aes(ymin = cump00tmean - 4, ymax = cump00tmean, fill = "P00"), alpha = 0.3, 
+      color = "#2166ac", linetype = "51", lineend = "round", linejoin = "round") +
+    ggplot2::scale_fill_manual(
+      values = c(">P100" = "#b2182b", "P100" = "#ef8a62", "P80" = "#fddbc7", "P60" = "#f7f7f7",
+                 "P40" = "#d1e5f0", "P20" = "#67a9cf", "P00" = "#2166ac"),
+      breaks = c(">P100", "P100", "P80", "P60", "P40", "P20", "P00"), # To give order
+      labels = c(">P100" = expr(paste("Extrem. hot season (>", italic(P[100]), ") (", 
+                                     !!ref_start_year, "-", !!ref_end_year, ")")), 
+                 "P100" = expr(paste("Very hot season (", italic(P[80]), "-", italic(P[100]), ") (", 
+                                    !!ref_start_year, "-", !!ref_end_year, ")")), 
+                 "P80" = expr(paste("Hot season (", italic(P[60]), "-", italic(P[80]), ") (", 
+                                    !!ref_start_year, "-", !!ref_end_year, ")")), 
+                 "P60" = expr(paste("Normal season (", italic(P[40]), "-", italic(P[60]), ") (", 
+                                    !!ref_start_year, "-", !!ref_end_year, ")")),
+                 "P40" = expr(paste("Cold season (", italic(P[20]), "-", italic(P[40]), ") (", 
+                                    !!ref_start_year, "-", !!ref_end_year, ")")),
+                 "P20" = expr(paste("Very cold season (", italic(P[00]), "-", italic(P[20]), ") (", 
+                                    !!ref_start_year, "-", !!ref_end_year, ")")),
+                 "P00" = expr(paste("Extrem. cold season (<", italic(P[00]), ") (", 
+                                    !!ref_start_year, "-", !!ref_end_year, ")")))) +
+    ggplot2::geom_point(aes(y = cumtmean), color = "black", na.rm = TRUE) +
+    ggplot2::geom_line(aes(y = cumtmean, group = 1, color = "cumtmean"), linewidth = 0.75, na.rm = TRUE) +
+    ggplot2::scale_color_manual(
+      values = c("cumtmean" = "black"), 
+      label = paste0("Cumulative seasonal mean temp. (", selected_year, ")"), guide = guide_legend(order = 1)) +
+    #ggplot2::geom_line(aes(y = cump50tmean, group = 1, linetype = "cump50")) +
+    #ggplot2::geom_line(aes(y = cump00tmean, group = 1, linetype = "cump05")) +
+    #ggplot2::geom_line(aes(y = cump100tmean, group = 1, linetype = "cump95")) +
+    #ggplot2::scale_linetype_manual(
+    #  values = c("cump50" = "longdash", "cump05" = "dotdash", "cump95" = "dotdash", "cumtmean" = "solid"),
+    #  labels = c("cump50" = paste0("Cumulative seasonal normal mean temp. (", ref_start_year, "-", ref_end_year, ")"),
+    #             "cump05" = expr(paste(italic(P[5]), " (", !!ref_start_year, "-", !!ref_end_year, ")")),
+    #             "cump95" = expr(paste(italic(P[95]), " (", !!ref_start_year, "-", !!ref_end_year, ")")),
+    #             "cumtmean" = paste0("Cumulative seasonal mean temp. (", selected_year, ")")),
+    #  breaks = c("cump95", "cump50", "cumtmean", "cump05")) + # To give order
     ggplot2::scale_x_discrete(
       limits = plot_data$row,
       labels = c(
@@ -151,10 +196,10 @@ SeasonRankingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_
         paste0("Feb", (as.numeric(selected_year) + 1) %% 100)
       )) +
     ggplot2::scale_y_continuous(
-      limits = c(min(min(plot_data$cumtmean, na.rm = TRUE), min(plot_data$cump05tmean, na.rm = TRUE)) - 3, 
-                 max(max(plot_data$cumtmean, na.rm = TRUE), max(plot_data$cump95tmean, na.rm = TRUE)) + 2),
-      breaks = seq(from = round(min(min(plot_data$cumtmean, na.rm = TRUE), min(plot_data$cump05tmean, na.rm = TRUE)) - 4), 
-                   to = round(max(max(plot_data$cumtmean, na.rm = TRUE), max(plot_data$cump95tmean, na.rm = TRUE)) + 3), by = 5),
+      limits = c(min(min(plot_data$cumtmean, na.rm = TRUE), min(plot_data$cump00tmean, na.rm = TRUE) - 4) - 4, 
+                 max(max(plot_data$cumtmean, na.rm = TRUE), max(plot_data$cump100tmean, na.rm = TRUE) + 4) + 2),
+      breaks = seq(from = round(min(min(plot_data$cumtmean, na.rm = TRUE), min(plot_data$cump00tmean, na.rm = TRUE) - 4) - 4), 
+                   to = round(max(max(plot_data$cumtmean, na.rm = TRUE), max(plot_data$cump100tmean, na.rm = TRUE) + 4) + 3), by = 5),
       labels = function(x) paste0(x, "ºC")) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
@@ -175,7 +220,7 @@ SeasonRankingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_
       legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
       legend.title = element_blank()
     ) +
-    ggplot2::guides(linetype = guide_legend(override.aes = list(color = c("black", "black", "red", "black"))))
+    ggplot2::guides(fill = guide_legend(override.aes = list(color = NA)))
   
   # Add position in ranking of selected year
   for (row_loop in plot_data[!is.na(plot_data$cumtmean), ]$row) { # Loop over months with data in selected year
@@ -193,7 +238,7 @@ SeasonRankingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_
         current_year, " ",
         subset(reference_season_ranking_cumtmean, month == plot_data[plot_data$row == row_loop, ]$month & year_season == current_year)$cumtmean, "ºC"
       ),
-      family = "sans", size = 3.15, hjust = 0.5, vjust = 6
+      family = "sans", size = 3.75, hjust = 0.5, vjust = 19
     )
   }
   
@@ -207,7 +252,7 @@ SeasonRankingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_
           rank, "º ", subset(reference_season_ranking_cumtmean, month == plot_data[plot_data$row == row_loop, ]$month & ranking == rank)$year,
           " ", subset(reference_season_ranking_cumtmean, month == plot_data[plot_data$row == row_loop, ]$month & ranking == rank)$cumtmean, "ºC"
         ),
-        family = "sans", size = 3.15, hjust = 0.5, vjust = -0.5 * (-rank) * 3 - 1
+        family = "sans", size = 3.75, hjust = 0.5, vjust = -0.5 * (-rank) * 3 - (-12)
       )
     }
   }

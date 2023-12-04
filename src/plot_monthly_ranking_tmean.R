@@ -47,28 +47,33 @@ MonthlyRankingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end
     dplyr::as_tibble()
   
   # Join data
-  plot_data <- dplyr::left_join(reference_pcts_monthly_tmean, selected_year_monthly_tmean, by = "month")
+  plot_data <- dplyr::left_join(reference_pcts_monthly_tmean, selected_year_monthly_tmean, by = "month") |> 
+    dplyr::select(month, tmean, everything())
   
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = month)) +
     #ggh4x::geom_box(aes(ymin = 0, ymax = p00tmean, fill = "P00", width = 0.9), alpha = 0.5) +
-    ggh4x::geom_box(aes(ymin = p00tmean, ymax = p20tmean, fill = "P20", width = 0.9), alpha = 0.5) +
-    ggh4x::geom_box(aes(ymin = p20tmean, ymax = p40tmean, fill = "P40", width = 0.9), alpha = 0.5) +
-    ggh4x::geom_box(aes(ymin = p40tmean, ymax = p60tmean, fill = "P60", width = 0.9), alpha = 0.5) +
-    ggh4x::geom_box(aes(ymin = p60tmean, ymax = p80tmean, fill = "P80", width = 0.9), alpha = 0.5) +
-    ggh4x::geom_box(aes(ymin = p80tmean, ymax = p100tmean, fill = "P100", width = 0.9), alpha = 0.5) +
+    ggh4x::geom_box(aes(ymin = p00tmean - 1.5, ymax = p00tmean, fill = "P00", width = 0.9), alpha = 0.3) +
+    ggh4x::geom_box(aes(ymin = p00tmean, ymax = p20tmean, fill = "P20", width = 0.9), alpha = 0.3) +
+    ggh4x::geom_box(aes(ymin = p20tmean, ymax = p40tmean, fill = "P40", width = 0.9), alpha = 0.3) +
+    ggh4x::geom_box(aes(ymin = p40tmean, ymax = p60tmean, fill = "P60", width = 0.9), alpha = 0.3) +
+    ggh4x::geom_box(aes(ymin = p60tmean, ymax = p80tmean, fill = "P80", width = 0.9), alpha = 0.3) +
+    ggh4x::geom_box(aes(ymin = p80tmean, ymax = p100tmean, fill = "P100", width = 0.9), alpha = 0.3) +
+    ggh4x::geom_box(aes(ymin = p100tmean, ymax = p100tmean + 1.5, fill = ">P100", width = 0.9), alpha = 0.3) +
     ggplot2::geom_segment(
       aes(x = month, xend = month, 
           y = floor(min(min(tmean, na.rm = TRUE), min(p00tmean, na.rm = TRUE)) - 2),
-          yend = tmean, color = "tmean"), na.rm = TRUE) +
+          yend = tmean, color = "tmean"), linewidth = 0.9, na.rm = TRUE) +
     ggplot2::geom_point(aes(y = tmean, color = "tmean"), na.rm = TRUE) +
     ggplot2::scale_color_manual(values = c("tmean" = "red"),
                                 label = paste0("Monthly mean temp. (", selected_year, ")"), 
                                 guide = guide_legend(order = 1)) +
     ggplot2::scale_fill_manual(
-      values = c("P20" = "#abd9e9", "P40" = "#e0f3f8", "P60" = "white", "P80" = "#fee090", 
-                 "P100" = "#fdae61"), 
-      labels = c("P100" = expr(paste("Very hot month (", italic(P[80]), "-", italic(P[100]), ") (", 
+      values = c("P00" = "#2166ac", "P20" = "#67a9cf", "P40" = "#d1e5f0", "P60" = "#f7f7f7", "P80" = "#fddbc7", 
+                 "P100" = "#ef8a62", ">P100" = "#b2182b"), 
+      labels = c(">P100" = expr(paste("Extrem. hot month (>", italic(P[100]), ") (", 
+                                     !!ref_start_year, "-", !!ref_end_year, ")")), 
+                 "P100" = expr(paste("Very hot month (", italic(P[80]), "-", italic(P[100]), ") (", 
                                      !!ref_start_year, "-", !!ref_end_year, ")")), 
                  "P80" = expr(paste("Hot month (", italic(P[60]), "-", italic(P[80]), ") (", 
                                     !!ref_start_year, "-", !!ref_end_year, ")")), 
@@ -77,21 +82,23 @@ MonthlyRankingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end
                  "P40" = expr(paste("Cold month (", italic(P[20]), "-", italic(P[40]), ") (", 
                                     !!ref_start_year, "-", !!ref_end_year, ")")),
                  "P20" = expr(paste("Very cold month (", italic(P[00]), "-", italic(P[20]), ") (", 
+                                    !!ref_start_year, "-", !!ref_end_year, ")")),
+                 "P00" = expr(paste("Extrem. cold month (<", italic(P[00]), ") (", 
                                     !!ref_start_year, "-", !!ref_end_year, ")"))),
-      breaks = c("P100", "P80", "P60", "P40", "P20", "P00")) + # to give order
+      breaks = c(">P100", "P100", "P80", "P60", "P40", "P20", "P00")) + # to give order
     ggplot2::scale_x_discrete(
       limits = c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"),
       labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")) +
     ggplot2::scale_y_continuous(
       labels = function(x) paste0(x, "ºC"),
       limits = c(floor(min(min(plot_data$tmean, na.rm = TRUE),
-                           min(plot_data$p00tmean, na.rm = TRUE)) - 2), 
+                           min(plot_data$p00tmean - 1.5, na.rm = TRUE)) - 2), 
                  ceiling(max(max(plot_data$tmean, na.rm = TRUE),
-                             max(plot_data$p100tmean, na.rm = TRUE)) + 2)),
+                             max(plot_data$p100tmean + 1.5, na.rm = TRUE)) + 2)),
       breaks = seq(from = floor(min(min(plot_data$tmean, na.rm = TRUE),
-                                    min(plot_data$p00tmean, na.rm = TRUE)) - 2), 
+                                    min(plot_data$p00tmean - 1.5, na.rm = TRUE)) - 2), 
                    to = ceiling(max(max(plot_data$tmean, na.rm = TRUE),
-                                    max(plot_data$p100tmean, na.rm = TRUE))) + 2, by = 5)) +
+                                    max(plot_data$p100tmean + 1.5, na.rm = TRUE))) + 2, by = 5)) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
       x = "", y = "", title = paste0("Temperature in Madrid - Retiro ", selected_year),

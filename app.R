@@ -10,16 +10,12 @@
 # - cajita en grafico temperatura con top 3 días mas cálidos y más frios
 # - theme temperatura dominic royé
 # - en gráfico pcp > 25mm si 2023 vs 1981-2010, poner 2023 junto a 2010 no a tomar por culo
-# - en algun sitio meter num total de dias con lluvia en el año, o gráfico evolutivo (tbn mensual?)
 # - en gráfico torrencialidad winter, summer, spring, autumn primera letra en mayus
 # - estudiar hover sobre gráfico annual mean temp/pcp anomalies para conocer temp media exacta en un año en concreto
 # - n days < p40, n days > p60
-# - cambiar medias por medianas
-# - cambiar +/- por +/- de plotmath
 # - "percentiles" por "values" en titulos?
 # - preguntar SO por annotate box junto a leyenda
 # - nuevo grafico cuanto dura invierno
-# - nuevo grafico overview twitter grafico dividido en 4
 # - a gráficos anomalias añadir lineas desv tipicas
 # - amplitud termicas
 # - ranking año más seco?
@@ -27,6 +23,9 @@
 # - tmin mas baja y tmax mas alta en todo el año
 # - meter colores para extrem calido/frio/seco/húmedo
 # - Cambiar q50 por p50s
+# - poner control year of study solo puede ser < ref_end_yera y > ref:start_year
+# - data_cleaning cambiar 8 last csvs
+# - igual usar geom label repel en grafico 3 pcp
 
 
 library(shiny)
@@ -49,6 +48,40 @@ library(MASS)
 library(zoo)
 library(ggtext)
 library(wesanderson)
+
+
+plot_choices_temp <- c(
+      "1. Overview" = "1",
+      "2. Overview (2)" = "2",
+      "3. Daily cumulative mean temp." = "3-tmean",
+      "4. Daily mean temp. (vs. percentiles)" = "4-tmean",
+      "5. Daily mean temp. (anomalies)" = "5-tmean",
+      "6. Daily mean temp. (heatmap) " = "6-tmean",
+      "7. Monthly mean temp. (anomalies)" = "7-tmean",
+      "8. Monthly mean temp. (historical)" = "8-tmean",
+      "9. Monthly mean temp. (ranking)" = "9-tmean",
+      "10. Seasonal mean temp. (ranking)" = "10-tmean",
+      "11. Annual mean temp. (anomalies)" = "11-tmean",
+      "12. Annual mean temp. (distribution)" = "12-tmean"
+      )
+
+plot_choices_pcp <- c(
+      "1. Overview" = "1",
+      "2. Overview (2)" = "2",
+      "3. Daily cumulative precip. (vs. percentiles)" = "3-pcp",
+      "4. Daily cumulative precip. (vs. mean)" = "4-pcp",
+      "5. Number of days with more than 25mm of precip." = "5-pcp",
+      "6. Monthly precip. (vs. percentiles)" = "6-pcp",
+      "7. Monthly precip. (ranking)" = "7-pcp",
+      "8. Monthly precip. (historical)" = "8-pcp",
+      "9. Seasonal precip. (vs. percentiles)" = "9-pcp",
+      "10. Seasonal precip. (ranking)" = "10-pcp",
+      "11. Seasonal precip. intensity" = "11-pcp",
+      "12 Annual precip. (anomalies)" = "12-pcp",
+      "13. Annual precip. (distribution)" = "13-pcp",
+      "14. Annual precip. (days with precip.)" = "14-pcp"
+      )
+
 
 # Code outside 'ui' and 'server' only runs once when app is launched
 # Load all functions
@@ -114,7 +147,8 @@ ui <- shiny::fluidPage(
                 min(lubridate::year(data_clean$date)), "-",
                 max(lubridate::year(data_clean$date))
               )
-            )
+            ),
+            selected = "1981-2010"
           )
         )
       ),
@@ -129,9 +163,21 @@ ui <- shiny::fluidPage(
         label = "Metric",
         choices = NULL
       ),
-      shiny::actionButton(
-        inputId = "updatePlot",
-        label = "Paint!"
+      shiny::fluidRow(
+        column(
+          2,
+          shiny::actionButton(
+            inputId = "updatePlot",
+            label = "Paint!"
+          )
+        ),
+        column(
+          2,
+          shiny::actionButton(
+            inputId = "nextPlot",
+            label = "Next"
+          )
+        )
       )
     ),
     shiny::mainPanel(
@@ -145,47 +191,39 @@ ui <- shiny::fluidPage(
 # Define server logic ----
 server <- function(input, output, session) {
   invisible(lapply(list.files(path = here::here("src"), full.names = TRUE), source))
-  # Update plot selection depending on variable selection
+  
+  # Update plot selection choices depending on variable (tmean, pcp...) selection
   observe({
     if (input$variable == "Mean temperature (00h-24h)") {
-      plot_choices <- c(
-        "1. Overview" = "1",
-        "2. Overview (2)" = "2",
-        "3. Daily rolling mean temp." = "3-tmean",
-        "4. Daily mean temp. (vs. percentiles)" = "4-tmean",
-        "5. Daily mean temp. (anomalies)" = "5-tmean",
-        "6. Daily mean temp. (heatmap) " = "6-tmean",
-        "7. Monthly mean temp. (anomalies)" = "7-tmean",
-        "8. Monthly mean temp. (historical)" = "8-tmean",
-        "9. Monthly mean temp. (ranking)" = "9-tmean",
-        "10. Seasonal mean temp. (ranking)" = "10-tmean",
-        "11. Annual mean temp. (anomalies)" = "11-tmean",
-        "12. Annual mean temp. (distribution)" = "12-tmean"
-      )
+      plot_choices <- plot_choices_temp
     } else if (input$variable == paste0("Precipitation (07h-07h", "\u207A", "\u00B9", ")")) {
-      plot_choices <- c(
-        "1. Overview" = "1",
-        "2. Overview" = "2",
-        "3. Daily cumulative precip. (vs. percentiles)" = "3-pcp",
-        "4. Daily cumulative precip. (vs. mean)" = "4-pcp",
-        "5. Number of days with more than 25mm of precip." = "5-pcp",
-        "6. Monthly precip. (vs. percentiles)" = "6-pcp",
-        "7. Monthly precip. (ranking)" = "7-pcp",
-        "8. Monthly precip. (historical)" = "8-pcp",
-        "9. Seasonal precip. (vs. percentiles)" = "9-pcp",
-        "10. Seasonal precip. (ranking)" = "10-pcp",
-        "11. Seasonal precip. intensity" = "11-pcp",
-        "12 Annual precip. (anomalies)" = "12-pcp",
-        "13. Annual precip. (distribution)" = "13-pcp",
-        "14. Annual precip. (days with precip.)" = "14-pcp"
-      )
+      plot_choices <- plot_choices_pcp
     }
     
     updateSelectInput(session, "plot", choices = plot_choices)
   })
   
-  plot <- eventReactive(input$updatePlot, { # Do not change plot until button is pressed
-
+  # Configure "Next" button
+  observeEvent(input$nextPlot, {
+    if (input$variable == "Mean temperature (00h-24h)") {
+      plot_choices <- plot_choices_temp
+    } else if (input$variable == paste0("Precipitation (07h-07h", "\u207A", "\u00B9", ")")) {
+      plot_choices <- plot_choices_pcp
+    }
+    current_index <- match(input$plot, plot_choices)
+    
+    # Find next index within choices
+    next_index <- current_index %% length(plot_choices) + 1
+    current_plot_index <- current_index %% length(plot_choices) + 1
+    
+    # Establish next plot in the list
+    updateSelectInput(session, "plot", selected = plot_choices[next_index][[1]])
+  })
+  
+  # Do not change plot until "Paint!" or "Next" button is pressed
+  plot <- eventReactive({input$updatePlot
+                         input$nextPlot
+                         input$plot}, ignoreInit = TRUE, { 
     # Draw plot
     switch(input$plot,
       "3-pcp" = DailyCumPcpPctsPlot(
@@ -245,13 +283,13 @@ server <- function(input, output, session) {
       "13-pcp" = AnnualPcpDistributionPlot(
         data = data_pcp, max_date = max_date
       ),
-      "8-tmean" = MonthlyTmeanAnomaliesPlot(
+      "7-tmean" = MonthlyTmeanAnomaliesPlot(
         data = data_temp, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "3-tmean" = DailyRollingTmeanPlot(
+      "3-tmean" = DailyCumulativeTmeanPlot(
         data = data_temp, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
@@ -276,7 +314,7 @@ server <- function(input, output, session) {
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "7-tmean" = MonthlyHistoricalTmeanPlot(
+      "8-tmean" = MonthlyHistoricalTmeanPlot(
         data = data_temp,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
@@ -344,4 +382,6 @@ server <- function(input, output, session) {
 # Run the app ----
 shiny::shinyApp(ui = ui, server = server)
 
-# shiny::runApp(display.mode="showcase") # To execute and see what chunk of code is executing
+# To execute and see what chunk of code is executing
+#shiny::shinyApp(ui = ui, server = server, options = list(display.mode = 'showcase')) 
+

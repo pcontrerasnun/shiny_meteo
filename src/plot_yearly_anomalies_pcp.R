@@ -1,17 +1,16 @@
-
 AnnualPcpAnomaliesPlot <- function(data, ref_start_year, ref_end_year, max_date) {
   # Calculate median precipitation in reference period
-  reference_annual_pcts_pcp <- data |>
+  reference_annual_pcts_pcp <- data_pcp |>
     dtplyr::lazy_dt() |>
     dplyr::filter((date >= as.Date(paste0(ref_start_year, "-01-01")) &
                      date <= as.Date(paste0(ref_end_year, "-12-31")))) |> 
     dplyr::group_by(year) |> 
     dplyr::summarise(pcp = sum(pcp, na.rm = TRUE)) |>
-    dplyr::summarise(q50pcp = round(quantile(pcp, probs = 0.50, na.rm = TRUE), 1)) |> 
+    dplyr::summarise(p50pcp = round(quantile(pcp, probs = 0.50, na.rm = TRUE), 1)) |> 
     dplyr::as_tibble()
   
   # Calculate total precipitation for each year
-  annual_pcp <- data |> 
+  annual_pcp <- data_pcp |> 
     dtplyr::lazy_dt() |>
     dplyr::group_by(year) |> 
     dplyr::summarise(pcp = sum(pcp, na.rm = TRUE)) |> 
@@ -19,7 +18,7 @@ AnnualPcpAnomaliesPlot <- function(data, ref_start_year, ref_end_year, max_date)
   
   # Join data
   plot_data <- cbind(annual_pcp, reference_annual_pcts_pcp) |> 
-    dplyr::mutate(diffmedian = round(pcp - q50pcp, 1)) |> 
+    dplyr::mutate(diffmedian = round(pcp - p50pcp, 1)) |> 
     dplyr::mutate(year = as.numeric(year)) |> 
     dplyr::arrange(-diffmedian)
   
@@ -27,7 +26,7 @@ AnnualPcpAnomaliesPlot <- function(data, ref_start_year, ref_end_year, max_date)
   color_data <- plot_data |> 
     dplyr::reframe(x = seq(min(plot_data$year), max(plot_data$year), length = 1000),
                    y1 = approx(year, pcp, xout = x)$y,
-                   y2 = approx(year, q50pcp, xout = x)$y,
+                   y2 = approx(year, p50pcp, xout = x)$y,
                    diff = y1 - y2)
   
   # Draw the plot
@@ -36,11 +35,11 @@ AnnualPcpAnomaliesPlot <- function(data, ref_start_year, ref_end_year, max_date)
                           linewidth = 1, na.rm = TRUE) +
     ggplot2::scale_color_gradient2(high = "#2c7bb6", mid = "white", low = "#d7191c", guide = guide_none()) +
     ggplot2::geom_line(aes(linetype = "pcp"), linewidth = 0.75, lineend = "round", linejoin = "round") +
-    ggplot2::geom_line(aes(y = q50pcp, linetype = "q50")) +
+    ggplot2::geom_line(aes(y = p50pcp, linetype = "p50")) +
     ggplot2::geom_smooth(aes(linetype = "trend"), color = "blue", linewidth = 0.85,
                          method = lm, se = FALSE, na.rm = TRUE, show.legend = FALSE) + 
-    ggplot2::scale_linetype_manual(values = c("q50" = "longdash", "trend" = "dotted", "pcp" = "solid"),
-                                   labels = c("q50" = paste0("Annual normal precip. (", ref_start_year, "-", ref_end_year, ")"),
+    ggplot2::scale_linetype_manual(values = c("p50" = "longdash", "trend" = "dotted", "pcp" = "solid"),
+                                   labels = c("p50" = paste0("Annual normal precip. (", ref_start_year, "-", ref_end_year, ")"),
                                               "trend" = "Trend", "pcp" = "Annual total precip.")) +
     ggrepel::geom_label_repel(data = rbind(head(plot_data, 3), tail(plot_data, 3)),
                               aes(y = pcp, label = paste0(ifelse(diffmedian > 0, "+", ""), diffmedian, "mm"))) +
