@@ -46,6 +46,7 @@ OverviewPcpTempPlot2 <- function(data_temp, data_pcp, ref_start_year, ref_end_ye
   p <- ggplot2::ggplot(data = plot_data, aes(x = diffp50pcp, y = diffp50tmean, color = year)) +
     ggplot2::geom_vline(xintercept = 100) +
     ggplot2::geom_hline(yintercept = 0) +
+    ggplot2::geom_point(data = subset(plot_data, year == selected_year), size = 5, stroke = 2, color = "black") +
     ggplot2::geom_point(size = 5, na.rm = TRUE) +
     ggplot2::scale_color_gradientn(colors = wes_palette("Zissou1", 100, type = "continuous")) + 
     ggrepel::geom_label_repel(data = subset(plot_data, year == selected_year), aes(label = year), fontface = "bold") +

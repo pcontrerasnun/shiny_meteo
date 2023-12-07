@@ -112,13 +112,13 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
 
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = row)) +
-    ggh4x::geom_box(aes(ymin = 0, ymax = cump00pcp, fill = "P00", width = 0.9), alpha = 0.5) +
-    ggh4x::geom_box(aes(ymin = cump00pcp, ymax = cump20pcp, fill = "P20", width = 0.9), alpha = 0.5) +
-    ggh4x::geom_box(aes(ymin = cump20pcp, ymax = cump40pcp, fill = "P40", width = 0.9), alpha = 0.5) +
-    ggh4x::geom_box(aes(ymin = cump40pcp, ymax = cump60pcp, fill = "P60", width = 0.9), alpha = 0.5) +
-    ggh4x::geom_box(aes(ymin = cump60pcp, ymax = cump80pcp, fill = "P80", width = 0.9), alpha = 0.5) +
-    ggh4x::geom_box(aes(ymin = cump80pcp, ymax = cump100pcp, fill = "P100", width = 0.9), alpha = 0.5) +
-    ggh4x::geom_box(aes(ymin = cump100pcp, ymax = cump100pcp + 50, fill = ">P100", width = 0.9), alpha = 0.5) +
+    ggh4x::geom_box(aes(ymin = 0, ymax = cump00pcp, fill = "P00", width = 0.9), alpha = 0.3) +
+    ggh4x::geom_box(aes(ymin = cump00pcp, ymax = cump20pcp, fill = "P20", width = 0.9), alpha = 0.3) +
+    ggh4x::geom_box(aes(ymin = cump20pcp, ymax = cump40pcp, fill = "P40", width = 0.9), alpha = 0.3) +
+    ggh4x::geom_box(aes(ymin = cump40pcp, ymax = cump60pcp, fill = "P60", width = 0.9), alpha = 0.3) +
+    ggh4x::geom_box(aes(ymin = cump60pcp, ymax = cump80pcp, fill = "P80", width = 0.9), alpha = 0.3) +
+    ggh4x::geom_box(aes(ymin = cump80pcp, ymax = cump100pcp, fill = "P100", width = 0.9), alpha = 0.3) +
+    ggh4x::geom_box(aes(ymin = cump100pcp, ymax = cump100pcp + 50, fill = ">P100", width = 0.9), alpha = 0.3) +
     # https://github.com/tidyverse/ggplot2/issues/3532
     ggplot2::geom_col(aes(y = seasoncumsumpcp, fill = "seasoncumsumpcp"), na.rm = TRUE) +
     ggplot2::geom_col(aes(y = cump50pcp, color = "cump50pcp"), fill = NA, linewidth = 1) +
@@ -182,7 +182,9 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
       legend.position = c(0.15, 0.85),
       legend.spacing = ggplot2::unit(0, "cm"),
       legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
-    )
+    ) +
+    ggplot2::guides(fill = guide_legend(override.aes = list(
+      alpha = c(0.7/7, 0.7/7, 0.7/7, 0.7/7, 0.7/7, 0.7/7, 0.7/7, 1))))
 
   return(p)
 }

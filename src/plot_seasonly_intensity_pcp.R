@@ -13,7 +13,8 @@
 #' @examples
 #' IntensityPcpPlot(data, 2023, 1981, 2010, "2023-09-24")
 IntensityPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
-  selected_year_season_intensity_pcp <- data |>
+  # Calculate precip intensity in seasons of selected year
+  selected_year_season_intensity_pcp <- data_pcp |>
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(as.numeric(selected_year), "-01-01")) &
       date <= as.Date(paste0(as.numeric(selected_year), "-12-31"))) |>
@@ -24,11 +25,12 @@ IntensityPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, 
       month %in% c("09", "10", "11") ~ "3-autumn"
     )) |>
     dplyr::group_by(season) |>
-    dplyr::summarise(sumpcp = sum(pcp, na.rm = TRUE), maxpcp = max(pcp, na.rm = TRUE)) |>
-    dplyr::mutate(intensity = maxpcp / sumpcp * 100) |>
+    dplyr::summarise(sumpcp = sum(pcp, na.rm = TRUE), sumdayspcp = sum(pcp > 0, na.rm = TRUE)) |>
+    dplyr::mutate(intensity = sumpcp / sumdayspcp) |>
     dplyr::as_tibble()
 
-  reference_season_intensity_pcp <- data |>
+  # Calculate precip intensity in seasons of reference period
+  reference_season_intensity_pcp <- data_pcp |>
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(ref_start_year, "-01-01")) &
       date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
@@ -49,10 +51,9 @@ IntensityPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, 
     dtplyr::lazy_dt() |>
     dplyr::mutate(year_season = as.numeric(year) - season_aux) |>
     dplyr::group_by(year_season, season) |> 
-    dplyr::summarise(sumpcp = sum(pcp, na.rm = TRUE), maxpcp = suppressWarnings(max(pcp, na.rm = TRUE)),
-                     .groups = "keep") |> # for some seasons (for example, spring 1928 Madrid Retiro)
-    # there is no pcp data so calculating the max of no data returns a warning
-    dplyr::mutate(intensity = maxpcp / sumpcp * 100) |>
+    dplyr::summarise(sumpcp = sum(pcp, na.rm = TRUE), sumdayspcp = sum(pcp > 0, na.rm = TRUE),
+                     .groups = "keep") |> 
+    dplyr::mutate(intensity = sumpcp / sumdayspcp) |>
     #    dplyr::group_by(season) |>
     #    dplyr::summarise(
     #      minintensity = min(intensity, na.rm = TRUE),
@@ -61,6 +62,7 @@ IntensityPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, 
     #    ) |>
     dplyr::as_tibble()
 
+  # Join data
   plot_data <- dplyr::left_join(selected_year_season_intensity_pcp,
     reference_season_intensity_pcp,
     by = "season"

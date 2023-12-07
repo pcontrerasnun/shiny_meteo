@@ -127,7 +127,8 @@ DailyCumulativeTmeanPlot <- function(data, selected_year, ref_start_year, ref_en
       legend.spacing = ggplot2::unit(0, "cm"),
       legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
       legend.title = element_blank(),
-      legend.text.align = 0)
+      legend.text.align = 0) +
+    ggplot2::guides(fill = guide_legend(override.aes = list(alpha = 0.7 / 7, color = NA)))
 
   return(p)
 }

@@ -21,11 +21,13 @@
 # - ranking año más seco?
 # - tmin mas baja y tmax mas alta en cada mes
 # - tmin mas baja y tmax mas alta en todo el año
-# - meter colores para extrem calido/frio/seco/húmedo
 # - Cambiar q50 por p50s
 # - poner control year of study solo puede ser < ref_end_yera y > ref:start_year
-# - data_cleaning cambiar 8 last csvs
+# - data_cleaning cambiar 8 last csvs y descomentar codigo
 # - igual usar geom label repel en grafico 3 pcp
+# - nuevo gráfico distribución tmean 2023 vs distribucion tmean ref_period
+# - arreglar 1949 overview
+# - en grafico overview 1 centrar nombre mes con grafico violin
 
 
 library(shiny)
@@ -88,7 +90,7 @@ plot_choices_pcp <- c(
 # invisible(lapply(list.files(path = here::here("src"), full.names = TRUE), source))
 
 # Parameters
-station <- 3195
+station <- 3196 #3195
 ref_start_year <- 1920
 ref_end_year <- 2023
 selected_year <- 2023

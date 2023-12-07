@@ -1,6 +1,6 @@
 AnnualPcpAnomaliesPlot <- function(data, ref_start_year, ref_end_year, max_date) {
   # Calculate median precipitation in reference period
-  reference_annual_pcts_pcp <- data_pcp |>
+  reference_annual_pcts_pcp <- data |>
     dtplyr::lazy_dt() |>
     dplyr::filter((date >= as.Date(paste0(ref_start_year, "-01-01")) &
                      date <= as.Date(paste0(ref_end_year, "-12-31")))) |> 
@@ -10,7 +10,7 @@ AnnualPcpAnomaliesPlot <- function(data, ref_start_year, ref_end_year, max_date)
     dplyr::as_tibble()
   
   # Calculate total precipitation for each year
-  annual_pcp <- data_pcp |> 
+  annual_pcp <- data |> 
     dtplyr::lazy_dt() |>
     dplyr::group_by(year) |> 
     dplyr::summarise(pcp = sum(pcp, na.rm = TRUE)) |> 
