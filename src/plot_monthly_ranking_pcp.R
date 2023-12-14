@@ -144,5 +144,6 @@ MonthlyRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_y
     }
   }
 
-  return(p)
+  return(list(p, plot_data, "month", "sumpcp"))
+  
 }

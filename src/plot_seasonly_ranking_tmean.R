@@ -251,5 +251,5 @@ SeasonRankingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_
     }
   }
 
-  return(p)
+  return(list(p, plot_data, "row", "cumtmean"))
 }

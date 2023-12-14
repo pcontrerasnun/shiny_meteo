@@ -40,7 +40,7 @@ SeasonRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_ye
     dplyr::group_by(month) |>
     dplyr::summarise(
       cummaxpcp = max(cumsumpcp, na.rm = TRUE),
-      cummeanpcp = mean(cumsumpcp, na.rm = TRUE),
+      cummeanpcp = round(mean(cumsumpcp, na.rm = TRUE), 1),
       cumminpcp = min(cumsumpcp, na.rm = TRUE)
     ) |>
     dplyr::mutate(month = dplyr::case_when(
@@ -93,7 +93,8 @@ SeasonRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_ye
   plot_data <- qpcR:::cbind.na(
     reference_season_stats_pcp,
     selected_year_season_cumpcp
-  )
+  ) |> 
+    dplyr::select(row, month, seasoncumsumpcp, cumminpcp, cummeanpcp, cummaxpcp, year_season)
 
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = row)) +
@@ -185,5 +186,6 @@ SeasonRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_ye
     }
   }
 
-  return(p)
+  return(list(p, plot_data |> dplyr::select(-year_season), "row", "seasoncumsumpcp"))
+  
 }

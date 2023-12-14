@@ -17,7 +17,7 @@ MonthlyHistoricalTmeanPlot <- function(data, ref_start_year, ref_end_year, max_d
   all_monthly_tmean <- data |> 
     dtplyr::lazy_dt() |>
     dplyr::group_by(year, month) |> 
-    dplyr::summarise(tmean = mean(tmean, na.rm = TRUE), .groups = "keep") |> # .groups to avoid warnings
+    dplyr::summarise(tmean = round(mean(tmean, na.rm = TRUE), 1), .groups = "keep") |> # .groups to avoid warnings
     dplyr::as_tibble()
   
   # Join data and calculate anomalies
@@ -70,5 +70,5 @@ MonthlyHistoricalTmeanPlot <- function(data, ref_start_year, ref_end_year, max_d
     ggplot2::guides(color = guide_legend(override.aes = list(linetype = c("solid", "dashed", "solid"),
                                                              linewidth = c(0.5, 0.5, 0.85))))
   
-  return(p)
+  return(list(p, plot_data, "year", "tmean"))
 }

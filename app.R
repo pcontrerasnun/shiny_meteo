@@ -18,17 +18,14 @@
 # - nuevo grafico cuanto dura invierno
 # - a gráficos anomalias añadir lineas desv tipicas
 # - amplitud termicas
-# - ranking año más seco?
 # - tmin mas baja y tmax mas alta en cada mes
 # - tmin mas baja y tmax mas alta en todo el año
 # - Cambiar q50 por p50s
 # - poner control year of study solo puede ser < ref_end_yera y > ref:start_year
-# - data_cleaning cambiar 8 last csvs y descomentar codigo
+# - borrar data_cleaning.R
 # - igual usar geom label repel en grafico 3 pcp
-# - nuevo gráfico distribución tmean 2023 vs distribucion tmean ref_period
-# - arreglar 1949 overview
-# - en grafico overview 1 centrar nombre mes con grafico violin
-
+# - arreglar hover grafico 5 days with more than 25mm pcp
+# - arreglar hover pcp intensity (igual con rbind)
 
 library(shiny)
 library(shinyjs)
@@ -50,8 +47,11 @@ library(MASS)
 library(zoo)
 library(ggtext)
 library(wesanderson)
+library(ggridges)
+library(ggforce)
+library(DT)
 
-
+# Code outside 'ui' and 'server' only runs once when app is launched
 plot_choices_temp <- c(
       "1. Overview" = "1",
       "2. Overview (2)" = "2",
@@ -64,7 +64,8 @@ plot_choices_temp <- c(
       "9. Monthly mean temp. (ranking)" = "9-tmean",
       "10. Seasonal mean temp. (ranking)" = "10-tmean",
       "11. Annual mean temp. (anomalies)" = "11-tmean",
-      "12. Annual mean temp. (distribution)" = "12-tmean"
+      "12. Annual mean temp. (distribution)" = "12-tmean",
+      "13. Annual mean temp. (density)" = "13-tmean"
       )
 
 plot_choices_pcp <- c(
@@ -84,18 +85,20 @@ plot_choices_pcp <- c(
       "14. Annual precip. (days with precip.)" = "14-pcp"
       )
 
-
-# Code outside 'ui' and 'server' only runs once when app is launched
 # Load all functions
 # invisible(lapply(list.files(path = here::here("src"), full.names = TRUE), source))
 
 # Parameters
-station <- 3196 #3195
+station <- 3195
 ref_start_year <- 1920
 ref_end_year <- 2023
 selected_year <- 2023
-# aemet_api_key('eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJwY29udHJlcjk1QGdtYWlsLmNvbSIsImp0aSI6ImQ0ODYzZWIzLWRmOWQtNDg4YS04OGFmLTU2NTlmZWE3MDBkNyIsImlzcyI6IkFFTUVUIiwiaWF0IjoxNjIzMTc0ODAwLCJ1c2VySWQiOiJkNDg2M2ViMy1kZjlkLTQ4OGEtODhhZi01NjU5ZmVhNzAwZDciLCJyb2xlIjoiIn0.YTDbbuMFmA-ygIvjqwqRbCEt2JRlE9V05iYZjhmX9lA',
-#              install = TRUE)
+
+# Get historical data from Dropbox
+# search <- rdrop2::drop_search("complete")
+# file <- search$matches[[1]]$metadata$path_lower # Get last historical file
+# print(paste0("Downloading from Dropbox historical data for station ", station, ": ", file))
+# historical_data <- rdrop2::drop_read_csv(file)
 
 # data <- aemet_daily_period(station = station, start = ref_start_year, end = ref_end_year)
 data_clean <- DataCleaning(data)[[1]]
@@ -184,8 +187,10 @@ ui <- shiny::fluidPage(
     ),
     shiny::mainPanel(
       width = 9,
+      # Show plot
       shiny::plotOutput("plot", height = "800px", click = "plot_click"),
-      shiny::verbatimTextOutput("info")
+      # Show data
+      DT::dataTableOutput("info") # shiny::verbatimTextOutput
     )
   )
 )
@@ -363,21 +368,27 @@ server <- function(input, output, session) {
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
+      ),
+      "13-tmean" = DensityTmeanPlot(
+        data = data_temp, selected_year = input$year,
+        ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
+        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+        max_date = max_date
       )
     )
   })
 
   # Display plot
   output$plot <- shiny::renderPlot({
-    #plot()[[1]]
-    plot()
+    plot()[[1]]
+    #plot()
   })
   
-  # Display values
-#  output$info <- shiny::renderPrint({
-#    #input$plot_click
-#    nearPoints(plot()[[2]], input$plot_click, maxpoints = 1, xvar = plot()[[3]], yvar = plot()[[4]])
-#  })
+  # Display values/data
+  output$info <- DT::renderDataTable({ # shiny::renderPrint
+    datatable((nearPoints(plot()[[2]], input$plot_click, maxpoints = 1, threshold = 10,
+               xvar = plot()[[3]], yvar = plot()[[4]])), options = list(dom = 't'))
+  })
 
 }
 

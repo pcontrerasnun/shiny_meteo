@@ -173,6 +173,7 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
       lineend = c("square", "round")
     )))
 
-  return(p)
+  return(list(p, plot_data, "date", "cumsumpcp"))
+  
 }
 

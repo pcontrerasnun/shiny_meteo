@@ -110,5 +110,6 @@ MonthlyPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, ma
     ggplot2::guides(fill = guide_legend(override.aes = list(alpha = 0.7 / 7)))
   
   
-  return(p)
+  return(list(p, plot_data |> dplyr::select(month, sumpcp, everything(), -diffmedian_x), "month", "sumpcp"))
+  
 }

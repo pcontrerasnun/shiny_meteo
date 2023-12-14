@@ -130,5 +130,5 @@ DailyCumulativeTmeanPlot <- function(data, selected_year, ref_start_year, ref_en
       legend.text.align = 0) +
     ggplot2::guides(fill = guide_legend(override.aes = list(alpha = 0.7 / 7, color = NA)))
 
-  return(p)
+  return(list(p, plot_data, "date", "cumtmean"))
 }

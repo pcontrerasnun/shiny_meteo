@@ -64,5 +64,6 @@ MonthlyAnomaliesPcpPlot <- function(data, ref_start_year, ref_end_year, max_date
     ggplot2::guides(color = guide_legend(override.aes = list(linetype = c("solid", "dashed", "solid"),
                                                              linewidth = c(0.5, 0.5, 0.85))))
 
-  return(p)  
+  return(list(p, plot_data, "year", "sumpcp"))
+  
 }

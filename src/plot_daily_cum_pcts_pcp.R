@@ -273,5 +273,7 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
       )
   }
 
-  return(p)
+  return(list(p, plot_data |> dplyr::select(date, cumsumpcp, everything(), -c(day, month, cump05pcp, cump95pcp)), 
+              "date", "cumsumpcp"))
+  
 }

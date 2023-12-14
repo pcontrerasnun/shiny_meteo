@@ -147,5 +147,5 @@ MonthlyRankingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end
     }
   }
     
-  return(p) 
+  return(list(p, plot_data, "month", "tmean"))
 }

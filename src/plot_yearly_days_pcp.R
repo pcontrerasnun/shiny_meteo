@@ -49,5 +49,6 @@ AnnualDaysWithPcpPlot <- function(data, selected_year, ref_start_year, ref_end_y
       axis.title.y = element_text(size = 12),
     )
   
-  return(p)
+  return(list(p, plot_data, "dayspcp", "sumpcp"))
+  
 }

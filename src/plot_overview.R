@@ -11,12 +11,18 @@ OverviewPcpTempPlot <- function(data, selected_year, max_date) {
     dplyr::filter(date >= as.Date(paste0(as.numeric(selected_year), "-01-01")) & 
                     date <= as.Date(paste0(as.numeric(selected_year), "-12-31")))
   
+  # Join data
+  plot_data <- dplyr::left_join(plot_data_temp, plot_data_pcp, by = c("date", "day", "month", "year")) |> 
+    dplyr::select(-c(day, month, tmin, tmax))
+  
   # Draw the plot
+  # Not using plot_data since it may have less data due to NAs in temp or pcp data
   p <- ggplot2::ggplot(data = plot_data_pcp, aes(x = date)) +
     ggplot2::geom_violin(data = plot_data_temp, aes(y = tmean, group = month), fill = "orange", 
                          alpha = 0.5, na.rm = TRUE) +
     ggplot2::geom_point(aes(y = pcp, size = pcp, color = pcp), alpha = 0.5) +
-    ggplot2::scale_size(breaks = c(0.1, 5, 10, 25, 60), name = "Precipitation", range = c(2, 20),
+    ggplot2::scale_size(breaks = c(min(plot_data_pcp$pcp, na.rm = TRUE), 5, 10, 25, 60), 
+                        name = "Precipitation", range = c(2, 20),  
                         labels = c(">0.1mm", ">5mm", ">10mm", ">25mm", ">60mm")) +
     ggrepel::geom_label_repel(data = head(plot_data_pcp, 3), aes(y = pcp, label = paste0(pcp, "mm")),
                               segment.color = 'transparent') +
@@ -29,7 +35,7 @@ OverviewPcpTempPlot <- function(data, selected_year, max_date) {
                                   max(plot_data_pcp$pcp, na.rm = TRUE),
                                   max(plot_data_temp$tmean, na.rm = TRUE)) + 7)) +
     ggplot2::scale_x_continuous(
-      breaks = as.numeric(seq(ymd(paste0(selected_year, "-01-01")), 
+      breaks = as.numeric(seq(ymd(paste0(selected_year, "-01-15")), 
                               ymd(paste0(selected_year, "-12-31")), by = "month")),
       labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"),
       limits = c(as.numeric(ymd(paste0(selected_year, "-01-01"))), 
@@ -50,12 +56,12 @@ OverviewPcpTempPlot <- function(data, selected_year, max_date) {
       legend.title = element_blank()) +
     ggplot2::guides(
       size = guide_legend(override.aes = list(color = c("#6baed6", "#4292c6", "#2171b5", "#08519c", 
-                                                        "#08306b")[1:cut(head(plot_data_pcp$pcp, 1), 
+                                                        "#08306b")[1:length(unique(cut(plot_data_pcp$pcp, 
                                                                           breaks = c(0.1, 5, 10, 25, 60, Inf), 
                                                                           labels = FALSE, right = FALSE,
-                                                                          include.lowest = TRUE)]))
+                                                                          include.lowest = TRUE)))]))
       # The cut() is to adapt number of colors to number of groups depending on max pcp in the year
       )
   
-  return(p)
+  return(list(p, plot_data, "date", "pcp"))
 }

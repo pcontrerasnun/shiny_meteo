@@ -85,7 +85,7 @@ MonthlyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_e
       lineend = c("square", "round")
     )))
   
-  return(p)
+  return(list(p, plot_data |> dplyr::select(month, tmean, tmeanmean, difftmean), "month", "tmean"))
 }
 
 

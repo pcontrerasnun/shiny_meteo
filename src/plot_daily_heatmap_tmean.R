@@ -18,7 +18,7 @@ DailyHeatmapTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_y
     dplyr::summarise(ecdf_func = list(ecdf(climate_tmean)), .groups = "keep")
   
   # Get daily mean temperatures for year of study
-  selected_year_daily_tmean <- data |>     
+  selected_year_daily_tmean <- data |>
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(selected_year, "-01-01")) &
                     date <= as.Date(paste0(selected_year, "-12-31"))) |>
@@ -59,5 +59,5 @@ DailyHeatmapTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_y
     guides(fill = guide_legend(nrow = 1, label.position = "bottom", label.hjust = 0,
                                title = "Percentile", title.position = "top"))
     
-  return(p)
+  return(list(p, plot_data |> dplyr::select(day, month, tmean, percentile), "day", "month"))
 }

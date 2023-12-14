@@ -49,5 +49,6 @@ AnnualTmeanDistributionPlot <- function(data, max_date) {
     ) +
     ggplot2::guides(fill = guide_colorbar(ticks.colour = NA))
   
-  return(p)
+  return(list(p, plot_data, "tmean", "y"))
+  
 }

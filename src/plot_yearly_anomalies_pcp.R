@@ -74,4 +74,5 @@ AnnualPcpAnomaliesPlot <- function(data, ref_start_year, ref_end_year, max_date)
       linewidth = c(0.5, 0.5, 0.85))))
   
   return(list(p, plot_data, "year", "pcp"))
+  
 }

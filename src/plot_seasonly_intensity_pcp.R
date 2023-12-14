@@ -14,7 +14,7 @@
 #' IntensityPcpPlot(data, 2023, 1981, 2010, "2023-09-24")
 IntensityPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
   # Calculate precip intensity in seasons of selected year
-  selected_year_season_intensity_pcp <- data_pcp |>
+  selected_year_season_intensity_pcp <- data |>
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(as.numeric(selected_year), "-01-01")) &
       date <= as.Date(paste0(as.numeric(selected_year), "-12-31"))) |>
@@ -27,10 +27,11 @@ IntensityPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, 
     dplyr::group_by(season) |>
     dplyr::summarise(sumpcp = sum(pcp, na.rm = TRUE), sumdayspcp = sum(pcp > 0, na.rm = TRUE)) |>
     dplyr::mutate(intensity = sumpcp / sumdayspcp) |>
+    dplyr::mutate(year_season = as.numeric(selected_year)) |> 
     dplyr::as_tibble()
 
   # Calculate precip intensity in seasons of reference period
-  reference_season_intensity_pcp <- data_pcp |>
+  reference_season_intensity_pcp <- data |>
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(ref_start_year, "-01-01")) &
       date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
@@ -62,17 +63,16 @@ IntensityPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, 
     #    ) |>
     dplyr::as_tibble()
 
-  # Join data
-  plot_data <- dplyr::left_join(selected_year_season_intensity_pcp,
-    reference_season_intensity_pcp,
-    by = "season"
-  )
-
-  p <- ggplot2::ggplot(data = reference_season_intensity_pcp, aes(x = season, y = intensity)) +
-    ggplot2::geom_violin(aes(fill = season), alpha = 0.5, na.rm = TRUE) +
-    ggplot2::scale_fill_manual(values = c("#b2df8a", "#e31a1c", "#ff7f00", "#a6cee3")) +
+  # Keep reference and selected year data separate so that selected year data is not included
+  # in violin plot
+  p <- ggplot2::ggplot(data = reference_season_intensity_pcp, 
+                       aes(x = season, y = intensity, color = season)) +
+    ggplot2::geom_violin(fill = "gray80", linewidth = 1, alpha = 0.5, na.rm = TRUE) +
+    ggforce::geom_sina(alpha = 0.25, size = 3) + # to put points inside violin
+    ggplot2::scale_color_brewer(palette = "Dark2") +
+    #ggplot2::scale_fill_manual(values = c("#b2df8a", "#e31a1c", "#ff7f00", "#a6cee3")) +
     ggplot2::geom_boxplot(width = 0.1, color = "black", alpha = 0.2, na.rm = TRUE) +
-    ggplot2::geom_point(data = selected_year_season_intensity_pcp) +
+    ggplot2::geom_point(data = selected_year_season_intensity_pcp, size = 3) +
     ggplot2::annotate(
       x = selected_year_season_intensity_pcp$season,
       y = selected_year_season_intensity_pcp$intensity,
@@ -81,9 +81,9 @@ IntensityPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, 
       family = "sans", hjust = -0.35, vjust = 0
     ) +
     ggplot2::scale_x_discrete(limits = c("4-winter", "1-spring", "2-summer", "3-autumn"),
-                             labels = c(paste0("winter ", (as.numeric(selected_year) - 1) %% 100,
+                             labels = c(paste0("Winter ", (as.numeric(selected_year) - 1) %% 100,
                                         "/", as.numeric(selected_year) %% 100), 
-                                        "spring", "summer", "autumn")) +
+                                        "Spring", "Summer", "Autumn")) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
       x = "", y = "", title = paste0("Precipitation in Madrid - Retiro ", selected_year),
@@ -101,5 +101,6 @@ IntensityPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, 
       legend.position = "none"
     )
 
-  return(p)
+  return(list(p, reference_season_intensity_pcp, "season", "intensity"))
+  
 }

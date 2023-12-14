@@ -42,7 +42,7 @@ OverviewPcpTempPlot2 <- function(data_temp, data_pcp, ref_start_year, ref_end_ye
     dplyr::mutate(diffp50pcp = round((pcp / p50pcp) * 100, 1)) |> 
     dplyr::mutate(year = as.numeric(year))
   
-  
+  # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = diffp50pcp, y = diffp50tmean, color = year)) +
     ggplot2::geom_vline(xintercept = 100) +
     ggplot2::geom_hline(yintercept = 0) +
@@ -77,6 +77,6 @@ OverviewPcpTempPlot2 <- function(data_temp, data_pcp, ref_start_year, ref_end_ye
     ) +
     ggplot2::guides(color = guide_colorbar(ticks.colour = NA))
 
-  return(p)
+  return(list(p, plot_data, "diffp50pcp", "diffp50tmean"))
 }
 

@@ -73,5 +73,6 @@ HighPcpDaysPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
     ggplot2::guides(color = guide_legend(override.aes = list(linetype = c("solid", "solid"),
                                                              linewidth = c(0.5, 0.85))))
   
-  return(p)
+  return(list(p, plot_data, "year_season", "pcp25"))
+  
 }

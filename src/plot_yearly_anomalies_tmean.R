@@ -13,7 +13,7 @@ AnnualTmeanAnomaliesPlot <- function(data, ref_start_year, ref_end_year, max_dat
   annual_tmeans <- data |> 
     dtplyr::lazy_dt() |>
     dplyr::group_by(year) |> 
-    dplyr::summarise(tmean = mean(tmean, na.rm = TRUE)) |> 
+    dplyr::summarise(tmean = round(mean(tmean, na.rm = TRUE), 1)) |> 
     dplyr::as_tibble()
   
   # Join data
@@ -74,5 +74,6 @@ AnnualTmeanAnomaliesPlot <- function(data, ref_start_year, ref_end_year, max_dat
       color = c("black", "black", "blue"),
       linewidth = c(0.5, 0.5, 0.85))))
   
-  return(p)
+  return(list(p, plot_data, "year", "tmean"))
+  
 }

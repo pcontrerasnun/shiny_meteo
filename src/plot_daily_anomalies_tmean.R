@@ -98,5 +98,5 @@ DailyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_end
       legend.title = element_blank()
     )
   
-  return(p)
+  return(list(p, plot_data, "date", "tmean"))
 }
