@@ -40,7 +40,7 @@ for (station in stations) {
   # Initialize empty dataframe
   last_4days_data <- data.frame()
   
-  for (file in tail(files, 8)) { # Only 8 last files, enough to fill the gap of 4 days
+  for (file in tail(files, 40)) { # Only 40 last files, enough to fill the gap of 4 days
     tmp <- readr::read_csv(paste0(path, file), show_col_types = FALSE)
     last_4days_data <- rbind(last_4days_data, tmp)
   }
@@ -115,7 +115,7 @@ for (station in stations) {
   # -------------------
   # Get historical data
   files <- list.files(path, pattern = "historical")
-  print(paste0("Loading from local historical data for station ", station, ": ", tail(files, 1)))
+  print(paste0("Loading from local storage historical data for station ", station, ": ", tail(files, 1)))
   historical_data <- readr::read_csv(paste0(path, tail(files, 1)), show_col_types = FALSE)
   
   # Join full last year data (last365days + last4days) and historical data
@@ -151,7 +151,7 @@ for (station in stations) {
   files <- list.files(path, pattern = "complete")
   print(paste0("Uploading to Dropbox all available data for station ", station, ": ", tail(files, 1)))
   tryCatch({
-    setTimeLimit(10)
+    setTimeLimit(5)
     rdrop2::drop_upload(
       file = paste0("~/Escritorio/aemet/", station, "/", tail(files, 1)),
       path = paste0("aemet_data/", station, "/"))

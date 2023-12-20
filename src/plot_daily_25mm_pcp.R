@@ -21,7 +21,7 @@ HighPcpDaysPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
     # Put year of Jan and Feb as year - 1 to be part of winter season of previous year
     dplyr::mutate(year_season = as.numeric(year) - season_aux) |> 
     dplyr::group_by(year_season, season) |> 
-    dplyr::summarise(pcp25 = sum(pcp >= 25), .groups = "keep") |> # .groups to silent warning
+    dplyr::summarise(pcp25 = sum(pcp >= 25, na.rm = TRUE), .groups = "keep") |> # .groups to silent warning
     dplyr::as_tibble()
   
   # Calculate number of days per year with more than 25mm
@@ -30,7 +30,7 @@ HighPcpDaysPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
     dplyr::filter((date >= as.Date(paste0(ref_start_year, "-01-01")) &
                      date <= as.Date(paste0(ref_end_year, "-12-31")))) |> 
     dplyr::group_by(year) |> 
-    dplyr::summarise(pcp25 = sum(pcp >= 25), .groups = "keep") |> # .groups to silent warning
+    dplyr::summarise(pcp25 = sum(pcp >= 25, na.rm = TRUE), .groups = "keep") |> # .groups to silent warning
     dplyr::ungroup() |> 
     dplyr::mutate(year_season = as.numeric(year), season = "Total") |> 
     dplyr::select(-year) |> 
@@ -38,17 +38,20 @@ HighPcpDaysPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
     dplyr::as_tibble()
   
   # Join data
-  plot_data <- rbind(season_25mm_pcp, annual_25mm_pcp)
+  plot_data <- rbind(season_25mm_pcp, annual_25mm_pcp) |> 
+    # So that in plot seasons appear in custom order
+    dplyr::mutate(season = factor(season, levels = c("Winter", "Spring", "Summer", "Autumn", "Total")))
   
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = year_season, y = pcp25)) +
-    ggplot2::geom_line(aes(color = "pcp25")) +
-    ggplot2::geom_point(size = 0.75) +
+    ggplot2::geom_line(aes(color = "pcp25"), na.rm = TRUE) +
+    ggplot2::geom_point(size = 0.75, na.rm = TRUE) +
     ggplot2::geom_smooth(aes(color = "trend", group = season), method = lm, se = FALSE, na.rm = TRUE, show.legend = FALSE) + 
-    ggplot2::facet_wrap(~factor(season, levels = c("Winter", "Spring", "Summer", "Autumn", "Total")), ncol = 2) +
+    ggplot2::facet_wrap(vars(season), ncol = 2) +
     ggplot2::scale_color_manual(
       breaks = c("pcp25", "trend"), values = c("trend" = "blue", "pcp25" = "black"), 
-      labels = c("trend" = "Trend", "pcp25" = "Days with >25mm precip.")) +
+      labels = c("trend" = paste0("Trend (", ref_start_year, "-", ref_end_year, ")"), 
+                 "pcp25" = "Days with >25mm precip.")) +
     ggplot2::scale_x_continuous(breaks = seq(from = min(plot_data$year_season), 
                                              to = max(plot_data$year_season), by = 10)) +
     #ggplot2::scale_y_continuous(labels = function(x) paste0(x, "mm")) +

@@ -19,10 +19,10 @@ IntensityPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, 
     dplyr::filter(date >= as.Date(paste0(as.numeric(selected_year), "-01-01")) &
       date <= as.Date(paste0(as.numeric(selected_year), "-12-31"))) |>
     dplyr::mutate(season = dplyr::case_when(
-      month %in% c("12", "01", "02") ~ "4-winter",
-      month %in% c("03", "04", "05") ~ "1-spring",
-      month %in% c("06", "07", "08") ~ "2-summer",
-      month %in% c("09", "10", "11") ~ "3-autumn"
+      month %in% c("12", "01", "02") ~ "Winter",
+      month %in% c("03", "04", "05") ~ "Spring",
+      month %in% c("06", "07", "08") ~ "Summer",
+      month %in% c("09", "10", "11") ~ "Autumn"
     )) |>
     dplyr::group_by(season) |>
     dplyr::summarise(sumpcp = sum(pcp, na.rm = TRUE), sumdayspcp = sum(pcp > 0, na.rm = TRUE)) |>
@@ -38,10 +38,10 @@ IntensityPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, 
     dplyr::filter((date < as.Date(paste0(selected_year, "-01-01")) | # Not include year of study in calculations
                      date > as.Date(paste0(selected_year, "-12-31")))) |>
     dplyr::mutate(season = dplyr::case_when(
-      month %in% c("12", "01", "02") ~ "4-winter",
-      month %in% c("03", "04", "05") ~ "1-spring",
-      month %in% c("06", "07", "08") ~ "2-summer",
-      month %in% c("09", "10", "11") ~ "3-autumn"
+      month %in% c("12", "01", "02") ~ "Winter",
+      month %in% c("03", "04", "05") ~ "Spring",
+      month %in% c("06", "07", "08") ~ "Summer",
+      month %in% c("09", "10", "11") ~ "Autumn"
     )) |>
     dplyr::as_tibble() |>
     dplyr::mutate(season_aux = dplyr::case_when(
@@ -76,11 +76,11 @@ IntensityPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, 
     ggplot2::annotate(
       x = selected_year_season_intensity_pcp$season,
       y = selected_year_season_intensity_pcp$intensity,
-      geom = "text",
-      label = selected_year,
+      geom = "label",
+      label = selected_year, fontface = "bold", size = 4,
       family = "sans", hjust = -0.35, vjust = 0
     ) +
-    ggplot2::scale_x_discrete(limits = c("4-winter", "1-spring", "2-summer", "3-autumn"),
+    ggplot2::scale_x_discrete(limits = c("Winter", "Spring", "Summer", "Autumn"),
                              labels = c(paste0("Winter ", (as.numeric(selected_year) - 1) %% 100,
                                         "/", as.numeric(selected_year) %% 100), 
                                         "Spring", "Summer", "Autumn")) +
@@ -101,6 +101,6 @@ IntensityPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, 
       legend.position = "none"
     )
 
-  return(list(p, reference_season_intensity_pcp, "season", "intensity"))
+  return(list(p, rbind(reference_season_intensity_pcp, selected_year_season_intensity_pcp), "season", "intensity"))
   
 }

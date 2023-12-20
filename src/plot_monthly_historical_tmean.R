@@ -8,7 +8,7 @@ MonthlyHistoricalTmeanPlot <- function(data, ref_start_year, ref_end_year, max_d
     dplyr::summarise(tmean = mean(tmean, na.rm = TRUE), .groups = "keep") |> # .groups to avoid warnings
     dplyr::group_by(month) |> 
     dplyr::summarise(
-      q50tmean = round(quantile(tmean, probs = 0.50, na.rm = TRUE), 1),
+      p50tmean = round(quantile(tmean, probs = 0.50, na.rm = TRUE), 1),
       .groups = "keep" # .groups to avoid warnings
     ) |> 
     dplyr::as_tibble()
@@ -22,13 +22,13 @@ MonthlyHistoricalTmeanPlot <- function(data, ref_start_year, ref_end_year, max_d
   
   # Join data and calculate anomalies
   plot_data <- dplyr::left_join(all_monthly_tmean, reference_monthly_pcts_tmean, by = "month") |> 
-    mutate(diffmedian = round(tmean - q50tmean, 1)) |> 
+    mutate(diffmedian = round(tmean - p50tmean, 1)) |> 
     dplyr::mutate(year = as.numeric(year))
   
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = year, y = tmean)) +
     ggplot2::geom_line(aes(color = "tmean"), show.legend = FALSE) +
-    ggplot2::geom_line(aes(y = q50tmean, color = "q50"), linetype = "dashed") +
+    ggplot2::geom_line(aes(y = p50tmean, color = "q50"), linetype = "dashed") +
     ggplot2::geom_smooth(aes(color = "trend", group = month), linetype = "solid", linewidth = 0.5,
                          method = lm, se = FALSE, na.rm = TRUE, show.legend = FALSE) + 
     ggplot2::facet_wrap(vars(month), labeller = labeller(month = c("01" = "Jan", "02" = "Feb", "03" = "Mar", 
@@ -36,7 +36,8 @@ MonthlyHistoricalTmeanPlot <- function(data, ref_start_year, ref_end_year, max_d
                                                                    "07" = "Jul", "08" = "Aug", "09" = "Sep", 
                                                                    "10" = "Oct", "11" = "Nov", "12" = "Dec"))) +
     ggplot2::scale_color_manual(values = c("trend" = "blue", "q50" = "black", "tmean" = "black"), 
-                                labels = c("trend" = "Trend", "tmean" = "Monthly mean temp.",
+                                labels = c("trend" = paste0("Trend (", ref_start_year, "-", ref_end_year, ")"), 
+                                           "tmean" = "Monthly mean temp.",
                                            "q50" = paste0("Monthly median mean temp. (", ref_start_year,
                                                           "-", ref_end_year, ")")),
                                 breaks = c("tmean", "q50", "trend")) +

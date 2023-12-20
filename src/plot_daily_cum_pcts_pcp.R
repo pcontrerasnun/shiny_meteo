@@ -97,17 +97,9 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
                          fill = "#67a9cf", linetype = "51", lineend = "round", linejoin = "round") +
     ggplot2::geom_ribbon(aes(ymin = cump100pcp, ymax = cump100pcp + 100), alpha = 0.3, color = "#2166ac",
                          fill = "#2166ac", linetype = "51", lineend = "round", linejoin = "round") +
-    #  ggplot2::geom_ribbon_pattern(aes(ymin = cump80pcp, ymax = cump100pcp), pattern = 'gradient',
-    #                      na.rm = TRUE, pattern_fill  = '#abd9e9', pattern_fill2 = '#2c7bb6',
-    #                      pattern_alpha = 0.01, pattern_linetype = '51', lineend = 'round',
-    #                      linejoin = 'round', pattern_orientation = 'vertical') +
-    #  geom_line(aes(y = cump50pcp)) +
     ggplot2::geom_line(aes(color = "cumsumpcp"), linewidth = 0.85, lineend = "round", na.rm = TRUE) +
     ggplot2::scale_color_manual(values = c("cumsumpcp" = "black"), 
                                label = paste0("Cumulative daily precip. (", selected_year, ")")) +
-    #  ggplot2::geom_ribbon_pattern(aes(x = date, ymin = cump50pcp, ymax = cumsumpcp),
-    #                               pattern = 'gradient', na.rm = TRUE, pattern_fill  = '#377eb8',
-    #                               pattern_fill2 = '#e41a1c') +
     ggplot2::scale_x_continuous(
       breaks = as.numeric(seq(ymd(paste0(selected_year, "-01-01")), ymd(paste0(selected_year, "-12-31")), by = "month")),
       labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"),
@@ -121,67 +113,6 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
       limits = c(0, max(plot_data$cump100pcp) + 200),
       expand = c(0, 20, 0, 0)
     ) +
-    ggplot2::annotate(
-      geom = "richtext", x = min(plot_data$date, na.rm = TRUE) + 25, 
-      y = max(plot_data$cumsumpcp, na.rm = TRUE) - 100, 
-      label = paste0("**Ranking** (", ref_start_year, "-", ref_end_year, ")<br>", 
-                     "Max consecutive days with precip. <br><br>", 
-                     head(ranking_max_consec_days_pcp, 1)$ranking, "º ", 
-                     head(ranking_max_consec_days_pcp, 1)$year, ": ", 
-                     head(ranking_max_consec_days_pcp, 1)$consecdayspcp, " days<br>",
-                     head(ranking_max_consec_days_pcp, 2)[2,]$ranking, "º ", 
-                     head(ranking_max_consec_days_pcp, 2)[2,]$year, ": ", 
-                     head(ranking_max_consec_days_pcp, 2)[2,]$consecdayspcp, " days<br>",
-                     head(ranking_max_consec_days_pcp, 3)[3,]$ranking, "º ",
-                     head(ranking_max_consec_days_pcp, 3)[3,]$year, ": ", 
-                     head(ranking_max_consec_days_pcp, 3)[3,]$consecdayspcp, " days<br>",
-                     "---------------------------<br>",
-                     subset(ranking_max_consec_days_pcp, 
-                            ranking_max_consec_days_pcp$year == selected_year)$ranking, "º ",
-                     selected_year, ": ",
-                     subset(ranking_max_consec_days_pcp, 
-                            ranking_max_consec_days_pcp$year == selected_year)$consecdayspcp,
-                     " days"), 
-      hjust = 0, vjust = 0.5, label.size = 0.75, label.padding = unit(0.5, "lines")
-    ) + 
-    ggplot2::annotate(
-      geom = "richtext", x = min(plot_data$date, na.rm = TRUE) + 95, 
-      y = max(plot_data$cumsumpcp, na.rm = TRUE) - 15, 
-      label = paste0("**Ranking** (", ref_start_year, "-", ref_end_year, ")<br>", 
-                     "Max consecutive days with no precip. <br><br>", 
-                     head(ranking_max_consec_days_no_pcp, 1)$ranking, "º ", 
-                     head(ranking_max_consec_days_no_pcp, 1)$year, ": ", 
-                     head(ranking_max_consec_days_no_pcp, 1)$consecdaysnopcp, " days<br>",
-                     head(ranking_max_consec_days_no_pcp, 2)[2,]$ranking, "º ", 
-                     head(ranking_max_consec_days_no_pcp, 2)[2,]$year, ": ", 
-                     head(ranking_max_consec_days_no_pcp, 2)[2,]$consecdaysnopcp, " days<br>",
-                     head(ranking_max_consec_days_no_pcp, 3)[3,]$ranking, "º ",
-                     head(ranking_max_consec_days_no_pcp, 3)[3,]$year, ": ", 
-                     head(ranking_max_consec_days_no_pcp, 3)[3,]$consecdaysnopcp, " days<br>",
-                     "---------------------------<br>",
-                     subset(ranking_max_consec_days_no_pcp, 
-                            ranking_max_consec_days_no_pcp$year == selected_year)$ranking, "º ",
-                     selected_year, ": ",
-                     subset(ranking_max_consec_days_no_pcp, 
-                            ranking_max_consec_days_no_pcp$year == selected_year)$consecdaysnopcp,
-                     " days"), 
-      hjust = 0, vjust = 0.5, label.size = 0.75, label.padding = unit(0.5, "lines")
-    ) +
-    ggthemes::theme_hc(base_size = 15) +
-    ggplot2::labs(
-      x = "", y = "", title = paste0("Precipitation in Madrid - Retiro ", selected_year),
-      subtitle = paste0("Cumulative daily precipitation vs. historical percentiles (",
-                        ref_start_year, "-", ref_end_year, ")"),
-      caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)")) +
-    ggplot2::theme(
-      plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),
-      plot.subtitle = ggplot2::element_text(hjust = 1, size = 25),
-      legend.background = ggplot2::element_blank(),
-      legend.box.background = ggplot2::element_rect(fill = "white", color = "black", linewidth = 0.75),
-      legend.position = c(0.125, 0.85),
-      legend.spacing = ggplot2::unit(0, "cm"),
-      legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
-      legend.title = ggplot2::element_blank()) +
     ggplot2::annotate(
       geom = "text", x = max(plot_data$date, na.rm = TRUE), y = max(plot_data$cump100pcp),
       label = paste("Extrem.~wet~(italic(max))"),
@@ -216,18 +147,79 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
       geom = "text", x = max(plot_data$date, na.rm = TRUE), y = max(plot_data$cump00pcp),
       label = paste("Extrem.~dry~(italic(min))"),
       parse = TRUE, family = "sans", hjust = -0.05, vjust = 0.5
-    )
-  #    ggplot2::geom_point(data = plot_data |> filter(!is.na(cumsumpcp)) |> slice_tail(n = 1)) +
-  #    https://github.com/slowkow/ggrepel/issues/153
-  #    ggrepel::geom_text_repel(data = plot_data |> filter(!is.na(cumsumpcp)) |> slice_tail(n = 1),
-  #                             aes(label = paste0("Precip. ", max(plot_data$cumsumpcp, na.rm = TRUE),
-  #                                                "mm")))
-  #    ggplot2::annotate(geom = "text", x = plot_data[mlr3misc::which_max(plot_data$cumsumpcp,
-  #                                                                       ties_method = "last",
-  #                                                                       na_rm = TRUE), ]$date,
-  #                      y = max(plot_data$cumsumpcp, na.rm = TRUE),
-  #                      label = paste0("Precip. ", max(plot_data$cumsumpcp, na.rm = TRUE), "mm"),
-  #                      hjust = -0.1)
+    ) +
+    ggplot2::annotation_custom(
+      gridtext::richtext_grob(
+        x = unit(.05, "npc"),
+        y = unit(.8, "npc"),
+        text = paste0("**Ranking** (", ref_start_year, "-", ref_end_year, ")<br>", 
+                      "Max consecutive days with precip. <br><br>", 
+                      head(ranking_max_consec_days_pcp, 1)$ranking, "º ", 
+                      head(ranking_max_consec_days_pcp, 1)$year, ": ", 
+                      head(ranking_max_consec_days_pcp, 1)$consecdayspcp, " days<br>",
+                      head(ranking_max_consec_days_pcp, 2)[2,]$ranking, "º ", 
+                      head(ranking_max_consec_days_pcp, 2)[2,]$year, ": ", 
+                      head(ranking_max_consec_days_pcp, 2)[2,]$consecdayspcp, " days<br>",
+                      head(ranking_max_consec_days_pcp, 3)[3,]$ranking, "º ",
+                      head(ranking_max_consec_days_pcp, 3)[3,]$year, ": ", 
+                      head(ranking_max_consec_days_pcp, 3)[3,]$consecdayspcp, " days<br>",
+                      "---------------------------<br>",
+                      subset(ranking_max_consec_days_pcp, 
+                             ranking_max_consec_days_pcp$year == selected_year)$ranking, "º ",
+                      selected_year, ": ",
+                      subset(ranking_max_consec_days_pcp, 
+                             ranking_max_consec_days_pcp$year == selected_year)$consecdayspcp,
+                      " days"),
+        hjust = 0, vjust = 1,
+        r = unit(0.15, "lines"),
+        box_gp = grid::gpar(col = "black", lwd = 2),
+        padding = unit(0.5, "lines")
+      )
+    ) +
+    ggplot2::annotation_custom(
+      gridtext::richtext_grob(
+        x = unit(.2, "npc"),
+        y = unit(.8725, "npc"),
+        text = paste0("**Ranking** (", ref_start_year, "-", ref_end_year, ")<br>", 
+                      "Max consecutive days with no precip. <br><br>", 
+                      head(ranking_max_consec_days_no_pcp, 1)$ranking, "º ", 
+                      head(ranking_max_consec_days_no_pcp, 1)$year, ": ", 
+                      head(ranking_max_consec_days_no_pcp, 1)$consecdaysnopcp, " days<br>",
+                      head(ranking_max_consec_days_no_pcp, 2)[2,]$ranking, "º ", 
+                      head(ranking_max_consec_days_no_pcp, 2)[2,]$year, ": ", 
+                      head(ranking_max_consec_days_no_pcp, 2)[2,]$consecdaysnopcp, " days<br>",
+                      head(ranking_max_consec_days_no_pcp, 3)[3,]$ranking, "º ",
+                      head(ranking_max_consec_days_no_pcp, 3)[3,]$year, ": ", 
+                      head(ranking_max_consec_days_no_pcp, 3)[3,]$consecdaysnopcp, " days<br>",
+                      "---------------------------<br>",
+                      subset(ranking_max_consec_days_no_pcp, 
+                             ranking_max_consec_days_no_pcp$year == selected_year)$ranking, "º ",
+                      selected_year, ": ",
+                      subset(ranking_max_consec_days_no_pcp, 
+                             ranking_max_consec_days_no_pcp$year == selected_year)$consecdaysnopcp,
+                      " days"),
+        hjust = 0, vjust = 1,
+        r = unit(0.15, "lines"),
+        box_gp = grid::gpar(col = "black", lwd = 2),
+        padding = unit(0.5, "lines")
+      )
+    ) +
+    ggthemes::theme_hc(base_size = 15) +
+    ggplot2::labs(
+      x = "", y = "", title = paste0("Precipitation in Madrid - Retiro ", selected_year),
+      subtitle = paste0("Cumulative daily precipitation vs. historical percentiles (",
+                        ref_start_year, "-", ref_end_year, ")"),
+      caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)")) +
+    ggplot2::theme(
+      plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),
+      plot.subtitle = ggplot2::element_text(hjust = 1, size = 25),
+      legend.background = ggplot2::element_blank(),
+      legend.box.background = ggplot2::element_rect(fill = "white", color = "black", linewidth = 0.75),
+      legend.position = c(0.125, 0.85),
+      #legend.justification = c(0, 1),
+      legend.spacing = ggplot2::unit(0, "cm"),
+      legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
+      legend.title = ggplot2::element_blank())
 
   # If there has been superavit of rain during the year
   # In plot_daily_cum_pcp.R a different approach can be found for plotting these points with ggrepel
@@ -238,14 +230,11 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
         y = plot_data[which.max(plot_data$diffmedian), ]$cumsumpcp,
         shape = 21, fill = "#2c7bb6", size = 2, stroke = 1
       ) +
-      ggplot2::annotate(
-        geom = "label", x = plot_data[which.max(plot_data$diffmedian), ]$date,
-        y = plot_data[which.max(plot_data$diffmedian), ]$cumsumpcp,
-        label = paste(
-          "+", plot_data[which.max(plot_data$diffmedian), ]$diffmedian,
-          "*mm~vs.~italic(P)[50]"
-        ), parse = TRUE, vjust = -0.5
-      )
+      ggrepel::geom_label_repel(
+        data = data.frame(x = plot_data[which.max(plot_data$diffmedian), ]$date,
+            y = plot_data[which.max(plot_data$diffmedian), ]$cumsumpcp,
+            label = paste("+", plot_data[which.max(plot_data$diffmedian), ]$diffmedian, "*mm~vs.~italic(P)[50]")
+        ), aes(x = x, y = y, label = label), parse = TRUE)
     #    https://github.com/slowkow/ggrepel/issues/153
     #    ggplot2::geom_point(data = plot_data[which.max(plot_data$diffmedian), ], shape = 21,
     #                        fill = "#2c7bb6", size = 2, stroke = 1) +
@@ -263,14 +252,11 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
         y = plot_data[which.min(plot_data$diffmedian), ]$cumsumpcp,
         shape = 21, fill = "#d7191c", size = 2, stroke = 1
       ) +
-      ggplot2::annotate(
-        geom = "label", x = plot_data[which.min(plot_data$diffmedian), ]$date,
-        y = plot_data[which.min(plot_data$diffmedian), ]$cumsumpcp,
-        label = paste(
-          plot_data[which.min(plot_data$diffmedian), ]$diffmedian,
-          "*mm~vs.~italic(P)[50]"
-        ), parse = TRUE, vjust = 1.5
-      )
+      ggrepel::geom_label_repel(
+        data = data.frame(x = plot_data[which.min(plot_data$diffmedian), ]$date,
+                          y = plot_data[which.min(plot_data$diffmedian), ]$cumsumpcp,
+                          label = paste(plot_data[which.min(plot_data$diffmedian), ]$diffmedian, "*mm~vs.~italic(P)[50]")
+        ), aes(x = x, y = y, label = label), parse = TRUE)
   }
 
   return(list(p, plot_data |> dplyr::select(date, cumsumpcp, everything(), -c(day, month, cump05pcp, cump95pcp)), 

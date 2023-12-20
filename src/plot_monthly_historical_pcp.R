@@ -1,6 +1,6 @@
 MonthlyAnomaliesPcpPlot <- function(data, ref_start_year, ref_end_year, max_date) {
   # Calculate percentiles of total precip. per month in reference period
-  reference_monthly_pcts_pcp <- data_pcp |>
+  reference_monthly_pcts_pcp <- data |>
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(ref_start_year, "-01-01")) &
                     date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
@@ -14,7 +14,7 @@ MonthlyAnomaliesPcpPlot <- function(data, ref_start_year, ref_end_year, max_date
     dplyr::as_tibble()
   
    # Calculate total precip. per month in all history
-  all_monthly_pcp <- data_pcp |> 
+  all_monthly_pcp <- data |> 
     dtplyr::lazy_dt() |>
     dplyr::group_by(year, month) |> 
     dplyr::summarise(sumpcp = sum(pcp, na.rm = TRUE), .groups = "keep") |> # .groups to avoid warnings
@@ -38,7 +38,7 @@ MonthlyAnomaliesPcpPlot <- function(data, ref_start_year, ref_end_year, max_date
     ggplot2::scale_color_manual(
       breaks = c("sumpcp", "p50", "trend"),
       values = c("trend" = "blue", "p50" = "black", "sumpcp" = "black"), 
-      labels = c("trend" = "Trend", "sumpcp" = "Monthly precip.",
+      labels = c("trend" = paste0("Trend (", ref_start_year, "-", ref_end_year, ")"), "sumpcp" = "Monthly precip.",
                  "p50" = paste0("Monthly median precip. (", ref_start_year, "-", ref_end_year, ")"))) +
     ggplot2::scale_x_continuous(breaks = seq(from = min(plot_data$year), to = max(plot_data$year), by = 10)) +
     ggplot2::scale_y_continuous(labels = function(x) paste0(x, "mm")) +

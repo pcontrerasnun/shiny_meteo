@@ -1,4 +1,4 @@
-OverviewPcpTempPlot <- function(data, selected_year, max_date) {
+OverviewPcpTempPlot <- function(data_temp, data_pcp, selected_year, max_date) {
   # Precipitation data
   plot_data_pcp <- data_pcp |>     
     dplyr::filter(date >= as.Date(paste0(as.numeric(selected_year), "-01-01")) & 
@@ -7,6 +7,7 @@ OverviewPcpTempPlot <- function(data, selected_year, max_date) {
     dplyr::arrange(-pcp)
   
   # Temperature data
+  # Different dataset because in rain dataset we are filtering rows
   plot_data_temp <- data_temp |> 
     dplyr::filter(date >= as.Date(paste0(as.numeric(selected_year), "-01-01")) & 
                     date <= as.Date(paste0(as.numeric(selected_year), "-12-31")))

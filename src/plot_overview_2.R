@@ -38,18 +38,19 @@ OverviewPcpTempPlot2 <- function(data_temp, data_pcp, ref_start_year, ref_end_ye
   # Join data
   plot_data <- dplyr::left_join(cbind(annual_tmeans, reference_median_tmean), 
                                 cbind(annual_pcp, reference_median_pcp), by = "year") |> 
-    dplyr::mutate(diffp50tmean = round(tmean - p50tmean, 1)) |> 
-    dplyr::mutate(diffp50pcp = round((pcp / p50pcp) * 100, 1)) |> 
+    dplyr::mutate(diffmediantmean = round(tmean - p50tmean, 1)) |> 
+    dplyr::mutate(diffmedianpcp = round((pcp / p50pcp) * 100, 1)) |> 
     dplyr::mutate(year = as.numeric(year))
   
   # Draw the plot
-  p <- ggplot2::ggplot(data = plot_data, aes(x = diffp50pcp, y = diffp50tmean, color = year)) +
+  p <- ggplot2::ggplot(data = plot_data, aes(x = diffmedianpcp, y = diffmediantmean, color = year)) +
     ggplot2::geom_vline(xintercept = 100) +
     ggplot2::geom_hline(yintercept = 0) +
     ggplot2::geom_point(data = subset(plot_data, year == selected_year), size = 5, stroke = 2, color = "black") +
     ggplot2::geom_point(size = 5, na.rm = TRUE) +
     ggplot2::scale_color_gradientn(colors = wes_palette("Zissou1", 100, type = "continuous")) + 
-    ggrepel::geom_label_repel(data = subset(plot_data, year == selected_year), aes(label = year), fontface = "bold") +
+    ggrepel::geom_label_repel(data = subset(plot_data, year == selected_year), aes(label = year), 
+                              fontface = "bold", size = 4) +
     ggplot2::scale_x_continuous(
       limits = c(0, 200), breaks = seq(0, 200, by = 50),
       labels = function(x) paste0(x, "%")) +
@@ -77,6 +78,6 @@ OverviewPcpTempPlot2 <- function(data_temp, data_pcp, ref_start_year, ref_end_ye
     ) +
     ggplot2::guides(color = guide_colorbar(ticks.colour = NA))
 
-  return(list(p, plot_data, "diffp50pcp", "diffp50tmean"))
+  return(list(p, plot_data, "diffmedianpcp", "diffmediantmean"))
 }
 

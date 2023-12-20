@@ -116,10 +116,9 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
     ggplot2::geom_point(data = annotate_data, fill = colors, 
                         size = 2, stroke = 1, shape = 21) +
     ggrepel::geom_label_repel(data = annotate_data, aes(label = annotate_labels$label), parse = TRUE) +
-    ggplot2::annotate(
-      geom = "richtext", x = min(plot_data$date, na.rm = TRUE) + 15, 
-      y = max(plot_data$cumsumpcp, na.rm = TRUE) - 100, 
-      label = paste0("**Ranking** (", ref_start_year, "-", ref_end_year, ")<br>",
+    ggplot2::annotation_custom(
+      gridtext::richtext_grob(x = unit(.035, "npc"), y = unit(.8, "npc"), 
+      text = paste0("**Ranking** (", ref_start_year, "-", ref_end_year, ")<br>",
                      "Max precip. in a single day <br><br>", 
                      head(ranking_days_most_pcp, 1)$ranking, "º ", head(ranking_days_most_pcp, 1)$date, ": ", 
                      head(ranking_days_most_pcp, 1)$pcp, "mm<br>",
@@ -127,8 +126,12 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
                      head(ranking_days_most_pcp, 2)[2,]$pcp, "mm<br>",
                      head(ranking_days_most_pcp, 3)[3,]$ranking, "º ", head(ranking_days_most_pcp, 3)[3,]$date, ": ", 
                      head(ranking_days_most_pcp, 3)[3,]$pcp, "mm"),
-      hjust = 0, vjust = 0.5, label.size = 0.75, label.padding = unit(0.5, "lines")
-    ) + 
+      #hjust = 0, vjust = 0.5, label.size = 0.75, label.padding = unit(0.5, "lines"), r = unit(0.15, "lines")
+      hjust = 0, vjust = 1,
+      r = unit(0.15, "lines"),
+      box_gp = grid::gpar(col = "black", lwd = 2),
+      padding = unit(0.5, "lines")
+    )) + 
     ggplot2::scale_x_continuous(
       breaks = as.numeric(seq(ymd(paste0(selected_year, "-01-01")), ymd(paste0(selected_year, "-12-31")), by = "month")),
       labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"),

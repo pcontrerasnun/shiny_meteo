@@ -20,12 +20,8 @@
 # - amplitud termicas
 # - tmin mas baja y tmax mas alta en cada mes
 # - tmin mas baja y tmax mas alta en todo el año
-# - Cambiar q50 por p50s
 # - poner control year of study solo puede ser < ref_end_yera y > ref:start_year
 # - borrar data_cleaning.R
-# - igual usar geom label repel en grafico 3 pcp
-# - arreglar hover grafico 5 days with more than 25mm pcp
-# - arreglar hover pcp intensity (igual con rbind)
 
 library(shiny)
 library(shinyjs)
@@ -90,19 +86,22 @@ plot_choices_pcp <- c(
 
 # Parameters
 station <- 3195
-ref_start_year <- 1920
-ref_end_year <- 2023
-selected_year <- 2023
+#ref_start_year <- 1920
+#ref_end_year <- 2023
+#selected_year <- 2023
 
 # Get historical data from Dropbox
-# search <- rdrop2::drop_search("complete")
-# file <- search$matches[[1]]$metadata$path_lower # Get last historical file
-# print(paste0("Downloading from Dropbox historical data for station ", station, ": ", file))
-# historical_data <- rdrop2::drop_read_csv(file)
+search <- rdrop2::drop_search("complete")
+file <- search$matches[[1]]$metadata$path_lower # Get last historical file
+print(paste0("Downloading from Dropbox historical data for station ", station, ": ", file))
+data_clean <- rdrop2::drop_read_csv(
+  file, colClasses = c(day = "character", month = "character", date = "Date"))
 
 # data <- aemet_daily_period(station = station, start = ref_start_year, end = ref_end_year)
-data_clean <- DataCleaning(data)[[1]]
-max_date <- paste(DataCleaning(data)[[2]], "UTC")
+# data_clean <- DataCleaning(data)[[1]]
+# max_date <- paste(DataCleaning(data)[[2]], "UTC")
+max_date <- paste(format(strptime(sub(".*/(\\d{8}_\\d{6}).*", "\\1", file), format = "%Y%m%d_%H%M%S"),
+                         "%Y-%m-%d %H:%M"), "UTC")
 data_pcp <- data_clean |> # Remove years with more than 50% of pcp values missing
   dplyr::group_by(year) |> dplyr::mutate(missing_pcp = mean(is.na(pcp))) |> 
   dplyr::ungroup() |> dplyr::filter(missing_pcp < 0.5) |> 
@@ -303,7 +302,7 @@ server <- function(input, output, session) {
         max_date = max_date
       ),
       "1" = OverviewPcpTempPlot(
-        data = data_clean, selected_year = input$year,
+        data_temp = data_temp, data_pcp = data_pcp, selected_year = input$year,
         max_date = max_date
       ),
       "11-tmean" = AnnualTmeanAnomaliesPlot(

@@ -40,7 +40,8 @@ AnnualPcpAnomaliesPlot <- function(data, ref_start_year, ref_end_year, max_date)
                          method = lm, se = FALSE, na.rm = TRUE, show.legend = FALSE) + 
     ggplot2::scale_linetype_manual(values = c("p50" = "longdash", "trend" = "dotted", "pcp" = "solid"),
                                    labels = c("p50" = paste0("Annual normal precip. (", ref_start_year, "-", ref_end_year, ")"),
-                                              "trend" = "Trend", "pcp" = "Annual total precip.")) +
+                                              "trend" = paste0("Trend (", ref_start_year, "-", ref_end_year, ")"), 
+                                              "pcp" = "Annual total precip.")) +
     ggrepel::geom_label_repel(data = rbind(head(plot_data, 3), tail(plot_data, 3)),
                               aes(y = pcp, label = paste0(ifelse(diffmedian > 0, "+", ""), diffmedian, "mm"))) +
     ggplot2::scale_x_continuous(breaks = seq(from = min(plot_data$year), to = max(plot_data$year), by = 5)) +

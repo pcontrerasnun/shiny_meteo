@@ -9,7 +9,7 @@ DailyHeatmapTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_y
     dplyr::as_tibble() |> 
     # Get previous and next 15 days
     dplyr::reframe(ref_date = seq.Date(date - 15, date + 15, "day"), .by = c(date, tmean)) |>
-    dplyr::left_join(data_temp |> rename(climate_tmean = tmean), join_by(ref_date == date)) |> 
+    dplyr::left_join(data |> rename(climate_tmean = tmean), join_by(ref_date == date)) |> 
     dplyr::select(-ref_date) |> 
     dplyr::mutate(day = format(date, "%d"), month = format(date, "%m")) |> 
     dplyr::group_by(day, month) |> 
