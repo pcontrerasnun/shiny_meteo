@@ -6,15 +6,10 @@
 # - añadir cabecera doc al archivo app.R
 # - acordarse quitar cargar funciones graficos de la parte de server
 # - docmumentar funciones sin documentar
-# - revisar torrencialidad, otoño 2023 deberia ser el max de la distrubcion, darle una vuelta (total lluvia / num dias con lluvia)
 # - cajita en grafico temperatura con top 3 días mas cálidos y más frios
 # - theme temperatura dominic royé
-# - en gráfico pcp > 25mm si 2023 vs 1981-2010, poner 2023 junto a 2010 no a tomar por culo
-# - en gráfico torrencialidad winter, summer, spring, autumn primera letra en mayus
-# - estudiar hover sobre gráfico annual mean temp/pcp anomalies para conocer temp media exacta en un año en concreto
 # - n days < p40, n days > p60
 # - "percentiles" por "values" en titulos?
-# - preguntar SO por annotate box junto a leyenda
 # - nuevo grafico cuanto dura invierno
 # - a gráficos anomalias añadir lineas desv tipicas
 # - amplitud termicas
@@ -22,36 +17,38 @@
 # - tmin mas baja y tmax mas alta en todo el año
 # - poner control year of study solo puede ser < ref_end_yera y > ref:start_year
 # - borrar data_cleaning.R
+# - boton info
 
-library(shiny)
-library(shinyjs)
-library(shinythemes)
-library(lubridate)
-library(roxygen2)
-library(here)
-library(climaemet)
-library(dtplyr)
-library(dplyr, warn.conflicts = FALSE)
-library(tidyr)
-library(ggplot2)
-library(ggrepel)
-library(ggthemes)
-library(ggh4x)
-library(stringr)
-library(mlr3misc)
-library(MASS)
-library(zoo)
-library(ggtext)
-library(wesanderson)
-library(ggridges)
-library(ggforce)
-library(DT)
+library(shiny, warn.conflicts = FALSE, quietly = TRUE)
+library(shinyjs, warn.conflicts = FALSE, quietly = TRUE)
+library(shinythemes, warn.conflicts = FALSE, quietly = TRUE)
+library(shinyWidgets, warn.conflicts = FALSE, quietly = TRUE)
+library(lubridate, warn.conflicts = FALSE, quietly = TRUE)
+library(roxygen2, warn.conflicts = FALSE, quietly = TRUE)
+library(here, warn.conflicts = FALSE, quietly = TRUE)
+library(climaemet, warn.conflicts = FALSE, quietly = TRUE)
+library(dtplyr, warn.conflicts = FALSE, quietly = TRUE)
+library(dplyr, warn.conflicts = FALSE, quietly = TRUE)
+library(tidyr, warn.conflicts = FALSE, quietly = TRUE)
+library(ggplot2, warn.conflicts = FALSE, quietly = TRUE)
+library(ggrepel, warn.conflicts = FALSE, quietly = TRUE)
+library(ggthemes, warn.conflicts = FALSE, quietly = TRUE)
+library(ggh4x, warn.conflicts = FALSE, quietly = TRUE)
+library(stringr, warn.conflicts = FALSE, quietly = TRUE)
+library(mlr3misc, warn.conflicts = FALSE, quietly = TRUE)
+library(MASS, warn.conflicts = FALSE, quietly = TRUE)
+library(zoo, warn.conflicts = FALSE, quietly = TRUE)
+library(ggtext, warn.conflicts = FALSE, quietly = TRUE)
+library(wesanderson, warn.conflicts = FALSE, quietly = TRUE)
+library(ggridges, warn.conflicts = FALSE, quietly = TRUE)
+library(ggforce, warn.conflicts = FALSE, quietly = TRUE)
+library(DT, warn.conflicts = FALSE, quietly = TRUE)
 
 # Code outside 'ui' and 'server' only runs once when app is launched
 plot_choices_temp <- c(
       "1. Overview" = "1",
       "2. Overview (2)" = "2",
-      "3. Daily cumulative mean temp." = "3-tmean",
+      "3. Daily mean temp. (cumulative)" = "3-tmean",
       "4. Daily mean temp. (vs. percentiles)" = "4-tmean",
       "5. Daily mean temp. (anomalies)" = "5-tmean",
       "6. Daily mean temp. (heatmap) " = "6-tmean",
@@ -88,7 +85,7 @@ plot_choices_pcp <- c(
 station <- 3195
 #ref_start_year <- 1920
 #ref_end_year <- 2023
-#selected_year <- 2023
+#selected_year <- 1995
 
 # Get historical data from Dropbox
 search <- rdrop2::drop_search("complete")
@@ -115,10 +112,13 @@ data_temp <- data_clean |> # Remove years with more than 50% of tmean values mis
 # fluidPage creates a display that automatically adjusts to the dimensions of your user’s
 # browser window
 ui <- shiny::fluidPage(
+  # Google Analytics
+  tags$head(includeHTML("google-analytics.html")),
+  
   theme = shinythemes::shinytheme("spacelab"),
 
   # Application title
-  shiny::titlePanel("AEMET OpenData"),
+  shiny::titlePanel("Meteo app"),
 
   # Sidebar panel
   shiny::sidebarLayout(
@@ -126,7 +126,7 @@ ui <- shiny::fluidPage(
       width = 3,
       shiny::fluidRow(
         column(
-          6,
+          width = 6,
           shiny::textInput(
             inputId = "year",
             label = "Year of study",
@@ -134,7 +134,7 @@ ui <- shiny::fluidPage(
           )
         ),
         column(
-          6,
+          width = 6,
           shiny::selectInput(
             inputId = "ref_period",
             label = "Reference period",
@@ -169,18 +169,25 @@ ui <- shiny::fluidPage(
       ),
       shiny::fluidRow(
         column(
-          2,
+          width = 2,
           shiny::actionButton(
             inputId = "updatePlot",
             label = "Paint!"
           )
         ),
         column(
-          2,
+          width = 2,
           shiny::actionButton(
             inputId = "nextPlot",
             label = "Next"
           )
+        ),
+        div(
+          style = "position:relative; left:calc(54%);",
+          shiny::actionButton(
+            inputId = 'info', 
+            label = NULL, 
+            icon = icon('info-circle'))
         )
       )
     ),
@@ -226,9 +233,24 @@ server <- function(input, output, session) {
     updateSelectInput(session, "plot", selected = plot_choices[next_index][[1]])
   })
   
+  # Configure "info" button
+  observeEvent(input$info, {
+    shinyWidgets::sendSweetAlert(session, title = NULL,
+                   text = shiny::span(h3("User Guide"),
+                               h4(strong('Using the app')),
+                               p("Every time", strong("Year of study"), " is changed, ", strong("Paint!"), 
+                                  " or ", strong("Next"), " button need to be pressed. No need when changing ",
+                                  strong("Reference period"), " or ", strong("Metric"), " or ", strong("Variable"),
+                                  " - chart will update automatically. Data is shown below the chart 
+                                  after clicking on the chart"),
+                               br(), h4(strong('Chart info'))), 
+                   btn_label = 'Enjoy!', btn_colors = "#000000", html = TRUE)
+  })
+  
   # Do not change plot until "Paint!" or "Next" button is pressed
   plot <- eventReactive({input$updatePlot
                          input$nextPlot
+                         input$ref_period
                          input$plot}, ignoreInit = TRUE, { 
     # Draw plot
     switch(input$plot,
@@ -385,7 +407,7 @@ server <- function(input, output, session) {
   
   # Display values/data
   output$info <- DT::renderDataTable({ # shiny::renderPrint
-    datatable((nearPoints(plot()[[2]], input$plot_click, maxpoints = 1, threshold = 10,
+    datatable((nearPoints(plot()[[2]], input$plot_click, maxpoints = 1, threshold = 25,
                xvar = plot()[[3]], yvar = plot()[[4]])), options = list(dom = 't'))
   })
 

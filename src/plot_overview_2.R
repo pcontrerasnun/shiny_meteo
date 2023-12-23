@@ -50,7 +50,7 @@ OverviewPcpTempPlot2 <- function(data_temp, data_pcp, ref_start_year, ref_end_ye
     ggplot2::geom_point(size = 5, na.rm = TRUE) +
     ggplot2::scale_color_gradientn(colors = wes_palette("Zissou1", 100, type = "continuous")) + 
     ggrepel::geom_label_repel(data = subset(plot_data, year == selected_year), aes(label = year), 
-                              fontface = "bold", size = 4) +
+                              fontface = "bold", size = 5, color = "black") +
     ggplot2::scale_x_continuous(
       limits = c(0, 200), breaks = seq(0, 200, by = 50),
       labels = function(x) paste0(x, "%")) +

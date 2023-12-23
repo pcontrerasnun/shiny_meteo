@@ -22,10 +22,10 @@ AnnualDaysWithPcpPlot <- function(data, selected_year, ref_start_year, ref_end_y
     ggrepel::geom_label_repel(data = subset(plot_data, year == selected_year), aes(label = year), size = 5) +
     ggplot2::geom_rug(col = "blue") +
     ggplot2::scale_x_continuous(
-      breaks = seq(round(min(plot_data$dayspcp), digits = -1), 
-                   round(max(plot_data$dayspcp), digits = -1) + 10, by = 5),
-      limits = c(round(min(plot_data$dayspcp), digits = -1), 
-                 round(max(plot_data$dayspcp), digits = -1) + 10, by = 5)) +
+      breaks = seq(round(min(plot_data$dayspcp) - 6, digits = -1), # +-6 is for correct rounding
+                   round(max(plot_data$dayspcp) + 6, digits = -1) + 10, by = 5),
+      limits = c(round(min(plot_data$dayspcp) - 6, digits = -1), 
+                 round(max(plot_data$dayspcp) + 6, digits = -1) + 10, by = 5)) +
     ggplot2::scale_y_continuous(
       labels = function(x) paste0(x, "mm"),
       breaks = seq(from = round(min(plot_data$sumpcp), digits = -1), 

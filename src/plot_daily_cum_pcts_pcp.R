@@ -150,7 +150,7 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
     ) +
     ggplot2::annotation_custom(
       gridtext::richtext_grob(
-        x = unit(.05, "npc"),
+        x = unit(.048, "npc"),
         y = unit(.8, "npc"),
         text = paste0("**Ranking** (", ref_start_year, "-", ref_end_year, ")<br>", 
                       "Max consecutive days with precip. <br><br>", 
@@ -178,7 +178,7 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
     ) +
     ggplot2::annotation_custom(
       gridtext::richtext_grob(
-        x = unit(.2, "npc"),
+        x = unit(.2125, "npc"),
         y = unit(.8725, "npc"),
         text = paste0("**Ranking** (", ref_start_year, "-", ref_end_year, ")<br>", 
                       "Max consecutive days with no precip. <br><br>", 

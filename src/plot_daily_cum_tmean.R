@@ -101,7 +101,8 @@ DailyCumulativeTmeanPlot <- function(data, selected_year, ref_start_year, ref_en
                               ymd(paste0(selected_year, "-12-31")), by = "month")),
       labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"),
       limits = c(as.numeric(ymd(paste0(selected_year, "-01-01"))), as.numeric(ymd(paste0(selected_year, "-12-31")))),
-      expand = expansion(mult = c(0.02, 0))) +
+      # expand = expansion(mult = c(0.02, 0))
+      ) +
     ggplot2::scale_y_continuous(
       labels = function(x) paste0(x, "ºC"),
       limits = c(floor(min(min(plot_data$cumtmean, na.rm = TRUE),

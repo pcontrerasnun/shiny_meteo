@@ -77,7 +77,7 @@ IntensityPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, 
       x = selected_year_season_intensity_pcp$season,
       y = selected_year_season_intensity_pcp$intensity,
       geom = "label",
-      label = selected_year, fontface = "bold", size = 4,
+      label = selected_year, fontface = "bold", size = 5,
       family = "sans", hjust = -0.35, vjust = 0
     ) +
     ggplot2::scale_x_discrete(limits = c("Winter", "Spring", "Summer", "Autumn"),

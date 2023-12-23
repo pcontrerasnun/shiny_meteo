@@ -13,7 +13,7 @@
 #' DailyCumPcpPlot(data, 2023, 1981, 2010, "2023-09-24")
 DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
   # Calculate historical mean for reference period
-  reference_mean_pcp <- data |>
+  reference_mean_pcp <- data_pcp |>
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(ref_start_year, "-01-01")) &
       date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
@@ -30,7 +30,7 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
     dplyr::as_tibble()
 
   # Calculate cumulative sum precipitation for selected year
-  selected_year_pcp <- data |>
+  selected_year_pcp <- data_pcp |>
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(selected_year, "-01-01")) &
       date <= as.Date(paste0(selected_year, "-12-31"))) |>
@@ -55,8 +55,9 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
   
   # For annotating points
   annotate_data <- rbind(plot_data |> filter(!is.na(cumsumpcp)) |> slice_tail(n = 1), # Current pcp
-                         subset(plot_data, diffmean == min(diffmean[diffmean < 0], na.rm = TRUE)), # Max deficit
-                         subset(plot_data, diffmean == max(diffmean[diffmean > 0], na.rm = TRUE))) |> # Max superavit
+                         # Max deficit, slice_tail in case there are two days with same deficit
+                         slice_tail(subset(plot_data, diffmean == min(diffmean[diffmean < 0], na.rm = TRUE)), n = 1),
+                         slice_tail(subset(plot_data, diffmean == max(diffmean[diffmean > 0], na.rm = TRUE)), n = 1)) |> # Max superavit
     dplyr::mutate(percentage = ifelse(diffmean > 0, paste0("x", round(cumsumpcp / cummeanpcp, 1)), 
                                       paste0("phantom()/", round(cummeanpcp / cumsumpcp, 1)))) |> 
     dplyr::mutate(percentage = ifelse(percentage == "/Inf", "-", percentage)) |> # Replace Inf with -
@@ -91,7 +92,7 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
   }
   
   # For ranking of days with most rain
-  ranking_days_most_pcp <- data |> 
+  ranking_days_most_pcp <- data_pcp |> 
     dplyr::filter((date >= as.Date(paste0(ref_start_year, "-01-01")) &
                      date <= as.Date(paste0(ref_end_year, "-12-31"))) |
                     (date >= as.Date(paste0(as.numeric(selected_year), "-01-01")) &
@@ -117,14 +118,14 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
                         size = 2, stroke = 1, shape = 21) +
     ggrepel::geom_label_repel(data = annotate_data, aes(label = annotate_labels$label), parse = TRUE) +
     ggplot2::annotation_custom(
-      gridtext::richtext_grob(x = unit(.035, "npc"), y = unit(.8, "npc"), 
+      gridtext::richtext_grob(x = unit(.0435, "npc"), y = unit(.8, "npc"), 
       text = paste0("**Ranking** (", ref_start_year, "-", ref_end_year, ")<br>",
                      "Max precip. in a single day <br><br>", 
-                     head(ranking_days_most_pcp, 1)$ranking, "º ", head(ranking_days_most_pcp, 1)$date, ": ", 
+                     head(ranking_days_most_pcp, 1)$ranking, "º ", format(head(ranking_days_most_pcp, 1)$date, "%d-%m-%Y"), ": ", 
                      head(ranking_days_most_pcp, 1)$pcp, "mm<br>",
-                     head(ranking_days_most_pcp, 2)[2,]$ranking, "º ", head(ranking_days_most_pcp, 2)[2,]$date, ": ", 
+                     head(ranking_days_most_pcp, 2)[2,]$ranking, "º ", format(head(ranking_days_most_pcp, 2)[2,]$date, "%d-%m-%Y"), ": ", 
                      head(ranking_days_most_pcp, 2)[2,]$pcp, "mm<br>",
-                     head(ranking_days_most_pcp, 3)[3,]$ranking, "º ", head(ranking_days_most_pcp, 3)[3,]$date, ": ", 
+                     head(ranking_days_most_pcp, 3)[3,]$ranking, "º ", format(head(ranking_days_most_pcp, 3)[3,]$date, "%d-%m-%Y"), ": ", 
                      head(ranking_days_most_pcp, 3)[3,]$pcp, "mm"),
       #hjust = 0, vjust = 0.5, label.size = 0.75, label.padding = unit(0.5, "lines"), r = unit(0.15, "lines")
       hjust = 0, vjust = 1,
