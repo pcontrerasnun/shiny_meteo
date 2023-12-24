@@ -22,7 +22,6 @@
 library(shiny, warn.conflicts = FALSE, quietly = TRUE)
 library(shinyjs, warn.conflicts = FALSE, quietly = TRUE)
 library(shinythemes, warn.conflicts = FALSE, quietly = TRUE)
-library(shinyWidgets, warn.conflicts = FALSE, quietly = TRUE)
 library(lubridate, warn.conflicts = FALSE, quietly = TRUE)
 library(roxygen2, warn.conflicts = FALSE, quietly = TRUE)
 library(here, warn.conflicts = FALSE, quietly = TRUE)
@@ -206,7 +205,7 @@ server <- function(input, output, session) {
   invisible(lapply(list.files(path = here::here("src"), full.names = TRUE), source))
   
   # Update plot selection choices depending on variable (tmean, pcp...) selection
-  observe({
+  shiny::observe({
     if (input$variable == "Mean temperature (00h-24h)") {
       plot_choices <- plot_choices_temp
     } else if (input$variable == paste0("Precipitation (07h-07h", "\u207A", "\u00B9", ")")) {
@@ -217,7 +216,7 @@ server <- function(input, output, session) {
   })
   
   # Configure "Next" button
-  observeEvent(input$nextPlot, {
+  shiny::observeEvent(input$nextPlot, {
     if (input$variable == "Mean temperature (00h-24h)") {
       plot_choices <- plot_choices_temp
     } else if (input$variable == paste0("Precipitation (07h-07h", "\u207A", "\u00B9", ")")) {
@@ -234,21 +233,37 @@ server <- function(input, output, session) {
   })
   
   # Configure "info" button
-  observeEvent(input$info, {
-    shinyWidgets::sendSweetAlert(session, title = NULL,
-                   text = shiny::span(h3("User Guide"),
-                               h4(strong('Using the app')),
-                               p("Every time", strong("Year of study"), " is changed, ", strong("Paint!"), 
-                                  " or ", strong("Next"), " button need to be pressed. No need when changing ",
-                                  strong("Reference period"), " or ", strong("Metric"), " or ", strong("Variable"),
-                                  " - chart will update automatically. Data is shown below the chart 
-                                  after clicking on the chart"),
-                               br(), h4(strong('Chart info'))), 
-                   btn_label = 'Enjoy!', btn_colors = "#000000", html = TRUE)
+  info_message <- shiny::reactive({
+    switch(input$plot,
+           "2" = "Anomaly value refers to the difference from the median",
+           "4-tmean" = "To calculate the percentiles for each day, a time window of +- 15 days (1 month)
+           is taken with respect to the day in question",
+           "5-tmean" = "To calculate the percentiles for each day, a time window of +- 15 days (1 month)
+           is taken with respect to the day in question",
+           "6-tmean" = "Percentiles are calculated using the empirical (observed) distribution, 
+           without fitting the series to a normal distribution"
+           "No extra info provided"
+    )
+  })
+  
+  shiny::observeEvent(input$info, {
+    shiny::showModal(shiny::modalDialog(
+      title = "Help!",
+      h4(strong('Using the app')),
+      p("Every time", strong("Year of study"), " is changed, ", strong("Paint!"), 
+        " or ", strong("Next"), " button need to be pressed. No need when changing ",
+        strong("Reference period"), " or ", strong("Metric"), " or ", strong("Variable"),
+        " - chart will update automatically. Data is shown below the chart 
+        after clicking on the chart"),
+      br(), h4(strong('Chart info')),
+      p(info_message()),
+      easyClose = TRUE,
+      footer = modalButton("Capito")
+    ))
   })
   
   # Do not change plot until "Paint!" or "Next" button is pressed
-  plot <- eventReactive({input$updatePlot
+  plot <- shiny::eventReactive({input$updatePlot
                          input$nextPlot
                          input$ref_period
                          input$plot}, ignoreInit = TRUE, { 

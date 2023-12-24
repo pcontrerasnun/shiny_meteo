@@ -20,8 +20,7 @@ DailyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_end
       .groups = "keep" # to avoid warning
     ) |>
     dplyr::ungroup() |> # Don't know why but necessary cause not plot_data fails
-    # We choose 2023 as year because it doesn't have 29th Feb
-    dplyr::mutate(date = as.Date(paste("2023", month, day, sep = "-"), format = "%Y-%m-%d")) |> 
+    dplyr::mutate(date = as.Date(paste(selected_year, month, day, sep = "-"), format = "%Y-%m-%d")) |> 
     dplyr::filter(!is.na(date))
   
   # Get daily mean temperatures
@@ -59,7 +58,7 @@ DailyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_end
     ggplot2::geom_line(aes(y = p95tmean, linetype = "p95"), lineend = "round", na.rm = TRUE) +
     ggplot2::scale_linetype_manual(
       values = c("p50" = "longdash", "p05" = "dotted", "p95" = "dotted", "tmean" = "solid"),
-      labels = c("p50" = paste0("Normal mean temp. (", ref_start_year, "-", ref_end_year, ")"),
+      labels = c("p50" = expr(paste("Normal (", italic(P[50]), ") mean temp. (", !!ref_start_year, "-", !!ref_end_year, ")")),
                  "p05" = expr(paste(italic(P[5]), " (", !!ref_start_year, "-", !!ref_end_year, ")")),
                  "p95" = expr(paste(italic(P[95]), " (", !!ref_start_year, "-", !!ref_end_year, ")")),
                  "tmean" = paste0("Daily mean temp. (", selected_year, ")")),
