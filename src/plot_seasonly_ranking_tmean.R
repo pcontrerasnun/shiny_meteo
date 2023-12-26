@@ -158,7 +158,7 @@ SeasonRankingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_
     ggplot2::geom_point(aes(y = cumtmean), color = "black", na.rm = TRUE) +
     ggplot2::geom_line(aes(y = cumtmean, group = 1, color = "cumtmean"), linewidth = 0.75, na.rm = TRUE) +
     ggrepel::geom_label_repel(
-      aes(y = cumtmean, label = paste0(ifelse(diffmedian > 0, "+", "") , diffmedian, "*ºC~vs.~italic(P[50])")), 
+      aes(y = cumtmean, label = paste0(ifelse(diffmedian > 0, "+", "") , diffmedian, "*ºC")), # ~vs.~italic(P[50])
       parse = TRUE, na.rm = TRUE) +
     ggplot2::scale_fill_manual(
       values = c(">P100" = "#b2182b", "P100" = "#ef8a62", "P80" = "#fddbc7", "P60" = "#f7f7f7",

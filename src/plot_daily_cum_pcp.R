@@ -13,7 +13,7 @@
 #' DailyCumPcpPlot(data, 2023, 1981, 2010, "2023-09-24")
 DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
   # Calculate historical mean for reference period
-  reference_mean_pcp <- data_pcp |>
+  reference_mean_pcp <- data |>
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(ref_start_year, "-01-01")) &
       date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
@@ -30,7 +30,7 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
     dplyr::as_tibble()
 
   # Calculate cumulative sum precipitation for selected year
-  selected_year_pcp <- data_pcp |>
+  selected_year_pcp <- data |>
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(selected_year, "-01-01")) &
       date <= as.Date(paste0(selected_year, "-12-31"))) |>
@@ -92,7 +92,7 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
   }
   
   # For ranking of days with most rain
-  ranking_days_most_pcp <- data_pcp |> 
+  ranking_days_most_pcp <- data |> 
     dplyr::filter((date >= as.Date(paste0(ref_start_year, "-01-01")) &
                      date <= as.Date(paste0(ref_end_year, "-12-31"))) |
                     (date >= as.Date(paste0(as.numeric(selected_year), "-01-01")) &

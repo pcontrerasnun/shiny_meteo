@@ -1,3 +1,11 @@
+#' ---
+#' title: Meteo app
+#' author: Pablo Contreras
+#' date: 2023-12-26
+#' description: Shiny app to visualize meteorological data
+#' ---
+
+
 # TODO:
 # - <freq> <stat> <metric>
 # - nombre var plot_datas sin guiones bajos
@@ -7,9 +15,7 @@
 # - acordarse quitar cargar funciones graficos de la parte de server
 # - docmumentar funciones sin documentar
 # - cajita en grafico temperatura con top 3 días mas cálidos y más frios
-# - theme temperatura dominic royé
 # - n days < p40, n days > p60
-# - "percentiles" por "values" en titulos?
 # - nuevo grafico cuanto dura invierno
 # - a gráficos anomalias añadir lineas desv tipicas
 # - amplitud termicas
@@ -17,7 +23,12 @@
 # - tmin mas baja y tmax mas alta en todo el año
 # - poner control year of study solo puede ser < ref_end_yera y > ref:start_year
 # - borrar data_cleaning.R
-# - boton info
+# - numero de dias con helada
+# - temperatura maxima mensual historico
+# - anomalías tmax y tmin
+# - theme temperatura dominic royé
+# - num acumulado dias con tmax > 25 / 30
+# - renv
 
 library(shiny, warn.conflicts = FALSE, quietly = TRUE)
 library(shinyjs, warn.conflicts = FALSE, quietly = TRUE)
@@ -232,7 +243,7 @@ server <- function(input, output, session) {
     updateSelectInput(session, "plot", selected = plot_choices[next_index][[1]])
   })
   
-  # Configure "info" button
+  # Configure "info" message depending on selected plot
   info_message <- shiny::reactive({
     switch(input$plot,
            "2" = "Anomaly value refers to the difference from the median",
@@ -240,12 +251,23 @@ server <- function(input, output, session) {
            is taken with respect to the day in question",
            "5-tmean" = "To calculate the percentiles for each day, a time window of +- 15 days (1 month)
            is taken with respect to the day in question",
-           "6-tmean" = "Percentiles are calculated using the empirical (observed) distribution, 
-           without fitting the series to a normal distribution"
+           "6-tmean" = "Percentiles are calculated using the empirical (observed) distribution, without 
+           fitting the series to a normal distribution",
+           "9-tmean" = p("Ranking is calculated only with years included in", strong("Reference period")),
+           "10-tmean" = p("Ranking is calculated only with years included in ", strong("Reference period."), 
+           "Anomaly labels refers to the difference from the median"),
+           "12-tmean" = "Years at the top of a bar are hotter than the ones at the bottom",
+           "7-pcp" = p("Ranking is calculated only with years included in", strong("Reference period")),
+           "10-pcp" = p("Ranking is calculated only with years included in", strong("Reference period")),
+           "11-pcp" = "Intensity is calculated as total precipitation in season divided by total days
+           with precipitation in season",
+           "12-pcp" = "Anomaly labels refers to the difference from the median",
+           "13-pcp" = "Years at the top of a bar have more precipitation than the ones at the bottom",
            "No extra info provided"
     )
   })
   
+  # Configure "info" button
   shiny::observeEvent(input$info, {
     shiny::showModal(shiny::modalDialog(
       title = "Help!",

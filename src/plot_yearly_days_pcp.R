@@ -19,7 +19,8 @@ AnnualDaysWithPcpPlot <- function(data, selected_year, ref_start_year, ref_end_y
    # ggplot2::scale_color_gradientn(colors = wes_palette("Zissou1", 100, type = "continuous")) +
     ggplot2::geom_point(data = subset(plot_data, year == selected_year), fill = "red", size = 3, stroke = 1, 
                         shape = 21) +
-    ggrepel::geom_label_repel(data = subset(plot_data, year == selected_year), aes(label = year), size = 5) +
+    ggrepel::geom_label_repel(data = subset(plot_data, year == selected_year), aes(label = year),
+                              fontface = "bold", size = 5, color = "black") +
     ggplot2::geom_rug(col = "blue") +
     ggplot2::scale_x_continuous(
       breaks = seq(round(min(plot_data$dayspcp) - 6, digits = -1), # +-6 is for correct rounding
