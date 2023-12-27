@@ -48,6 +48,9 @@ DailyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_end
   
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = date, y = tmean)) +
+    ggplot2::annotate("rect", ymin = -Inf, ymax = Inf, fill = "gray", alpha = 0.2,
+                      xmin = seq(ymd(paste0(selected_year, "-02-01")), by = "2 month", length = 6),
+                      xmax = seq(ymd(paste0(selected_year, "-03-01")), by = "2 month", length = 6)) +
     ggplot2::geom_segment(data = color_data, aes(x = x, y = y1, xend = x, yend = y2, color = diff),
                           linewidth = 1, na.rm = TRUE) +
     ggplot2::scale_color_gradient2(high = "#ca0020", mid = "white", low = "#0571b0", guide = guide_none()) +
@@ -68,15 +71,17 @@ DailyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_end
       aes(y = tmean, label = paste0(ifelse(diffmedian > 0, "+", ""), diffmedian, "ºC")),
       na.rm = TRUE) +
     ggplot2::scale_x_continuous(
-      breaks = as.numeric(seq(ymd("2023-01-01"), ymd("2023-12-31"), by = "month")),
+      breaks = as.numeric(seq(ymd(paste0(selected_year, "-01-01")), 
+                              ymd(paste0(selected_year, "-12-31")), by = "month")),
       labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"),
-      limits = c(as.numeric(ymd("2023-01-01")), as.numeric(ymd("2023-12-31")))
+      limits = c(as.numeric(ymd(paste0(selected_year, "-01-01"))), 
+                 as.numeric(ymd(paste0(as.numeric(selected_year) + 1), "-01-01")))
     ) +
     ggplot2::scale_y_continuous(
       limits = c(min(plot_data$tmean, na.rm = TRUE) - 2, 
                  max(plot_data$tmean, na.rm = TRUE) + 2),
-      breaks = seq(from = round(min(plot_data$tmean, na.rm = TRUE) - 3), 
-                   to = round(max(plot_data$tmean, na.rm = TRUE) + 3), by = 5),
+      breaks = round(seq(from = round(min(plot_data$tmean, na.rm = TRUE) - 3), 
+                   to = round(max(plot_data$tmean, na.rm = TRUE) + 3), by = 5) / 5) * 5,
       labels = function(x) paste0(x, "ºC")) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(

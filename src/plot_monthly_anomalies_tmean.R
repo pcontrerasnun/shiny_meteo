@@ -55,10 +55,10 @@ MonthlyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_e
                            min(plot_data$tmeanmean, na.rm = TRUE)) - 2), 
                  ceiling(max(max(plot_data$tmean, na.rm = TRUE),
                              max(plot_data$tmeanmean, na.rm = TRUE)) + 2)),
-      breaks = seq(from = floor(min(min(plot_data$tmean, na.rm = TRUE),
+      breaks = round(seq(from = floor(min(min(plot_data$tmean, na.rm = TRUE),
                                     min(plot_data$tmeanmean, na.rm = TRUE)) - 2), 
                    to = ceiling(max(max(plot_data$tmean, na.rm = TRUE),
-                                    max(plot_data$tmeanmean, na.rm = TRUE))) + 2, by = 5)) +
+                                    max(plot_data$tmeanmean, na.rm = TRUE))) + 2, by = 5) / 5) * 5) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
       x = "", y = "", title = paste0("Temperature in Madrid - Retiro ", selected_year),

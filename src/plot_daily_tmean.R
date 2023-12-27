@@ -40,6 +40,9 @@ DailyTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, ma
   
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = date)) +
+    ggplot2::annotate("rect", ymin = -Inf, ymax = Inf, fill = "gray", alpha = 0.2,
+                      xmin = seq(ymd(paste0(selected_year, "-02-01")), by = "2 month", length = 6),
+                      xmax = seq(ymd(paste0(selected_year, "-03-01")), by = "2 month", length = 6)) +
     ggplot2::geom_ribbon(aes(ymin = p95tmean, ymax = p95tmean + 4, fill = "P100"),
                          alpha = 0.3, color = "#b2182b", linetype = "51", 
                          lineend = "round", linejoin = "round") +
@@ -86,12 +89,13 @@ DailyTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, ma
     ggplot2::scale_x_continuous(
       breaks = as.numeric(seq(ymd(paste0(selected_year, "-01-01")), ymd(paste0(selected_year, "-12-31")), by = "month")),
       labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"),
-      limits = c(as.numeric(ymd(paste0(selected_year, "-01-01"))), as.numeric(ymd(paste0(selected_year, "-12-31"))))
+      limits = c(as.numeric(ymd(paste0(selected_year, "-01-01"))), 
+                 as.numeric(ymd(paste0(as.numeric(selected_year) + 1), "-01-01")))
     ) +
     ggplot2::scale_y_continuous(
       labels = function(x) paste0(x, "ºC"),
       breaks = round(seq(from = min(min(plot_data$p05tmean) - 4, min(plot_data$tmean, na.rm = TRUE)) - 2, 
-                   to = max(max(plot_data$p95tmean) + 4, max(plot_data$tmean, na.rm = TRUE)) + 2, by = 5), 0),
+                   to = max(max(plot_data$p95tmean) + 4, max(plot_data$tmean, na.rm = TRUE)) + 2, by = 5) / 5) * 5,
       limits = c(min(min(plot_data$p05tmean) - 4, min(plot_data$tmean, na.rm = TRUE)) - 2, 
                  max(max(plot_data$p95tmean) + 4, max(plot_data$tmean, na.rm = TRUE)) + 2)
     ) +

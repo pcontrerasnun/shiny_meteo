@@ -53,6 +53,9 @@ DailyCumulativeTmeanPlot <- function(data, selected_year, ref_start_year, ref_en
 
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = date, y = cumtmean)) +
+    ggplot2::annotate("rect", ymin = -Inf, ymax = Inf, fill = "gray", alpha = 0.2,
+                      xmin = seq(ymd(paste0(selected_year, "-02-01")), by = "2 month", length = 6),
+                      xmax = seq(ymd(paste0(selected_year, "-03-01")), by = "2 month", length = 6)) +
     ggplot2::geom_ribbon(aes(ymin = cump100tmean, ymax = cump100tmean + 1.5, fill = "Extrem. hot"),
       alpha = 0.3, color = "#b2182b", linetype = "51", lineend = "round", linejoin = "round") +
     ggplot2::geom_ribbon(aes(ymin = cump80tmean, ymax = cump100tmean, fill = "Very hot"),
@@ -100,7 +103,8 @@ DailyCumulativeTmeanPlot <- function(data, selected_year, ref_start_year, ref_en
       breaks = as.numeric(seq(ymd(paste0(selected_year, "-01-01")), 
                               ymd(paste0(selected_year, "-12-31")), by = "month")),
       labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"),
-      limits = c(as.numeric(ymd(paste0(selected_year, "-01-01"))), as.numeric(ymd(paste0(selected_year, "-12-31")))),
+      limits = c(as.numeric(ymd(paste0(selected_year, "-01-01"))), 
+                 as.numeric(ymd(paste0(as.numeric(selected_year) + 1), "-01-01"))),
       # expand = expansion(mult = c(0.02, 0))
       ) +
     ggplot2::scale_y_continuous(
@@ -109,10 +113,10 @@ DailyCumulativeTmeanPlot <- function(data, selected_year, ref_start_year, ref_en
                            min(plot_data$cump00tmean, na.rm = TRUE)) - 2),
                  ceiling(max(max(plot_data$cumtmean, na.rm = TRUE),
                              max(plot_data$cump100tmean, na.rm = TRUE)) + 2)),
-      breaks = seq(from = floor(min(min(plot_data$cumtmean, na.rm = TRUE),
+      breaks = round(seq(from = floor(min(min(plot_data$cumtmean, na.rm = TRUE),
                                     min(plot_data$cump00tmean, na.rm = TRUE)) - 2),
                    to = ceiling(max(max(plot_data$cumtmean, na.rm = TRUE),
-                                    max(plot_data$cump100tmean, na.rm = TRUE))) + 2, by = 2)) +
+                                    max(plot_data$cump100tmean, na.rm = TRUE))) + 2, by = 2) / 5) * 5) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
       x = "", y = "", title = paste0("Temperature in Madrid - Retiro ", selected_year),

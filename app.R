@@ -21,14 +21,14 @@
 # - amplitud termicas
 # - tmin mas baja y tmax mas alta en cada mes
 # - tmin mas baja y tmax mas alta en todo el año
-# - poner control year of study solo puede ser < ref_end_yera y > ref:start_year
-# - borrar data_cleaning.R
 # - numero de dias con helada
 # - temperatura maxima mensual historico
 # - anomalías tmax y tmin
 # - theme temperatura dominic royé
 # - num acumulado dias con tmax > 25 / 30
 # - renv
+# - calendar map con lluvia en cada día
+# - year of study not included in calculations
 
 library(shiny, warn.conflicts = FALSE, quietly = TRUE)
 library(shinyjs, warn.conflicts = FALSE, quietly = TRUE)
@@ -55,38 +55,43 @@ library(ggforce, warn.conflicts = FALSE, quietly = TRUE)
 library(DT, warn.conflicts = FALSE, quietly = TRUE)
 
 # Code outside 'ui' and 'server' only runs once when app is launched
-plot_choices_temp <- c(
-      "1. Overview" = "1",
-      "2. Overview (2)" = "2",
-      "3. Daily mean temp. (cumulative)" = "3-tmean",
-      "4. Daily mean temp. (vs. percentiles)" = "4-tmean",
-      "5. Daily mean temp. (anomalies)" = "5-tmean",
-      "6. Daily mean temp. (heatmap) " = "6-tmean",
-      "7. Monthly mean temp. (anomalies)" = "7-tmean",
-      "8. Monthly mean temp. (historical)" = "8-tmean",
-      "9. Monthly mean temp. (ranking)" = "9-tmean",
-      "10. Seasonal mean temp. (ranking)" = "10-tmean",
-      "11. Annual mean temp. (anomalies)" = "11-tmean",
-      "12. Annual mean temp. (distribution)" = "12-tmean",
-      "13. Annual mean temp. (density)" = "13-tmean"
-      )
+# Plot dictionaries
+plot_choices_tmean <- c(
+  "1. Overview" = "1",
+  "2. Overview (2)" = "2",
+  "3. Daily mean temp. (cumulative)" = "3-tmean",
+  "4. Daily mean temp. (vs. percentiles)" = "4-tmean",
+  "5. Daily mean temp. (anomalies)" = "5-tmean",
+  "6. Daily mean temp. (heatmap) " = "6-tmean",
+  "7. Monthly mean temp. (anomalies)" = "7-tmean",
+  "8. Monthly mean temp. (historical)" = "8-tmean",
+  "9. Monthly mean temp. (ranking)" = "9-tmean",
+  "10. Seasonal mean temp. (ranking)" = "10-tmean",
+  "11. Annual mean temp. (anomalies)" = "11-tmean",
+  "12. Annual mean temp. (distribution)" = "12-tmean",
+  "13. Annual mean temp. (density)" = "13-tmean"
+)
+
+plot_choices_tminmax <- c(
+  "1. Daily min/max temp. (vs. percentiles)" = "1-tminmax"
+)
 
 plot_choices_pcp <- c(
-      "1. Overview" = "1",
-      "2. Overview (2)" = "2",
-      "3. Daily cumulative precip. (vs. percentiles)" = "3-pcp",
-      "4. Daily cumulative precip. (vs. mean)" = "4-pcp",
-      "5. Number of days with more than 25mm of precip." = "5-pcp",
-      "6. Monthly precip. (vs. percentiles)" = "6-pcp",
-      "7. Monthly precip. (ranking)" = "7-pcp",
-      "8. Monthly precip. (historical)" = "8-pcp",
-      "9. Seasonal precip. (vs. percentiles)" = "9-pcp",
-      "10. Seasonal precip. (ranking)" = "10-pcp",
-      "11. Seasonal precip. intensity" = "11-pcp",
-      "12 Annual precip. (anomalies)" = "12-pcp",
-      "13. Annual precip. (distribution)" = "13-pcp",
-      "14. Annual precip. (days with precip.)" = "14-pcp"
-      )
+  "1. Overview" = "1",
+  "2. Overview (2)" = "2",
+  "3. Daily cumulative precip. (vs. percentiles)" = "3-pcp",
+  "4. Daily cumulative precip. (vs. mean)" = "4-pcp",
+  "5. Number of days with more than 25mm of precip." = "5-pcp",
+  "6. Monthly precip. (vs. percentiles)" = "6-pcp",
+  "7. Monthly precip. (ranking)" = "7-pcp",
+  "8. Monthly precip. (historical)" = "8-pcp",
+  "9. Seasonal precip. (vs. percentiles)" = "9-pcp",
+  "10. Seasonal precip. (ranking)" = "10-pcp",
+  "11. Seasonal precip. intensity" = "11-pcp",
+  "12 Annual precip. (anomalies)" = "12-pcp",
+  "13. Annual precip. (distribution)" = "13-pcp",
+  "14. Annual precip. (days with precip.)" = "14-pcp"
+)
 
 # Load all functions
 # invisible(lapply(list.files(path = here::here("src"), full.names = TRUE), source))
@@ -95,7 +100,7 @@ plot_choices_pcp <- c(
 station <- 3195
 #ref_start_year <- 1920
 #ref_end_year <- 2023
-#selected_year <- 1995
+#selected_year <- 2023
 
 # Get historical data from Dropbox
 search <- rdrop2::drop_search("complete")
@@ -104,15 +109,16 @@ print(paste0("Downloading from Dropbox historical data for station ", station, "
 data_clean <- rdrop2::drop_read_csv(
   file, colClasses = c(day = "character", month = "character", date = "Date"))
 
-# data <- aemet_daily_period(station = station, start = ref_start_year, end = ref_end_year)
-# data_clean <- DataCleaning(data)[[1]]
-# max_date <- paste(DataCleaning(data)[[2]], "UTC")
+# Calculate datetime last data based on file name
 max_date <- paste(format(strptime(sub(".*/(\\d{8}_\\d{6}).*", "\\1", file), format = "%Y%m%d_%H%M%S"),
                          "%Y-%m-%d %H:%M"), "UTC")
+
+# Clean data
 data_pcp <- data_clean |> # Remove years with more than 50% of pcp values missing
   dplyr::group_by(year) |> dplyr::mutate(missing_pcp = mean(is.na(pcp))) |> 
   dplyr::ungroup() |> dplyr::filter(missing_pcp < 0.5) |> 
   dplyr::select(date, day, month, year, pcp)
+
 data_temp <- data_clean |> # Remove years with more than 50% of tmean values missing
   dplyr::group_by(year) |> dplyr::mutate(missing_tmean = mean(is.na(tmean))) |> 
   dplyr::ungroup() |> dplyr::filter(missing_tmean < 0.5) |> 
@@ -170,6 +176,7 @@ ui <- shiny::fluidPage(
         inputId = "variable",
         label = "Variable",
         choices = c("Mean temperature (00h-24h)", 
+                    "Min/max temperatures (00h-24h)", 
                     paste0("Precipitation (07h-07h", "\u207A", "\u00B9", ")"))
       ),
       shiny::selectInput(
@@ -218,9 +225,11 @@ server <- function(input, output, session) {
   # Update plot selection choices depending on variable (tmean, pcp...) selection
   shiny::observe({
     if (input$variable == "Mean temperature (00h-24h)") {
-      plot_choices <- plot_choices_temp
+      plot_choices <- plot_choices_tmean
     } else if (input$variable == paste0("Precipitation (07h-07h", "\u207A", "\u00B9", ")")) {
       plot_choices <- plot_choices_pcp
+    } else if (input$variable == "Min/max temperatures (00h-24h)") {
+      plot_choices <- plot_choices_tminmax
     }
     
     updateSelectInput(session, "plot", choices = plot_choices)
@@ -229,9 +238,11 @@ server <- function(input, output, session) {
   # Configure "Next" button
   shiny::observeEvent(input$nextPlot, {
     if (input$variable == "Mean temperature (00h-24h)") {
-      plot_choices <- plot_choices_temp
+      plot_choices <- plot_choices_tmean
     } else if (input$variable == paste0("Precipitation (07h-07h", "\u207A", "\u00B9", ")")) {
       plot_choices <- plot_choices_pcp
+    } else if (input$variable == "Min/max temperatures (00h-24h)") {
+      plot_choices <- plot_choices_tminmax
     }
     current_index <- match(input$plot, plot_choices)
     
@@ -247,23 +258,28 @@ server <- function(input, output, session) {
   info_message <- shiny::reactive({
     switch(input$plot,
            "2" = "Anomaly value refers to the difference from the median",
-           "4-tmean" = "To calculate the percentiles for each day, a time window of +- 15 days (1 month)
-           is taken with respect to the day in question",
-           "5-tmean" = "To calculate the percentiles for each day, a time window of +- 15 days (1 month)
-           is taken with respect to the day in question",
+           "4-tmean" = p("To calculate the percentiles for each day, a time window of +- 15 days (1 month) 
+                       is taken with respect to the day in question.", strong("Year of study"), "not 
+                       included in percentiles calculation"),
+           "5-tmean" = p("To calculate the percentiles for each day, a time window of +- 15 days (1 month) 
+                       is taken with respect to the day in question.", strong("Year of study"), "not 
+                       included in percentiles calculation"),
            "6-tmean" = "Percentiles are calculated using the empirical (observed) distribution, without 
-           fitting the series to a normal distribution",
+                        fitting the series to a normal distribution",
            "9-tmean" = p("Ranking is calculated only with years included in", strong("Reference period")),
            "10-tmean" = p("Ranking is calculated only with years included in ", strong("Reference period."), 
-           "Anomaly labels refers to the difference from the median"),
+                        "Anomaly labels refers to the difference from the median"),
            "12-tmean" = "Years at the top of a bar are hotter than the ones at the bottom",
            "7-pcp" = p("Ranking is calculated only with years included in", strong("Reference period")),
            "10-pcp" = p("Ranking is calculated only with years included in", strong("Reference period")),
            "11-pcp" = "Intensity is calculated as total precipitation in season divided by total days
-           with precipitation in season",
+                      with precipitation in season",
            "12-pcp" = "Anomaly labels refers to the difference from the median",
            "13-pcp" = "Years at the top of a bar have more precipitation than the ones at the bottom",
-           "No extra info provided"
+                      "No extra info provided",
+           "1-tminmax" = p("To calculate the percentiles for each day, a time window of +- 15 days (1 month) 
+                         is taken with respect to the day in question.", strong("Year of study"), "not 
+                         included in percentiles calculation. To see data, click on daily max temperature")
     )
   })
   
@@ -428,6 +444,12 @@ server <- function(input, output, session) {
         max_date = max_date
       ),
       "13-tmean" = DensityTmeanPlot(
+        data = data_temp, selected_year = input$year,
+        ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
+        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+        max_date = max_date
+      ),
+      "1-tminmax" = DailyTminTmaxPlot(
         data = data_temp, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),

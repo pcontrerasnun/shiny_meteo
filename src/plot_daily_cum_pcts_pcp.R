@@ -83,6 +83,9 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
 
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = date, y = cumsumpcp)) +
+    ggplot2::annotate("rect", ymin = -Inf, ymax = Inf, fill = "gray", alpha = 0.2,
+                      xmin = seq(ymd(paste0(selected_year, "-02-01")), by = "2 month", length = 6),
+                      xmax = seq(ymd(paste0(selected_year, "-03-01")), by = "2 month", length = 6)) +
     ggplot2::geom_ribbon(aes(ymin = 0, ymax = cump00pcp), alpha = 0.3, color = "#b2182b", 
                          fill = "#b2182b", linetype = "51", lineend = "round", linejoin = "round") +
     ggplot2::geom_ribbon(aes(ymin = cump00pcp, ymax = cump20pcp), alpha = 0.3, color = "#ef8a62", 

@@ -105,6 +105,9 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
   p <- ggplot2::ggplot(data = plot_data, aes(x = date, y = cumsumpcp)) +
 #    ggplot2::geom_segment(aes(xend = date, yend = cummeanpcp, color = diffmean), linewidth = 1.2,
 #                          na.rm = TRUE) +
+    ggplot2::annotate("rect", ymin = -Inf, ymax = Inf, fill = "gray", alpha = 0.2,
+                      xmin = seq(ymd(paste0(selected_year, "-02-01")), by = "2 month", length = 6),
+                      xmax = seq(ymd(paste0(selected_year, "-03-01")), by = "2 month", length = 6)) +
     ggplot2::geom_segment(data = color_data, aes(x = x, y = y1, xend = x, yend = y2, color = diff),
                           linewidth = 1, na.rm = TRUE) +
     ggplot2::scale_color_gradient2(high = "#2c7bb6", mid = "white", low = "#d7191c", guide = guide_none()) +
@@ -136,7 +139,8 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
     ggplot2::scale_x_continuous(
       breaks = as.numeric(seq(ymd(paste0(selected_year, "-01-01")), ymd(paste0(selected_year, "-12-31")), by = "month")),
       labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"),
-      limits = c(as.numeric(ymd(paste0(selected_year, "-01-01"))), as.numeric(ymd(paste0(selected_year, "-12-31")))),
+      limits = c(as.numeric(ymd(paste0(selected_year, "-01-01"))), 
+                 as.numeric(ymd(paste0(as.numeric(selected_year) + 1), "-01-01"))),
       expand = ggplot2::expansion(mult = c(0.04, 0.05))
     ) +
     ggplot2::scale_y_continuous(

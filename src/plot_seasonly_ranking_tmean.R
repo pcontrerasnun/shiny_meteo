@@ -192,8 +192,10 @@ SeasonRankingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_
     ggplot2::scale_y_continuous(
       limits = c(min(min(plot_data$cumtmean, na.rm = TRUE), min(plot_data$cump00tmean, na.rm = TRUE) - 4) - 4, 
                  max(max(plot_data$cumtmean, na.rm = TRUE), max(plot_data$cump100tmean, na.rm = TRUE) + 4) + 2),
-      breaks = seq(from = round(min(min(plot_data$cumtmean, na.rm = TRUE), min(plot_data$cump00tmean, na.rm = TRUE) - 4) - 4), 
-                   to = round(max(max(plot_data$cumtmean, na.rm = TRUE), max(plot_data$cump100tmean, na.rm = TRUE) + 4) + 3), by = 5),
+      breaks = round(seq(from = round(min(min(plot_data$cumtmean, na.rm = TRUE), 
+                                          min(plot_data$cump00tmean, na.rm = TRUE) - 4) - 4), 
+                   to = round(max(max(plot_data$cumtmean, na.rm = TRUE), 
+                                  max(plot_data$cump100tmean, na.rm = TRUE) + 4) + 3), by = 5) / 5) * 5,
       labels = function(x) paste0(x, "ºC")) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
