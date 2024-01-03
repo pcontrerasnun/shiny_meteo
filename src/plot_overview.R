@@ -21,9 +21,10 @@ OverviewPcpTempPlot <- function(data_temp, data_pcp, selected_year, max_date) {
   p <- ggplot2::ggplot(data = plot_data_pcp, aes(x = date)) +
     ggplot2::geom_violin(data = plot_data_temp, aes(y = tmean, group = month), fill = "orange", 
                          alpha = 0.5, na.rm = TRUE) +
-    ggplot2::geom_point(aes(y = pcp, size = pcp, color = pcp), alpha = 0.5) +
+    ggplot2::geom_point(aes(y = pcp, size = pcp, color = pcp), alpha = 0.5, na.rm = TRUE) +
     ggplot2::scale_size(breaks = c(min(plot_data_pcp$pcp, na.rm = TRUE), 5, 10, 25, 60), 
-                        name = "Precipitation", range = c(2, 20),  
+                        name = "Precipitation", 
+                        #range = c(2, 20), 
                         labels = c(">0.1mm", ">5mm", ">10mm", ">25mm", ">60mm")) +
     ggrepel::geom_label_repel(data = head(plot_data_pcp, 3), aes(y = pcp, label = paste0(pcp, "mm")),
                               segment.color = 'transparent') +

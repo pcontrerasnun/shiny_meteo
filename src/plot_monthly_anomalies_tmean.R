@@ -25,12 +25,22 @@ MonthlyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_e
     dplyr::mutate(difftmean_label = ifelse(difftmean > 0, paste0("+", difftmean), difftmean)) |> 
     dplyr::mutate(month = as.numeric(month))
   
-  # Create a bunch of point to color plot with geom_segment()
-  color_data <- plot_data |> 
-    dplyr::reframe(x = seq(1, 12, length = 1000),
-            y1 = approx(month, tmean, xout = x)$y,
-            y2 = approx(month, tmeanmean, xout = x)$y,
-            diff = y1 - y2)
+  # Create a bunch of points to color plot with geom_segment()
+  if (sum(!is.na(plot_data$tmean)) > 0) { # if there is only data for Jan
+    color_data <- plot_data |> 
+      dplyr::mutate(tmean = case_when(month == 2 ~ tmeanmean, TRUE ~ tmean)) |> # add tmean data-point for Feb
+      # reframe() needs at least two non-NA values to work
+      dplyr::reframe(x = seq(1, 12, length = 1000),
+                     y1 = approx(month, tmean, xout = x)$y,
+                     y2 = approx(month, tmeanmean, xout = x)$y,
+                     diff = y1 - y2)
+  } else {
+    color_data <- plot_data |> 
+      dplyr::reframe(x = seq(1, 12, length = 1000),
+              y1 = approx(month, tmean, xout = x)$y,
+              y2 = approx(month, tmeanmean, xout = x)$y,
+              diff = y1 - y2)
+  }
   
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = month, y = tmean, group = 1)) +

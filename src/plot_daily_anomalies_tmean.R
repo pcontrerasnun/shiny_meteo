@@ -67,7 +67,9 @@ DailyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_end
                  "tmean" = paste0("Daily mean temp. (", selected_year, ")")),
       breaks = c("p95", "p50", "tmean", "p05")) + # To give order
     ggrepel::geom_label_repel(
-      data = rbind(head(plot_data, 3), tail(plot_data |> na.omit(), 3)),
+      data = if ((sum(!is.na(plot_data$tmean)) <= 10)) { # if less than 10 days of data
+        rbind(head(plot_data, 1), tail(plot_data |> na.omit(), 1)) } # only show 1 label
+        else { rbind(head(plot_data, 3), tail(plot_data |> na.omit(), 3)) },
       aes(y = tmean, label = paste0(ifelse(diffmedian > 0, "+", ""), diffmedian, "ºC")),
       na.rm = TRUE) +
     ggplot2::scale_x_continuous(
@@ -78,10 +80,11 @@ DailyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_end
                  as.numeric(ymd(paste0(as.numeric(selected_year) + 1), "-01-01")))
     ) +
     ggplot2::scale_y_continuous(
-      limits = c(min(plot_data$tmean, na.rm = TRUE) - 2, 
-                 max(plot_data$tmean, na.rm = TRUE) + 2),
-      breaks = round(seq(from = round(min(plot_data$tmean, na.rm = TRUE) - 3), 
-                   to = round(max(plot_data$tmean, na.rm = TRUE) + 3), by = 5) / 5) * 5,
+      limits = c(min(min(plot_data$p05tmean, na.rm = TRUE), min(plot_data$tmean, na.rm = TRUE)) - 2, 
+                 max(max(plot_data$p95tmean, na.rm = TRUE), max(plot_data$tmean, na.rm = TRUE)) + 2),
+      breaks = 
+        round(seq(from = round(min(min(plot_data$p05tmean, na.rm = TRUE), min(plot_data$tmean, na.rm = TRUE)) - 3), 
+                  to = round(max(max(plot_data$p95tmean, na.rm = TRUE), max(plot_data$tmean, na.rm = TRUE)) + 3), by = 5) / 5) * 5,
       labels = function(x) paste0(x, "ºC")) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(

@@ -59,7 +59,7 @@ HighPcpDaysPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
     ggplot2::labs(
       x = "", y = "Days", title = paste0("Precipitation in Madrid - Retiro"),
       subtitle = paste0(
-        "Number of days with more than 25mm of precipitation (", ref_start_year, "-", ref_end_year, ")"),
+        "Annual number of days with more than 25mm of precipitation (", ref_start_year, "-", ref_end_year, ")"),
       caption = paste0(
         "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"),
       color = NULL) +

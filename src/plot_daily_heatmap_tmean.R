@@ -29,6 +29,7 @@ DailyHeatmapTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_y
   plot_data <- dplyr::left_join(reference_daily_pcts_tmean, selected_year_daily_tmean, by = c("day", "month")) |> 
     dplyr::rowwise() |> 
     dplyr::mutate(percentile = round(ecdf_func(tmean), 2) * 100) |>
+    dplyr::arrange(month, day) |> 
     # Make groups and see where percentile falls and asign color to each group
     dplyr::mutate(pct_cut = cut(percentile, breaks = c(-0.1, 5, 20, 40, 60, 80, 95, 100),
                                 labels = c("#2166ac", "#67a9cf", "#d1e5f0", "#f7f7f7", "#fddbc7", "#ef8a62", "#b2182b")))
@@ -53,7 +54,7 @@ DailyHeatmapTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_y
       plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),
       plot.subtitle = ggplot2::element_text(hjust = 1, size = 25),
       legend.spacing.x = ggplot2::unit(0, "cm"),
-      legend.key.size = unit(3,"line"),
+      legend.key.size = unit(3, "line"),
       legend.title = ggplot2::element_text(family = "sans")
     ) +
     guides(fill = guide_legend(nrow = 1, label.position = "bottom", label.hjust = 0,

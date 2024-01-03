@@ -21,14 +21,13 @@
 # - amplitud termicas
 # - tmin mas baja y tmax mas alta en cada mes
 # - tmin mas baja y tmax mas alta en todo el año
-# - numero de dias con helada
 # - temperatura maxima mensual historico
 # - anomalías tmax y tmin
-# - theme temperatura dominic royé
 # - num acumulado dias con tmax > 25 / 30
 # - renv
 # - calendar map con lluvia en cada día
-# - year of study not included in calculations
+# - year of study not included in calculations - info message
+# - reiniciar googleanalytics
 
 library(shiny, warn.conflicts = FALSE, quietly = TRUE)
 library(shinyjs, warn.conflicts = FALSE, quietly = TRUE)
@@ -73,7 +72,9 @@ plot_choices_tmean <- c(
 )
 
 plot_choices_tminmax <- c(
-  "1. Daily min/max temp. (vs. percentiles)" = "1-tminmax"
+  "1. Daily min/max temp. (vs. percentiles)" = "1-tminmax",
+  "10. Annual number of days with frost" = "10-tmin",
+  "20. Monthly max temp. (historical)" = "20-tmax"
 )
 
 plot_choices_pcp <- c(
@@ -88,7 +89,7 @@ plot_choices_pcp <- c(
   "9. Seasonal precip. (vs. percentiles)" = "9-pcp",
   "10. Seasonal precip. (ranking)" = "10-pcp",
   "11. Seasonal precip. intensity" = "11-pcp",
-  "12 Annual precip. (anomalies)" = "12-pcp",
+  "12. Annual precip. (anomalies)" = "12-pcp",
   "13. Annual precip. (distribution)" = "13-pcp",
   "14. Annual precip. (days with precip.)" = "14-pcp"
 )
@@ -100,7 +101,7 @@ plot_choices_pcp <- c(
 station <- 3195
 #ref_start_year <- 1920
 #ref_end_year <- 2023
-#selected_year <- 2023
+#selected_year <- 2024
 
 # Get historical data from Dropbox
 search <- rdrop2::drop_search("complete")
@@ -257,7 +258,9 @@ server <- function(input, output, session) {
   # Configure "info" message depending on selected plot
   info_message <- shiny::reactive({
     switch(input$plot,
-           "2" = "Anomaly value refers to the difference from the median",
+           "2" = "Anomaly value refers to the difference from the median. It doesn't make sense to look 
+                  at this graph at the beginning of a year since the variations will be large, and 
+                  possibly the year's data will be outside the chart's limits",
            "4-tmean" = p("To calculate the percentiles for each day, a time window of +- 15 days (1 month) 
                        is taken with respect to the day in question.", strong("Year of study"), "not 
                        included in percentiles calculation"),
@@ -279,7 +282,8 @@ server <- function(input, output, session) {
                       "No extra info provided",
            "1-tminmax" = p("To calculate the percentiles for each day, a time window of +- 15 days (1 month) 
                          is taken with respect to the day in question.", strong("Year of study"), "not 
-                         included in percentiles calculation. To see data, click on daily max temperature")
+                         included in percentiles calculation. To see data, click on daily max temperature"),
+           "10-tmin" = "Frost: when minimum temperature of the day is below 0ºC"
     )
   })
   
@@ -454,7 +458,19 @@ server <- function(input, output, session) {
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
-      )
+      ),
+      "10-tmin" = YearlyFrostDaysPlot(
+        data = data_temp,
+        ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
+        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+        max_date = max_date
+      ),
+      "20-tmax" = MonthlyHistoricalTmaxPlot(
+        data = data_temp,
+        ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
+        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+        max_date = max_date
+      ),
     )
   })
 
