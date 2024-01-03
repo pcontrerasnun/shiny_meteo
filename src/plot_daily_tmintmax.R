@@ -1,6 +1,6 @@
 DailyTminTmaxPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
   # Calculate percentiles of tmax across every day of the year
-  reference_daily_pcts_tmax <- data_temp |> 
+  reference_daily_pcts_tmax <- data |> 
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(ref_start_year, "-01-01")) &
                     date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
@@ -9,7 +9,7 @@ DailyTminTmaxPlot <- function(data, selected_year, ref_start_year, ref_end_year,
     dplyr::as_tibble() |> 
     # Get previous and next 15 days
     dplyr::reframe(ref_date = seq.Date(date - 15, date + 15, "day"), .by = c(date, tmax)) |>
-    dplyr::left_join(data_temp |> rename(climate_tmax = tmax), join_by(ref_date == date)) |> 
+    dplyr::left_join(data |> rename(climate_tmax = tmax), join_by(ref_date == date)) |> 
     dplyr::select(-ref_date) |> 
     dplyr::mutate(day = format(date, "%d"), month = format(date, "%m")) |> 
     dplyr::group_by(day, month) |> 
@@ -24,7 +24,7 @@ DailyTminTmaxPlot <- function(data, selected_year, ref_start_year, ref_end_year,
     dplyr::filter(!is.na(date))
   
   # Calculate percentiles of tmin across every day of the year
-  reference_daily_pcts_tmin <- data_temp |> 
+  reference_daily_pcts_tmin <- data |> 
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(ref_start_year, "-01-01")) &
                     date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
@@ -33,7 +33,7 @@ DailyTminTmaxPlot <- function(data, selected_year, ref_start_year, ref_end_year,
     dplyr::as_tibble() |> 
     # Get previous and next 15 days
     dplyr::reframe(ref_date = seq.Date(date - 15, date + 15, "day"), .by = c(date, tmin)) |>
-    dplyr::left_join(data_temp |> rename(climate_tmin = tmin), join_by(ref_date == date)) |> 
+    dplyr::left_join(data |> rename(climate_tmin = tmin), join_by(ref_date == date)) |> 
     dplyr::select(-ref_date) |> 
     dplyr::mutate(day = format(date, "%d"), month = format(date, "%m")) |> 
     dplyr::group_by(day, month) |> 
@@ -48,7 +48,7 @@ DailyTminTmaxPlot <- function(data, selected_year, ref_start_year, ref_end_year,
     dplyr::filter(!is.na(date))
   
   # Get daily min and max temperatures
-  selected_year_daily_tminmax <- data_temp |>     
+  selected_year_daily_tminmax <- data |>     
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(selected_year, "-01-01")) &
                     date <= as.Date(paste0(selected_year, "-12-31"))) |>
