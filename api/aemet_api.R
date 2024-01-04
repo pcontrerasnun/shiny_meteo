@@ -1,3 +1,10 @@
+#' ---
+#' title: Meteo app
+#' author: Pablo Contreras
+#' date: 2023-12-26
+#' description: Script that consolidates AEMET OpenData API data
+#' ---
+
 library(climaemet)
 library(dplyr)
 library(dtplyr)
@@ -18,7 +25,7 @@ for (station in stations) {
   # LAST 24 HOURS
   # --------------
   # Get last 24h of data
-  print(paste0("Getting last 24h of data for station ", station))
+  print(paste0("Getting from AEMET API last 24h of data for station ", station))
   last_24h_data <- climaemet::aemet_last_obs(station = station, verbose = TRUE)
   
   # Save last 24h of data
@@ -27,7 +34,7 @@ for (station in stations) {
     last_24h_data, 
     file = file
   )
-  print(paste0("Saved last 24h of data for station ", station, ": ", file))
+  print(paste0("Saved in local storage last 24h of data for station ", station, ": ", file))
   
   # --------------
   # LAST 4 DAYS
@@ -83,7 +90,7 @@ for (station in stations) {
   # LAST 365 DAYS (MINUS LAST 4 DAYS)
   # ----------------------------------
   # Get last year data (minus 4 last days)
-  print(paste0("Getting last year data (minus 4 last days) for station ", station))
+  print(paste0("Getting from AEMET API last year data (minus 4 last days) for station ", station))
   last_365days_data <- climaemet::aemet_daily_clim(
     station = station, start = ref_start_date, end = ref_end_date, verbose = TRUE)
   
@@ -108,7 +115,7 @@ for (station in stations) {
     last_365days_data_clean, 
     file = file
   )
-  print(paste0("Saved full last year data for station ", station, ": ", file))
+  print(paste0("Saved in local storage full last year data for station ", station, ": ", file))
   
   # -------------------
   # ALL AVAILABLE DATA
@@ -139,13 +146,34 @@ for (station in stations) {
     dplyr::arrange(date) |> 
     dplyr::as_tibble()
   
+  # ---------------------------------------
+  # FIX PRECIPITATION DATA FOR AUTUMN 2023
+  # ---------------------------------------
+  if (sum(is.na(final_data[final_data$date >= as.Date("2023-08-31") & final_data$date <= as.Date("2023-11-22"), ]$pcp)) == 84) {
+    print('Fixing precipitation data for autumn 2023')
+    date <- c("2023-09-02", "2023-09-03", "2023-09-04", "2023-09-05", "2023-09-08", "2023-09-09", 
+              "2023-09-10", "2023-09-14", "2023-09-15", "2023-09-16", "2023-09-17", "2023-09-21", 
+              "2023-10-13", "2023-10-15", "2023-10-16", "2023-10-17", "2023-10-18", "2023-10-19",
+              "2023-10-22", "2023-10-23", "2023-10-24", "2023-10-26", "2023-10-28", "2023-10-29",
+              "2023-10-30", "2023-11-01", "2023-11-02", "2023-11-03", "2023-11-04", "2023-11-07",
+              "2023-11-08", "2023-11-10")
+    pcp <- c(31.2, 66.5, 9.1, 6.2, 2.8, 3.6, 7.6, 18.2, 13.3, 0.3, 6.3, 0.7, 2.4, 2.9, 0.8, 
+             2.4, 6.8, 107.8, 41.2, 2.2, 1.8, 3.9, 2.0, 6.1, 0.3, 1.4, 17.9, 1.0, 1.5, 0.3, 
+             0.9, 2.1)
+    fix_data <- data.frame(date = as.Date(date), pcp = pcp)
+
+    # Fix data
+    positions <- match(fix_data$date, final_data$date)
+    final_data$pcp[positions] <- fix_data$pcp
+  }
+  
   # Save data
   file <- paste0("~/Escritorio/aemet/", station, "/", format(Sys.time(),"%Y%m%d_%H%M%S"), "_", station, "_complete.csv.gz")
   readr::write_csv(
     final_data, 
     file = file
   )
-  print(paste0("Saved all available data for station ", station, ": ", file))
+  print(paste0("Saved in local storage all available data for station ", station, ": ", file))
   
   # Upload to Dropbox
   files <- list.files(path, pattern = "complete")
