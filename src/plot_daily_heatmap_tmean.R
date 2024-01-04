@@ -29,20 +29,31 @@ DailyHeatmapTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_y
   plot_data <- dplyr::left_join(reference_daily_pcts_tmean, selected_year_daily_tmean, by = c("day", "month")) |> 
     dplyr::rowwise() |> 
     dplyr::mutate(percentile = round(ecdf_func(tmean), 2) * 100) |>
-    dplyr::arrange(month, day) |> 
+    dplyr::arrange(month, day) 
     # Make groups and see where percentile falls and asign color to each group
-    dplyr::mutate(pct_cut = cut(percentile, breaks = c(-0.1, 5, 20, 40, 60, 80, 95, 100),
-                                labels = c("#2166ac", "#67a9cf", "#d1e5f0", "#f7f7f7", "#fddbc7", "#ef8a62", "#b2182b")))
+    # dplyr::mutate(pct_cut = cut(percentile, breaks = c(-0.1, 5, 20, 40, 60, 80, 95, 100),
+    #                            labels = c("#2166ac", "#67a9cf", "#d1e5f0", "#f7f7f7", "#fddbc7", "#ef8a62", "#b2182b")))
   
   # Draw the plot
-  p <- ggplot2::ggplot(plot_data, aes(x = day, y = month, fill = pct_cut)) +
+  p <- ggplot2::ggplot(plot_data, aes(x = day, y = month, fill = percentile)) +
     ggplot2::geom_tile(color = "white", size = 0.1) +
     ggplot2::geom_text(aes(label = percentile), vjust = 1, fontface = "bold", na.rm = TRUE) +
     ggplot2::scale_y_discrete(
       limits = rev, # to put labels in reverse order (Jan -> Dec instead of Dec -> Jan)
       labels = rev(c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
     ) +
-    ggplot2::scale_fill_identity(guide = "legend", labels = c(0, 5, 20, 40, 60, 80, 95, 100)) +
+    #ggplot2::scale_fill_identity(guide = "legend", labels = c(0, 5, 20, 40, 60, 80, 95, 100)) +
+    ggplot2::scale_fill_stepsn(
+      guide = guide_colorsteps(
+        show.limits = TRUE,
+        label.position = "bottom", label.hjust = 0,
+        title = "Percentile", title.position = "top",
+        barwidth = unit(10, "cm")
+      ),
+      breaks = c(0, 5, 20, 40, 60, 80, 95, 100),
+      colors = c("#2166ac", "#67a9cf", "#d1e5f0", "#f7f7f7", "#fddbc7", "#ef8a62", "#b2182b"),
+      limits = c(0, 100),
+      na.value = "transparent") +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
       x = "", y = "", title = paste0("Temperature in Madrid - Retiro ", selected_year),
@@ -56,9 +67,9 @@ DailyHeatmapTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_y
       legend.spacing.x = ggplot2::unit(0, "cm"),
       legend.key.size = unit(3, "line"),
       legend.title = ggplot2::element_text(family = "sans")
-    ) +
-    guides(fill = guide_legend(nrow = 1, label.position = "bottom", label.hjust = 0,
-                               title = "Percentile", title.position = "top"))
+    ) 
+    #guides(fill = guide_legend(nrow = 1, label.position = "bottom", label.hjust = 0,
+    #                           title = "Percentile", title.position = "top"))
     
   return(list(p, plot_data |> dplyr::select(day, month, tmean, percentile), "day", "month"))
 }
