@@ -1,0 +1,38 @@
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-HKPE71W02H"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-HKPE71W02H');
+  
+  $(document).on('change', '#ref_period', function(e) {
+    gtag('event', 'select_ref_period', {
+      action: 'select ref period',
+      label: $(e.currentTarget).val()
+    });
+  });
+  
+  $(document).on('change', '#variable', function(e) {
+    gtag('event', 'select_variable', {
+      action: 'select variable',
+      label: $(e.currentTarget).val()
+    });
+  });
+  
+  $(document).on('change', '#plot', function(e) {
+    gtag('event', 'select_plot', {
+      action: 'select plot',
+      label: $(e.currentTarget).val()
+    });
+  });
+  
+  $(document).on('change', '#year', function(e) {
+    gtag('event', 'enter_year_study', {
+      action: 'enter year',
+      label: $(e.currentTarget).val()
+    });
+  });
+</script>

@@ -38,7 +38,8 @@ MonthlyPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, ma
                                  paste0("/", round(p50pcp / sumpcp, 1)))) |> 
     dplyr::mutate(diffmedian_x = ifelse(diffmedian_x == "/Inf", "-", diffmedian_x)) |> # Replace Inf with -
     dplyr::mutate(diffmedian_x = ifelse(diffmedian_x %in% c("/1", "x1"), "=", diffmedian_x)) |>  # Replace /1 and x1 with =
-    dplyr::mutate(diffmedian = ifelse(diffmedian > 0, paste0("+", diffmedian), diffmedian)) 
+    dplyr::mutate(diffmedian = ifelse(diffmedian > 0, paste0("+", diffmedian), diffmedian)) |> 
+    dplyr::mutate(diffmedian_y = ifelse(!is.na(sumpcp), paste0(round(sumpcp / p50pcp * 100), '%'), NA)) # Calculate %
 
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = month)) +
@@ -57,7 +58,7 @@ MonthlyPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, ma
                                 guide = guide_legend(order = 1)) +
     ggplot2::geom_text(aes(y = sumpcp, label = paste(diffmedian, "*mm~vs.~italic(P)[50]")), 
                        parse = TRUE, vjust = -2.5, na.rm = TRUE) +
-    ggplot2::geom_text(aes(y = sumpcp, label = diffmedian_x), vjust = -1.5, na.rm = TRUE) +
+    ggplot2::geom_text(aes(y = sumpcp, label = paste0(diffmedian_x, ', ', diffmedian_y)), vjust = -1.5, na.rm = TRUE) +
 #    ggplot2::annotate(
 #      geom = "text",
 #      x = tail(subset(plot_data, !is.na(sumpcp)), 1)$month, # Month with last no NULL sumpcp

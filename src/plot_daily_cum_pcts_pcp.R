@@ -58,6 +58,10 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
   # For ranking of max consecutive days of precip.
   ranking_max_consec_days_pcp <- data |> 
     dtplyr::lazy_dt() |>
+    dplyr::filter((date >= as.Date(paste0(ref_start_year, "-01-01")) &
+                     date <= as.Date(paste0(ref_end_year, "-12-31"))) |
+                    (date >= as.Date(paste0(as.numeric(selected_year), "-01-01")) &
+                       date <= as.Date(paste0(as.numeric(selected_year), "-12-31")))) |> # Include year of study
     dplyr::group_by(year) |> 
     dplyr::mutate(haspcp = ifelse(coalesce(pcp, 0) > 0, 1, 0)) |> # coalesce to turn NA to 0
     dplyr::group_by(year) |> 
@@ -71,6 +75,10 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
   # For ranking of max consecutive days of NO precip.
   ranking_max_consec_days_no_pcp <- data |> 
     dtplyr::lazy_dt() |>
+    dplyr::filter((date >= as.Date(paste0(ref_start_year, "-01-01")) &
+                     date <= as.Date(paste0(ref_end_year, "-12-31"))) |
+                    (date >= as.Date(paste0(as.numeric(selected_year), "-01-01")) &
+                       date <= as.Date(paste0(as.numeric(selected_year), "-12-31")))) |> # Include year of study
     dplyr::group_by(year) |> 
     dplyr::mutate(haspcp = ifelse(coalesce(pcp, 0) == 0, 1, 0)) |> # coalesce to turn NA to 0
     dplyr::group_by(year) |> 

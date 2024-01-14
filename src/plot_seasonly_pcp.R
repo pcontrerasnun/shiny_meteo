@@ -108,7 +108,8 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
                                  paste0("/", round(cump50pcp / seasoncumsumpcp, 1)))) |> 
     dplyr::mutate(diffmedian_x = ifelse(diffmedian_x == "/Inf", "-", diffmedian_x)) |> # Replace Inf with -
     dplyr::mutate(diffmedian_x = ifelse(diffmedian_x %in% c("/1", "x1"), "=", diffmedian_x)) |> # Replace /1 and x1 with =
-    dplyr::mutate(diffmedian = ifelse(diffmedian > 0, paste0("+", diffmedian), diffmedian))
+    dplyr::mutate(diffmedian = ifelse(diffmedian > 0, paste0("+", diffmedian), diffmedian)) |> 
+    dplyr::mutate(diffmedian_y = ifelse(!is.na(seasoncumsumpcp), paste0(round(seasoncumsumpcp / cump50pcp * 100), '%'), NA)) # Calculate %
 
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = row)) +
@@ -124,7 +125,8 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
     ggplot2::geom_col(aes(y = cump50pcp, color = "cump50pcp"), fill = NA, linewidth = 1) +
     ggplot2::geom_text(aes(y = seasoncumsumpcp, label = paste(diffmedian, "*mm~vs.~italic(P)[50]")), 
                        parse = TRUE, vjust = -2.5, na.rm = TRUE, size = 3.5) +
-    ggplot2::geom_text(aes(y = seasoncumsumpcp, label = diffmedian_x), vjust = -1.5, na.rm = TRUE, size = 3.5) +
+    ggplot2::geom_text(aes(y = seasoncumsumpcp, label = paste0(diffmedian_x, ', ', diffmedian_y)),
+                       vjust = -1.5, na.rm = TRUE, size = 3.5) +
     ggplot2::scale_color_manual(
       values = c("cump50pcp" = "#d7191c"),
       labels = c("cump50pcp" = paste0("Cumulative seasonal median precip. (", ref_start_year, "-", 

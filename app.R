@@ -14,20 +14,19 @@
 # - añadir cabecera doc al archivo app.R
 # - acordarse quitar cargar funciones graficos de la parte de server
 # - docmumentar funciones sin documentar
-# - cajita en grafico temperatura con top 3 días mas cálidos y más frios
-# - n days < p40, n days > p60
 # - nuevo grafico cuanto dura invierno
 # - a gráficos anomalias añadir lineas desv tipicas
 # - amplitud termicas
 # - tmin mas baja y tmax mas alta en cada mes
-# - tmin mas baja y tmax mas alta en todo el año
-# - temperatura maxima mensual historico
-# - anomalías tmax y tmin
-# - num acumulado dias con tmax > 25 / 30
+# - num noches tropicales
+# - num noches ecuatoriales
 # - renv
 # - calendar map con lluvia en cada día
 # - year of study not included in calculations - info message
 # - reiniciar googleanalytics
+# - añadir en caption direccion pagweb
+# - info plot tmintmax anomalies, to see data press tmin line, not tmax
+# - que hacer con 29 feb
 
 library(shiny, warn.conflicts = FALSE, quietly = TRUE)
 library(shinyjs, warn.conflicts = FALSE, quietly = TRUE)
@@ -73,8 +72,10 @@ plot_choices_tmean <- c(
 
 plot_choices_tminmax <- c(
   "1. Daily min/max temp. (vs. percentiles)" = "1-tminmax",
+  "2. Daily min/max temp. (anomalies)" = "2-tmintmax",
   "10. Annual number of days with frost" = "10-tmin",
-  "20. Monthly max temp. (historical)" = "20-tmax"
+  "20. Monthly max temp. (historical)" = "20-tmax",
+  "30. Number of days with tmax above 35ºC" = "30-tmax"
 )
 
 plot_choices_pcp <- c(
@@ -94,6 +95,11 @@ plot_choices_pcp <- c(
   "14. Annual precip. (days with precip.)" = "14-pcp"
 )
 
+plot_choices_daylight <- c(
+  "1. Daily gained daylight minutes" = "1-daylight",
+  "2. Sunlight times" = "2-daylight"
+)
+
 # Load all functions
 # invisible(lapply(list.files(path = here::here("src"), full.names = TRUE), source))
 
@@ -102,6 +108,14 @@ station <- 3195
 #ref_start_year <- 1920
 #ref_end_year <- 2023
 #selected_year <- 2024
+
+# Get sunlight times from Dropbox
+search <- rdrop2::drop_search("sunlighttimes")
+file <- search$matches[[1]]$metadata$path_lower # Get last historical file
+print(paste0("Downloading from Dropbox sunlight data for station ", station, ": ", file))
+data_sunlight <- rdrop2::drop_read_csv(
+  file, colClasses = c(date = "Date", sunrise = "POSIXct", sunset = "POSIXct", solarNoon = "POSIXct",
+                       dawn = "POSIXct", dusk = "POSIXct"))
 
 # Get historical data from Dropbox
 search <- rdrop2::drop_search("complete")
@@ -178,7 +192,8 @@ ui <- shiny::fluidPage(
         label = "Variable",
         choices = c("Mean temperature (00h-24h)", 
                     "Min/max temperatures (00h-24h)", 
-                    paste0("Precipitation (07h-07h", "\u207A", "\u00B9", ")"))
+                    paste0("Precipitation (07h-07h", "\u207A", "\u00B9", ")"),
+                    "Sunlight")
       ),
       shiny::selectInput(
         inputId = "plot",
@@ -231,6 +246,8 @@ server <- function(input, output, session) {
       plot_choices <- plot_choices_pcp
     } else if (input$variable == "Min/max temperatures (00h-24h)") {
       plot_choices <- plot_choices_tminmax
+    } else if (input$variable == "Sunlight") {
+      plot_choices <- plot_choices_daylight
     }
     
     updateSelectInput(session, "plot", choices = plot_choices)
@@ -244,6 +261,8 @@ server <- function(input, output, session) {
       plot_choices <- plot_choices_pcp
     } else if (input$variable == "Min/max temperatures (00h-24h)") {
       plot_choices <- plot_choices_tminmax
+    } else if (input$variable == "Sunlight") {
+      plot_choices <- plot_choices_daylight
     }
     current_index <- match(input$plot, plot_choices)
     
@@ -471,6 +490,22 @@ server <- function(input, output, session) {
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
+      "30-tmax" = HighTmaxDaysPlot(
+        data = data_temp, selected_year = input$year,
+        ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
+        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+        max_date = max_date
+      ),
+      "2-tmintmax" = DailyTminTmaxAnomaliesPlot(
+        data = data_temp, selected_year = input$year,
+        ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
+        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+        max_date = max_date
+      ),
+      "1-daylight" = DailyDaylightGainedPlot(
+        data = data_sunlight, selected_year = input$year,
+        max_date = max_date
+      )
     )
   })
 
