@@ -1,31 +1,31 @@
-MonthlyHistoricalTmaxPlot <- function(data, ref_start_year, ref_end_year, max_date) {
+MonthlyHistoricalMinTmaxPlot <- function(data, ref_start_year, ref_end_year, max_date) {
   # Calculate max temp for each month and year
   plot_data <- data |> 
     dtplyr::lazy_dt() |>
     dplyr::filter((date >= as.Date(paste0(ref_start_year, "-01-01")) &
                      date <= as.Date(paste0(ref_end_year, "-12-31")))) |> # Only ref period data
     dplyr::group_by(year, month) |> 
-    dplyr::summarise(maxtmax = max(tmax, na.rm = TRUE), .groups = "keep") |> 
-    dplyr::filter(maxtmax != -Inf) |> 
+    dplyr::summarise(mintmax = min(tmax, na.rm = TRUE), .groups = "keep") |> 
+    dplyr::filter(mintmax != Inf) |> 
     dplyr::as_tibble()
   
   ranking_maxtmaxs <- plot_data |> 
     dtplyr::lazy_dt() |>
-    dplyr::arrange(-maxtmax) |>
+    dplyr::arrange(-mintmax) |>
     dplyr::group_by(month) |> 
     dplyr::slice_head(n = 3) |>
     dplyr::as_tibble()
   
   ranking_mintmaxs <- plot_data |> 
     dtplyr::lazy_dt() |>
-    dplyr::arrange(-maxtmax) |> 
+    dplyr::arrange(-mintmax) |> 
     dplyr::group_by(month) |> 
     dplyr::slice_tail(n = 3) |>
     dplyr::as_tibble()
   
   # Draw the plot
-  p <- ggplot2::ggplot(data = plot_data, aes(x = year, y = maxtmax)) +
-    ggplot2::geom_line(aes(color = "maxtmax")) +
+  p <- ggplot2::ggplot(data = plot_data, aes(x = year, y = mintmax)) +
+    ggplot2::geom_line(aes(color = "mintmax")) +
     ggplot2::geom_smooth(aes(color = "trend", group = month), linetype = "solid", linewidth = 0.5,
                          method = lm, se = FALSE, na.rm = TRUE) + 
     ggplot2::geom_point(data = ranking_maxtmaxs, color = "#b2182b") +
@@ -36,16 +36,16 @@ MonthlyHistoricalTmaxPlot <- function(data, ref_start_year, ref_end_year, max_da
                                     "05" = "May", "06" = "Jun", "07" = "Jul", "08" = "Aug", 
                                     "09" = "Sep", "10" = "Oct", "11" = "Nov", "12" = "Dec"))) +
     ggplot2::scale_color_manual(
-      values = c("trend" = "blue", "maxtmax" = "black"), 
+      values = c("trend" = "blue", "mintmax" = "black"), 
       labels = c("trend" = paste0("Trend (", ref_start_year, "-", ref_end_year, ")"), 
-                 "maxtmax" = "Monthly max temp."),
-      breaks = c("maxtmax", "trend")) +
+                 "mintmax" = "Monthly min max temp."),
+      breaks = c("mintmax", "trend")) +
     ggplot2::scale_x_continuous(breaks = seq(from = min(plot_data$year), to = max(plot_data$year), by = 10)) +
     ggplot2::scale_y_continuous(labels = function(x) paste0(x, "ºC")) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
       x = "", y = "", title = "Temperature in Madrid - Retiro",
-      subtitle = paste0("Historical monthly max temperature (", ref_start_year, "-", ref_end_year, ")"),
+      subtitle = paste0("Historical monthly min maximum temperature (", ref_start_year, "-", ref_end_year, ")"),
       caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"),
       color = NULL, fill = NULL) +
     ggplot2::theme(
@@ -64,6 +64,6 @@ MonthlyHistoricalTmaxPlot <- function(data, ref_start_year, ref_end_year, max_da
       axis.text.x = element_text(angle = 0, size = 10)
     )
   
-  return(list(p, plot_data, "year", "maxtmax"))
-
+  return(list(p, plot_data, "year", "mintmax"))
+  
 }

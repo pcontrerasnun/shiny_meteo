@@ -22,6 +22,11 @@ DailyDaylightGainedPlot <- function(data, selected_year, max_date) {
                       xmax = seq(ymd(paste0(selected_year, "-03-01")), by = "2 month", length = 6)) +
     ggplot2::geom_segment(data = color_data, aes(x = x, y = 0, xend = x, yend = y1, color = diff),
                           linewidth = 1, na.rm = TRUE) +
+    ggplot2::geom_point(data = plot_data |> dplyr::filter(date == Sys.Date())) +
+    ggrepel::geom_label_repel(
+      data = plot_data |> dplyr::filter(date == Sys.Date()),
+      aes(y = diffdayduration, label = round(diffdayduration, 2))
+    ) +
     ggplot2::scale_color_gradient2(high = "#fff7bc", mid = "#fec44f", low = "#d95f0e", guide = guide_none()) +
     ggplot2::geom_vline(xintercept = Sys.Date()) +
     ggplot2::scale_x_continuous(

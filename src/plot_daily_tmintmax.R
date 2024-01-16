@@ -1,4 +1,4 @@
-DailyTminTmaxPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
+DailyTminTmaxPlot <- function(data, data_forecast, selected_year, ref_start_year, ref_end_year, max_date) {
   # Calculate percentiles of tmax across every day of the year
   reference_daily_pcts_tmax <- data |> 
     dtplyr::lazy_dt() |>
@@ -87,9 +87,13 @@ DailyTminTmaxPlot <- function(data, selected_year, ref_start_year, ref_end_year,
                          alpha = 0.3, color = "#0571b0", linetype = "51", 
                          lineend = "round", linejoin = "round") +
     ggplot2::geom_line(aes(y = tmin, color = "tmin"), linewidth = 0.75, lineend = "round", na.rm = TRUE) +
-    ggplot2::geom_line(aes(y = p50tmin, color = "p50tmin"), linewidth = 0.75, linetype = "dotted", lineend = "round", na.rm = TRUE) +
+    ggplot2::geom_line(aes(y = p50tmin, color = "p50tmin"), linewidth = 0.75, linetype = "longdash", lineend = "round", na.rm = TRUE) +
     ggplot2::geom_line(aes(y = tmax, color = "tmax"), linewidth = 0.75, lineend = "round", na.rm = TRUE) +
-    ggplot2::geom_line(aes(y = p50tmax, color = "p50tmax"), linewidth = 0.75, linetype = "dotted", lineend = "round", na.rm = TRUE) +
+    ggplot2::geom_line(aes(y = p50tmax, color = "p50tmax"), linewidth = 0.75, linetype = "longdash", lineend = "round", na.rm = TRUE) +
+    ggplot2::geom_line(data = data_forecast, aes(y = tmax, color = "fcsttmax"), linewidth = 0.75, 
+                       linetype = "dotted", lineend = "round", na.rm = TRUE) +
+    ggplot2::geom_line(data = data_forecast, aes(y = tmin, color = "fcsttmin"), linewidth = 0.75, 
+                       linetype = "dotted", lineend = "round", na.rm = TRUE) +
     ggplot2::annotation_custom(
       gridtext::richtext_grob(
         x = unit(.735, "npc"),
@@ -145,9 +149,12 @@ DailyTminTmaxPlot <- function(data, selected_year, ref_start_year, ref_end_year,
       )
     ) +
     ggplot2::scale_color_manual(
-      values = c("tmax" = "#ca0020", "tmin" = "#0571b0", "p50tmax" = "#ca0020", "p50tmin" = "#0571b0"),
+      values = c("tmax" = "#ca0020", "tmin" = "#0571b0", "p50tmax" = "#ca0020", "p50tmin" = "#0571b0",
+                 "fcsttmax" = "#ca0020", "fcsttmin" = "#0571b0"),
       label = c("tmax" = paste0("Daily max temp. (", selected_year, ")"),
+                "fcsttmax" = paste0("Forecast max temp. +7 days (", selected_year, ")"),
                 "tmin" = paste0("Daily min temp. (", selected_year, ")"),
+                "fcsttmin" = paste0("Forecast min temp. +7 days (", selected_year, ")"),
                 "p50tmax" = expr(paste("Daily ", italic(P[50]), " max temp. (", !!ref_start_year, "-", !!ref_end_year, ")")),
                 "p50tmin" = expr(paste("Daily ", italic(P[50]), " min temp. (", !!ref_start_year, "-", !!ref_end_year, ")"))),
       guide = guide_legend(order = 1)) +
@@ -188,7 +195,10 @@ DailyTminTmaxPlot <- function(data, selected_year, ref_start_year, ref_end_year,
       legend.title = ggplot2::element_blank(),
       legend.text.align = 0
     ) +
-    ggplot2::guides(color = guide_legend(override.aes = list(linetype = c("dotted", "dotted", "solid", "solid"))))
+    ggplot2::guides(color = guide_legend(
+      override.aes = list(linetype = c("dotted", "dotted", "longdash", "longdash", "solid", "solid"),
+                          linewidth = c(0.5, 0.5, 0.5, 0.5, 0.9, 0.9)))
+    )
   
   return(list(p, plot_data, "date", "tmax"))
   

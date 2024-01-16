@@ -1,4 +1,4 @@
-DailyTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
+DailyTmeanPlot <- function(data, data_forecast, selected_year, ref_start_year, ref_end_year, max_date) {
   # Calculate percentiles of tmean across every day of the year
   reference_daily_pcts_tmean <- data |> 
     dtplyr::lazy_dt() |>
@@ -65,8 +65,13 @@ DailyTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, ma
                          alpha = 0.3, color = "#2166ac", linetype = "51", 
                          lineend = "round", linejoin = "round") +
     ggplot2::geom_line(aes(y = tmean, color = "tmean"), linewidth = 0.75, lineend = "round", na.rm = TRUE) +
-    ggplot2::scale_color_manual(values = c("tmean" = "black"),
-                                label = paste0("Daily mean temp. (", selected_year, ")"), guide = guide_legend(order = 1)) +
+    ggplot2::geom_line(data = data_forecast, aes(y = tmean, color = "fcsttmean"), linewidth = 0.75, 
+                       linetype = "dotted", lineend = "round", na.rm = TRUE) +
+    ggplot2::scale_color_manual(
+      values = c("tmean" = "black", "fcsttmean" = "black"),
+      label = c("tmean" = paste0("Daily mean temp. (", selected_year, ")"),
+                "fcsttmean" = paste0("Forecast mean temp. +7 days (", selected_year, ")")),
+      guide = guide_legend(order = 1)) +
     ggplot2::scale_fill_manual(
       values = c("P100" = "#b2182b", "P95" = "#ef8a62", "P80" = "#fddbc7", "P60" = "#f7f7f7",
                  "P40" = "#d1e5f0", "P20" = "#67a9cf", "P00" = "#2166ac"),
@@ -117,7 +122,9 @@ DailyTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, ma
       legend.title = ggplot2::element_blank(),
       legend.text.align = 0
     ) +
-    ggplot2::guides(fill = guide_legend(override.aes = list(alpha = 0.7 / 7, color = NA)))
+    ggplot2::guides(fill = guide_legend(override.aes = list(alpha = 0.7 / 7, color = NA)),
+                    color = guide_legend(override.aes = list(linetype = c("dotted", "solid"),
+                                                             linewidth = c(0.5, 0.9))))
  
   return(list(p, plot_data, "date", "tmean"))
 }

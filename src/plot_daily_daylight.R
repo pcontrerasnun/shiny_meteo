@@ -1,6 +1,6 @@
 DailySunlightTimesPlot <- function(data, selected_year, max_date) {
   # Just select data for selected year and round time
-  plot_data <- data_sunlight |> 
+  plot_data <- data |> 
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(selected_year, "-01-01")) &
                     date <= as.Date(paste0(selected_year, "-12-31"))) |>
@@ -14,19 +14,28 @@ DailySunlightTimesPlot <- function(data, selected_year, max_date) {
     dplyr::select(date, dawn, sunrise, zenith, sunset, dusk, -c(solarNoon, lat, lon)) |> 
     dplyr::as_tibble()
   
-  ggplot2::ggplot(plot_data, aes(x = date)) + 
+  # Draw the plot
+  p <- ggplot2::ggplot(plot_data, aes(x = date)) + 
     ggplot2::annotate(
       "rect", ymin = as.POSIXct(-Inf), ymax = as.POSIXct(Inf),
       fill = "gray", alpha = 0.2,
       xmin = seq(ymd(paste0(selected_year, "-02-01")), by = "2 month", length = 6),
       xmax = seq(ymd(paste0(selected_year, "-03-01")), by = "2 month", length = 6)
     ) +
-    ggplot2::geom_line(aes(y = as.POSIXct(format(sunrise, "%H:%M"), format = "%H:%M"))) +
-    ggplot2::geom_line(aes(y = as.POSIXct(format(sunset, "%H:%M"), format = "%H:%M"))) +
-    ggplot2::geom_line(aes(y = as.POSIXct(format(zenith, "%H:%M"), format = "%H:%M"))) +
-    ggplot2::geom_line(aes(y = as.POSIXct(format(dawn, "%H:%M"), format = "%H:%M"))) +
-    ggplot2::geom_line(aes(y = as.POSIXct(format(dusk, "%H:%M"), format = "%H:%M"))) +
+    ggplot2::geom_line(aes(y = as.POSIXct(format(sunrise, "%H:%M"), format = "%H:%M"), color = "sunrise"), linewidth = 0.9) +
+    ggplot2::geom_line(aes(y = as.POSIXct(format(sunset, "%H:%M"), format = "%H:%M"), color = "sunset"), linewidth = 0.9) +
+    ggplot2::geom_line(aes(y = as.POSIXct(format(zenith, "%H:%M"), format = "%H:%M"), color = "zenith"), linewidth = 0.9) +
+    ggplot2::geom_line(aes(y = as.POSIXct(format(dawn, "%H:%M"), format = "%H:%M"), color = "dawn"), linewidth = 0.9) +
+    ggplot2::geom_line(aes(y = as.POSIXct(format(dusk, "%H:%M"), format = "%H:%M"), color = "dusk"), linewidth = 0.9) +
     ggplot2::geom_vline(xintercept = Sys.Date()) +
+    ggplot2::scale_color_manual(
+      values = c("dawn" = "#bd0026", "sunrise" = "#f03b20", "zenith" = "#fd8d3c", "sunset" = "#e31a1c",
+                 "dusk" = "#b10026")
+      ) +
+    ggrepel::geom_label_repel(
+      data = plot_data |> dplyr::filter(date == Sys.Date()) |> tidyr::pivot_longer(cols = c(dawn, sunrise, zenith, sunset, dusk)),
+      aes(y = as.POSIXct(format(value, "%H:%M"), format = "%H:%M"), label = format(value, "%H:%M"))
+      ) +
     ggplot2::scale_y_datetime(
       date_labels = "%H:%M", date_breaks = "1 hour",
       limits = c(as.POSIXct(min(format(plot_data$dawn, "%H:%M")), format = "%H:%M") - as.difftime(30, units = "mins"),
@@ -46,8 +55,10 @@ DailySunlightTimesPlot <- function(data, selected_year, max_date) {
       )) +
     ggplot2::theme(
       plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),
-      plot.subtitle = ggplot2::element_text(hjust = 1, size = 25), 
+      plot.subtitle = ggplot2::element_text(hjust = 1, size = 25),
+      legend.position = "none"
     )
   
+  return(list(p, plot_data, "date", "zenith"))
   
 }

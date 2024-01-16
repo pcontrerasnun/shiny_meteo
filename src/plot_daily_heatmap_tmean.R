@@ -45,7 +45,7 @@ DailyHeatmapTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_y
     #ggplot2::scale_fill_identity(guide = "legend", labels = c(0, 5, 20, 40, 60, 80, 95, 100)) +
     ggplot2::scale_fill_stepsn(
       guide = guide_colorsteps(
-        show.limits = TRUE,
+        show.limits = FALSE, even.steps = FALSE,
         label.position = "bottom", label.hjust = 0,
         title = "Percentile", title.position = "top",
         barwidth = unit(10, "cm")

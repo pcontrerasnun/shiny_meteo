@@ -17,9 +17,6 @@
 # - nuevo grafico cuanto dura invierno
 # - a gráficos anomalias añadir lineas desv tipicas
 # - amplitud termicas
-# - tmin mas baja y tmax mas alta en cada mes
-# - num noches tropicales
-# - num noches ecuatoriales
 # - renv
 # - calendar map con lluvia en cada día
 # - year of study not included in calculations - info message
@@ -73,9 +70,14 @@ plot_choices_tmean <- c(
 plot_choices_tminmax <- c(
   "1. Daily min/max temp. (vs. percentiles)" = "1-tminmax",
   "2. Daily min/max temp. (anomalies)" = "2-tmintmax",
-  "10. Annual number of days with frost" = "10-tmin",
-  "20. Monthly max temp. (historical)" = "20-tmax",
-  "30. Number of days with tmax above 35ºC" = "30-tmax"
+  "3. Annual number of days with frost" = "3-tmin",
+  "4. Monthly max temp. (historical)" = "4-tmax",
+  "5. Monthly min temp. (historical)" = "5-tmin",
+  "6. Monthly max min temp. (historical)" = "6-tmin",
+  "7. Monthly min max temp. (historical)" = "7-tmax",
+  "8. Number of days with max temp. above 35ºC" = "8-tmax",
+  "9. Number of days with min temp. above 25ºC" = "9-tmin",
+  "10. Number of days with min temp. above 20ºC" = "10-tmin"
 )
 
 plot_choices_pcp <- c(
@@ -105,9 +107,10 @@ plot_choices_daylight <- c(
 
 # Parameters
 station <- 3195
-#ref_start_year <- 1920
-#ref_end_year <- 2023
-#selected_year <- 2024
+mun_code <- 28079
+ref_start_year <- 1920
+ref_end_year <- 2023
+selected_year <- 2024
 
 # Get sunlight times from Dropbox
 search <- rdrop2::drop_search("sunlighttimes")
@@ -128,6 +131,9 @@ data_clean <- rdrop2::drop_read_csv(
 max_date <- paste(format(strptime(sub(".*/(\\d{8}_\\d{6}).*", "\\1", file), format = "%Y%m%d_%H%M%S"),
                          "%Y-%m-%d %H:%M"), "UTC")
 
+# Get forecast data
+forecast <- climaemet::aemet_forecast_daily(mun_code)
+
 # Clean data
 data_pcp <- data_clean |> # Remove years with more than 50% of pcp values missing
   dplyr::group_by(year) |> dplyr::mutate(missing_pcp = mean(is.na(pcp))) |> 
@@ -138,6 +144,11 @@ data_temp <- data_clean |> # Remove years with more than 50% of tmean values mis
   dplyr::group_by(year) |> dplyr::mutate(missing_tmean = mean(is.na(tmean))) |> 
   dplyr::ungroup() |> dplyr::filter(missing_tmean < 0.5) |> 
   dplyr::select(date, day, month, year, tmin, tmax, tmean)
+
+data_forecast <- climaemet::aemet_forecast_tidy(forecast, "temperatura") |> 
+  dplyr::rename(tmax = temperatura_maxima, tmin = temperatura_minima, date = fecha) |> 
+  dplyr::mutate(tmean = (tmax + tmin)/2) |> 
+  dplyr::select(date, tmin, tmax, tmean)
 
 # Define UI ----
 # fluidPage creates a display that automatically adjusts to the dimensions of your user’s
@@ -302,7 +313,7 @@ server <- function(input, output, session) {
            "1-tminmax" = p("To calculate the percentiles for each day, a time window of +- 15 days (1 month) 
                          is taken with respect to the day in question.", strong("Year of study"), "not 
                          included in percentiles calculation. To see data, click on daily max temperature"),
-           "10-tmin" = "Frost: when minimum temperature of the day is below 0ºC"
+           "3-tmin" = "Frost: when minimum temperature of the day is below 0ºC"
     )
   })
   
@@ -425,7 +436,7 @@ server <- function(input, output, session) {
         max_date = max_date
       ),
       "4-tmean" = DailyTmeanPlot(
-        data = data_temp, selected_year = input$year,
+        data = data_temp, data_forecast = data_forecast, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
@@ -473,24 +484,24 @@ server <- function(input, output, session) {
         max_date = max_date
       ),
       "1-tminmax" = DailyTminTmaxPlot(
-        data = data_temp, selected_year = input$year,
+        data = data_temp, data_forecast = data_forecast, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "10-tmin" = YearlyFrostDaysPlot(
+      "3-tmin" = YearlyFrostDaysPlot(
         data = data_temp,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "20-tmax" = MonthlyHistoricalTmaxPlot(
+      "4-tmax" = MonthlyHistoricalTmaxPlot(
         data = data_temp,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "30-tmax" = HighTmaxDaysPlot(
+      "8-tmax" = HighTmaxDaysPlot(
         data = data_temp, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
@@ -504,6 +515,40 @@ server <- function(input, output, session) {
       ),
       "1-daylight" = DailyDaylightGainedPlot(
         data = data_sunlight, selected_year = input$year,
+        max_date = max_date
+      ),
+      "2-daylight" = DailySunlightTimesPlot(
+        data = data_sunlight, selected_year = input$year,
+        max_date = max_date
+      ),
+      "9-tmin" = EcuatorialNightsPlot(
+        data = data_temp, selected_year = input$year,
+        ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
+        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+        max_date = max_date
+      ),
+      "10-tmin" = TropicalNightsPlot(
+        data = data_temp, selected_year = input$year,
+        ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
+        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+        max_date = max_date
+      ),
+      "5-tmin" = MonthlyHistoricalTminPlot(
+        data = data_temp,
+        ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
+        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+        max_date = max_date
+      ),
+      "6-tmin" = MonthlyHistoricalMaxTminPlot(
+        data = data_temp,
+        ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
+        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+        max_date = max_date
+      ),
+      "7-tmax" = MonthlyHistoricalMinTmaxPlot(
+        data = data_temp,
+        ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
+        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       )
     )
