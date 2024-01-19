@@ -13,6 +13,7 @@ MonthlyHistoricalMaxTminPlot <- function(data, ref_start_year, ref_end_year, max
     dtplyr::lazy_dt() |>
     dplyr::arrange(-maxtmin) |>
     dplyr::group_by(month) |> 
+    dplyr::mutate(ranking = rank(-maxtmin, ties.method = "first")) |>
     dplyr::slice_head(n = 3) |>
     dplyr::as_tibble()
   
@@ -20,6 +21,7 @@ MonthlyHistoricalMaxTminPlot <- function(data, ref_start_year, ref_end_year, max
     dtplyr::lazy_dt() |>
     dplyr::arrange(-maxtmin) |> 
     dplyr::group_by(month) |> 
+    dplyr::mutate(ranking = rank(maxtmin, ties.method = "last")) |>
     dplyr::slice_tail(n = 3) |>
     dplyr::as_tibble()
   
@@ -30,6 +32,8 @@ MonthlyHistoricalMaxTminPlot <- function(data, ref_start_year, ref_end_year, max
                          method = lm, se = FALSE, na.rm = TRUE) + 
     ggplot2::geom_point(data = ranking_maxtmins, color = "#b2182b") +
     ggplot2::geom_point(data = ranking_mintmins, color = "#2166ac") +
+    ggrepel::geom_label_repel(data = ranking_maxtmins, aes(label = paste0(ranking, 'º (', year, ')')), size = 2.5) +
+    ggrepel::geom_label_repel(data = ranking_mintmins, aes(label = paste0(ranking, 'º (', year, ')')), size = 2.5) +
     ggplot2::facet_wrap(
       vars(month), 
       labeller = labeller(month = c("01" = "Jan", "02" = "Feb", "03" = "Mar", "04" = "Apr", 
@@ -41,7 +45,11 @@ MonthlyHistoricalMaxTminPlot <- function(data, ref_start_year, ref_end_year, max
                  "maxtmin" = "Monthly max min temp."),
       breaks = c("maxtmin", "trend")) +
     ggplot2::scale_x_continuous(breaks = seq(from = min(plot_data$year), to = max(plot_data$year), by = 10)) +
-    ggplot2::scale_y_continuous(labels = function(x) paste0(x, "ºC")) +
+    ggplot2::scale_y_continuous(
+      labels = function(x) paste0(x, "ºC"),
+      limits = c(floor(min(plot_data$maxtmin, na.rm = TRUE) - 2), ceiling(max(plot_data$maxtmin, na.rm = TRUE) + 2)),
+      breaks = round(seq(from = floor(min(plot_data$maxtmin, na.rm = TRUE) - 2), 
+                         to = ceiling(max(plot_data$maxtmin, na.rm = TRUE)) + 2, by = 5) / 5) * 5) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
       x = "", y = "", title = "Temperature in Madrid - Retiro",

@@ -13,6 +13,7 @@ MonthlyHistoricalTmaxPlot <- function(data, ref_start_year, ref_end_year, max_da
     dtplyr::lazy_dt() |>
     dplyr::arrange(-maxtmax) |>
     dplyr::group_by(month) |> 
+    dplyr::mutate(ranking = rank(-maxtmax, ties.method = "first")) |>
     dplyr::slice_head(n = 3) |>
     dplyr::as_tibble()
   
@@ -20,6 +21,7 @@ MonthlyHistoricalTmaxPlot <- function(data, ref_start_year, ref_end_year, max_da
     dtplyr::lazy_dt() |>
     dplyr::arrange(-maxtmax) |> 
     dplyr::group_by(month) |> 
+    dplyr::mutate(ranking = rank(maxtmax, ties.method = "last")) |>
     dplyr::slice_tail(n = 3) |>
     dplyr::as_tibble()
   
@@ -30,6 +32,8 @@ MonthlyHistoricalTmaxPlot <- function(data, ref_start_year, ref_end_year, max_da
                          method = lm, se = FALSE, na.rm = TRUE) + 
     ggplot2::geom_point(data = ranking_maxtmaxs, color = "#b2182b") +
     ggplot2::geom_point(data = ranking_mintmaxs, color = "#2166ac") +
+    ggrepel::geom_label_repel(data = ranking_maxtmaxs, aes(label = paste0(ranking, 'º (', year, ')')), size = 2.5) +
+    ggrepel::geom_label_repel(data = ranking_mintmaxs, aes(label = paste0(ranking, 'º (', year, ')')), size = 2.5) +
     ggplot2::facet_wrap(
       vars(month), 
       labeller = labeller(month = c("01" = "Jan", "02" = "Feb", "03" = "Mar", "04" = "Apr", 
