@@ -46,7 +46,7 @@ OverviewPcpTempPlot <- function(data_temp, data_pcp, selected_year, max_date) {
     ggplot2::labs(
       x = "", y = "", title = paste0("Precipitation and temperature in Madrid - Retiro ", selected_year),
       subtitle = paste0("Daily precipitation and daily mean temperature"),
-      caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)")) +
+      caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter), https://pablocontreras.shinyapps.io/shiny_meteo/")) +
     ggplot2::theme(
       plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),
       plot.subtitle = ggplot2::element_text(hjust = 1, size = 25), 

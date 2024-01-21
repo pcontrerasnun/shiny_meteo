@@ -68,7 +68,7 @@ OverviewPcpTempPlot2 <- function(data_temp, data_pcp, ref_start_year, ref_end_ye
       x = "Precipitation anomaly", y = "Temperature anomaly", 
       title = paste0("Precipitation and temperature in Madrid - Retiro ", selected_year),
       subtitle = paste0("Annual precipitation and annual mean temperature vs. historical medians (", ref_start_year, "-", ref_end_year, ")"),
-      caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"),
+      caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter), https://pablocontreras.shinyapps.io/shiny_meteo/"),
       color = "Year") +
     ggplot2::theme(
       plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),

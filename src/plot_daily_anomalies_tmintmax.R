@@ -135,7 +135,7 @@ DailyTminTmaxAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_
       subtitle = paste0("Daily min and max temperature anomalies vs. historical medians (", 
                         ref_start_year, "-", ref_end_year, ")"),
       caption = paste0(
-        "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)")
+        "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter), https://pablocontreras.shinyapps.io/shiny_meteo/")
     ) +
     ggplot2::theme(
       plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),

@@ -5,7 +5,7 @@ DailyDaylightGainedPlot <- function(data, selected_year, max_date) {
     dplyr::filter(date >= as.Date(paste0(selected_year, "-01-01")) &
                     date <= as.Date(paste0(selected_year, "-12-31"))) |>
     dplyr::mutate(dayduration = difftime(sunset, sunrise, units = "mins")) |> 
-    dplyr::mutate(diffdayduration = dayduration - lag(dayduration)) |> 
+    dplyr::mutate(diffdayduration = round(dayduration - lag(dayduration), 2)) |> 
     dplyr::select(date, diffdayduration) |> 
     dplyr::as_tibble()
   
@@ -28,7 +28,6 @@ DailyDaylightGainedPlot <- function(data, selected_year, max_date) {
       aes(y = diffdayduration, label = round(diffdayduration, 2))
     ) +
     ggplot2::scale_color_gradient2(high = "#fff7bc", mid = "#fec44f", low = "#d95f0e", guide = guide_none()) +
-    ggplot2::geom_vline(xintercept = Sys.Date()) +
     ggplot2::scale_x_continuous(
       breaks = as.numeric(seq(ymd(paste0(selected_year, "-01-01")), ymd(paste0(selected_year, "-12-31")), by = "month")),
       labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"),
@@ -43,12 +42,17 @@ DailyDaylightGainedPlot <- function(data, selected_year, max_date) {
       x = "", y = "", title = paste0("Sunlight in Madrid - Retiro ", selected_year),
       subtitle = "Gained daylight minutes (daily change)",
       caption = paste0(
-        "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"
+        "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter), https://pablocontreras.shinyapps.io/shiny_meteo/"
       )) +
     ggplot2::theme(
       plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),
       plot.subtitle = ggplot2::element_text(hjust = 1, size = 25), 
     )
+  
+  # If year of study is current year then plot vertical line
+  if (selected_year == year(Sys.Date())) {
+    p <- p + ggplot2::geom_vline(xintercept = Sys.Date()) 
+  }
   
   return(list(p, plot_data, "date", "diffdayduration"))
   

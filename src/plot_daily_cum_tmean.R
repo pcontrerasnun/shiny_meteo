@@ -122,7 +122,7 @@ DailyCumulativeTmeanPlot <- function(data, selected_year, ref_start_year, ref_en
       x = "", y = "", title = paste0("Temperature in Madrid - Retiro ", selected_year),
       subtitle = paste0("Cumulative daily mean temperature vs. historical percentiles (",
                         ref_start_year, "-", ref_end_year, ")"),
-      caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)")) +
+      caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter), https://pablocontreras.shinyapps.io/shiny_meteo/")) +
     ggplot2::theme(
       plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),
       plot.subtitle = ggplot2::element_text(hjust = 1, size = 25),

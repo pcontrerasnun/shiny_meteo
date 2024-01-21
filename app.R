@@ -16,19 +16,11 @@
 # - docmumentar funciones sin documentar
 # - nuevo grafico cuanto dura invierno
 # - a gráficos anomalias añadir lineas desv tipicas
-# - amplitud termicas
 # - renv
-# - calendar map con lluvia en cada día
 # - year of study not included in calculations - info message
 # - reiniciar googleanalytics
-# - añadir en caption direccion pagweb
 # - info plot tmintmax anomalies, to see data press tmin line, not tmax
 # - que hacer con 29 feb
-# - ranking maxtmean y mintmean date
-# - forecast cuando eliges año diff al actual
-# - decimales diffdayduration
-# - linea vertical cuando año diff al actual diffdayduration
-# - date with max pcp in selected year 
 
 library(shiny, warn.conflicts = FALSE, quietly = TRUE)
 library(shinyjs, warn.conflicts = FALSE, quietly = TRUE)
@@ -116,7 +108,7 @@ station <- 3195
 mun_code <- 28079
 ref_start_year <- 1920
 ref_end_year <- 2023
-selected_year <- 2024
+selected_year <- 2023
 
 # Get sunlight times from Dropbox
 search <- rdrop2::drop_search("sunlighttimes")

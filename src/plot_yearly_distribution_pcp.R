@@ -55,7 +55,7 @@ AnnualPcpDistributionPlot <- function(data, max_date) {
         min(plot_data$year), "-", max(plot_data$year), ")"
       ),
       caption = paste0(
-        "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"
+        "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter), https://pablocontreras.shinyapps.io/shiny_meteo/"
       ), fill = "Year"
     ) +
     ggplot2::theme(

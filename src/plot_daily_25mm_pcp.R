@@ -61,7 +61,7 @@ HighPcpDaysPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
       subtitle = paste0(
         "Annual number of days with more than 25mm of precipitation (", ref_start_year, "-", ref_end_year, ")"),
       caption = paste0(
-        "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"),
+        "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter), https://pablocontreras.shinyapps.io/shiny_meteo/"),
       color = NULL) +
     ggplot2::theme(
       plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),

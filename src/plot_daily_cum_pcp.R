@@ -99,6 +99,7 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
                        date <= as.Date(paste0(as.numeric(selected_year), "-12-31")))) |>
     dplyr::arrange(-pcp) |> 
     dplyr::mutate(ranking = rank(-pcp, ties.method = "first")) |> 
+    dplyr::mutate(date = format(date, "%d-%m-%Y")) |> 
     dplyr::as_tibble()
 
   # Draw the plot
@@ -124,12 +125,16 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
       gridtext::richtext_grob(x = unit(.0435, "npc"), y = unit(.8, "npc"), 
       text = paste0("**Ranking** (", ref_start_year, "-", ref_end_year, ")<br>",
                      "Max precip. in a single day <br><br>", 
-                     head(ranking_days_most_pcp, 1)$ranking, "º ", format(head(ranking_days_most_pcp, 1)$date, "%d-%m-%Y"), ": ", 
+                     head(ranking_days_most_pcp, 1)$ranking, "º ", head(ranking_days_most_pcp, 1)$date, ": ", 
                      head(ranking_days_most_pcp, 1)$pcp, "mm<br>",
-                     head(ranking_days_most_pcp, 2)[2,]$ranking, "º ", format(head(ranking_days_most_pcp, 2)[2,]$date, "%d-%m-%Y"), ": ", 
+                     head(ranking_days_most_pcp, 2)[2,]$ranking, "º ", head(ranking_days_most_pcp, 2)[2,]$date, ": ", 
                      head(ranking_days_most_pcp, 2)[2,]$pcp, "mm<br>",
-                     head(ranking_days_most_pcp, 3)[3,]$ranking, "º ", format(head(ranking_days_most_pcp, 3)[3,]$date, "%d-%m-%Y"), ": ", 
-                     head(ranking_days_most_pcp, 3)[3,]$pcp, "mm"),
+                     head(ranking_days_most_pcp, 3)[3,]$ranking, "º ", head(ranking_days_most_pcp, 3)[3,]$date, ": ", 
+                     head(ranking_days_most_pcp, 3)[3,]$pcp, "mm<br>",
+                     "---------------------------<br>",
+                     head(ranking_days_most_pcp |> dplyr::filter(year == selected_year), 1)$date, ": ",
+                     head(ranking_days_most_pcp |> dplyr::filter(year == selected_year), 1)$pcp, "mm"
+                    ),
       #hjust = 0, vjust = 0.5, label.size = 0.75, label.padding = unit(0.5, "lines"), r = unit(0.15, "lines")
       hjust = 0, vjust = 1,
       r = unit(0.15, "lines"),
@@ -163,7 +168,7 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
         ref_start_year, "-", ref_end_year, ")"
       ),
       caption = paste0(
-        "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"
+        "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter), https://pablocontreras.shinyapps.io/shiny_meteo/"
       )
     ) +
     ggplot2::theme(

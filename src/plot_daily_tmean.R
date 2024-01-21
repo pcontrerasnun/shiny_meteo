@@ -37,6 +37,23 @@ DailyTmeanPlot <- function(data, data_forecast, selected_year, ref_start_year, r
   # Join data
   plot_data <- dplyr::left_join(reference_daily_pcts_tmean, selected_year_daily_tmean, by = c("day", "month")) |> 
     dplyr::select(date, tmean, everything(), -c(day, month))
+
+  # Ranking max tmean and min tmean
+  ranking_tmeans <- data |> 
+    dtplyr::lazy_dt() |>
+    dplyr::filter((date >= as.Date(paste0(ref_start_year, "-01-01")) &
+                     date <= as.Date(paste0(ref_end_year, "-12-31"))) |
+                    (date >= as.Date(paste0(as.numeric(selected_year), "-01-01")) &
+                       date <= as.Date(paste0(as.numeric(selected_year), "-12-31")))) |> # Include year of study
+    dplyr::group_by(date) |> 
+    dplyr::summarise(maxtmean = max(tmean, na.rm = TRUE), mintmean = min(tmean, na.rm = TRUE)) |> 
+    dplyr::mutate(year = format(date, "%Y")) |> 
+    dplyr::mutate(date = format(date, "%d-%m-%Y")) |> 
+    dplyr::arrange(-maxtmean) |> 
+    dplyr::mutate(rankmaxtmean = rank(-maxtmean, ties.method = "first")) |>
+    dplyr::arrange(mintmean) |> 
+    dplyr::mutate(rankmintmean = rank(mintmean, ties.method = "first")) |>
+    dplyr::as_tibble()
   
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = date)) +
@@ -65,8 +82,54 @@ DailyTmeanPlot <- function(data, data_forecast, selected_year, ref_start_year, r
                          alpha = 0.3, color = "#2166ac", linetype = "51", 
                          lineend = "round", linejoin = "round") +
     ggplot2::geom_line(aes(y = tmean, color = "tmean"), linewidth = 0.75, lineend = "round", na.rm = TRUE) +
-    ggplot2::geom_line(data = data_forecast, aes(y = tmean, color = "fcsttmean"), linewidth = 0.75, 
-                       linetype = "dotted", lineend = "round", na.rm = TRUE) +
+    ggplot2::annotation_custom(
+      gridtext::richtext_grob(
+        x = unit(.775, "npc"),
+        y = unit(.95, "npc"),
+        text = paste0("**Ranking** (", ref_start_year, "-", ref_end_year, ")<br>", 
+                      "Max tmean. <br><br>", 
+                      head(ranking_tmeans |> dplyr::arrange(rankmaxtmean), 1)$rankmaxtmean, "º ", 
+                      head(ranking_tmeans |> dplyr::arrange(rankmaxtmean), 1)$date, ": ", 
+                      head(ranking_tmeans |> dplyr::arrange(rankmaxtmean), 1)$maxtmean, "ºC<br>",
+                      head(ranking_tmeans |> dplyr::arrange(rankmaxtmean), 2)[2,]$rankmaxtmean, "º ", 
+                      head(ranking_tmeans |> dplyr::arrange(rankmaxtmean), 2)[2,]$date, ": ", 
+                      head(ranking_tmeans |> dplyr::arrange(rankmaxtmean), 2)[2,]$maxtmean, "ºC<br>",
+                      head(ranking_tmeans |> dplyr::arrange(rankmaxtmean), 3)[3,]$rankmaxtmean, "º ",
+                      head(ranking_tmeans |> dplyr::arrange(rankmaxtmean), 3)[3,]$date, ": ", 
+                      head(ranking_tmeans |> dplyr::arrange(rankmaxtmean), 3)[3,]$maxtmean, "ºC<br>",
+                      "---------------------------<br>",
+                      head(ranking_tmeans |> dplyr::filter(year == selected_year) |> dplyr::arrange(rankmaxtmean), 1)$date, ": ",
+                      head(ranking_tmeans |> dplyr::filter(year == selected_year) |> dplyr::arrange(rankmaxtmean), 1)$maxtmean, "ºC"),
+        hjust = 0, vjust = 1,
+        r = unit(0.15, "lines"),
+        box_gp = grid::gpar(col = "black", lwd = 2),
+        padding = unit(0.5, "lines")
+      )
+    ) +
+    ggplot2::annotation_custom(
+      gridtext::richtext_grob(
+        x = unit(.875, "npc"),
+        y = unit(.95, "npc"),
+        text = paste0("**Ranking** (", ref_start_year, "-", ref_end_year, ")<br>", 
+                      "Min tmean. <br><br>", 
+                      head(ranking_tmeans |> dplyr::arrange(rankmintmean), 1)$rankmintmean, "º ", 
+                      head(ranking_tmeans |> dplyr::arrange(rankmintmean), 1)$date, ": ", 
+                      head(ranking_tmeans |> dplyr::arrange(rankmintmean), 1)$mintmean, "ºC<br>",
+                      head(ranking_tmeans |> dplyr::arrange(rankmintmean), 2)[2,]$rankmintmean, "º ", 
+                      head(ranking_tmeans |> dplyr::arrange(rankmintmean), 2)[2,]$date, ": ", 
+                      head(ranking_tmeans |> dplyr::arrange(rankmintmean), 2)[2,]$mintmean, "ºC<br>",
+                      head(ranking_tmeans |> dplyr::arrange(rankmintmean), 3)[3,]$rankmintmean, "º ",
+                      head(ranking_tmeans |> dplyr::arrange(rankmintmean), 3)[3,]$date, ": ", 
+                      head(ranking_tmeans |> dplyr::arrange(rankmintmean), 3)[3,]$mintmean, "ºC<br>",
+                      "---------------------------<br>",
+                      head(ranking_tmeans |> dplyr::filter(year == selected_year) |> dplyr::arrange(rankmintmean), 1)$date, ": ",
+                      head(ranking_tmeans |> dplyr::filter(year == selected_year) |> dplyr::arrange(rankmintmean), 1)$mintmean, "ºC"),
+        hjust = 0, vjust = 1,
+        r = unit(0.15, "lines"),
+        box_gp = grid::gpar(col = "black", lwd = 2),
+        padding = unit(0.5, "lines")
+      )
+    ) +
     ggplot2::scale_color_manual(
       values = c("tmean" = "black", "fcsttmean" = "black"),
       label = c("tmean" = paste0("Daily mean temp. (", selected_year, ")"),
@@ -109,7 +172,7 @@ DailyTmeanPlot <- function(data, data_forecast, selected_year, ref_start_year, r
       x = "", y = "", title = paste0("Temperature in Madrid - Retiro ", selected_year),
       subtitle = paste0(
         "Daily mean temperature vs. historical percentiles (", ref_start_year, "-", ref_end_year, ")"),
-      caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)")
+      caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter), https://pablocontreras.shinyapps.io/shiny_meteo/")
     ) +
     ggplot2::theme(
       plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),
@@ -123,8 +186,18 @@ DailyTmeanPlot <- function(data, data_forecast, selected_year, ref_start_year, r
       legend.text.align = 0
     ) +
     ggplot2::guides(fill = guide_legend(override.aes = list(alpha = 0.7 / 7, color = NA)),
-                    color = guide_legend(override.aes = list(linetype = c("dotted", "solid"),
-                                                             linewidth = c(0.5, 0.9))))
+                    color = guide_legend(override.aes = list(linetype = c("solid"),
+                                                             linewidth = c(0.9))))
+  
+  # If year of study is current year then plot forecast data
+  if (selected_year == year(Sys.Date())) {
+    p <- p + ggplot2::geom_line(data = data_forecast, aes(y = tmean, color = "fcsttmean"), linewidth = 0.75, 
+                                linetype = "dotted", lineend = "round", na.rm = TRUE) +
+      ggplot2::guides(fill = guide_legend(override.aes = list(alpha = 0.7 / 7, color = NA)),
+                      color = guide_legend(override.aes = list(linetype = c("dotted", "solid"),
+                                                               linewidth = c(0.5, 0.9))))
+  }
  
   return(list(p, plot_data, "date", "tmean"))
+  
 }

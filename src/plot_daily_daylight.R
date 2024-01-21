@@ -27,7 +27,6 @@ DailySunlightTimesPlot <- function(data, selected_year, max_date) {
     ggplot2::geom_line(aes(y = as.POSIXct(format(zenith, "%H:%M"), format = "%H:%M"), color = "zenith"), linewidth = 0.9) +
     ggplot2::geom_line(aes(y = as.POSIXct(format(dawn, "%H:%M"), format = "%H:%M"), color = "dawn"), linewidth = 0.9) +
     ggplot2::geom_line(aes(y = as.POSIXct(format(dusk, "%H:%M"), format = "%H:%M"), color = "dusk"), linewidth = 0.9) +
-    ggplot2::geom_vline(xintercept = Sys.Date()) +
     ggplot2::scale_color_manual(
       values = c("dawn" = "#bd0026", "sunrise" = "#f03b20", "zenith" = "#fd8d3c", "sunset" = "#e31a1c",
                  "dusk" = "#b10026")
@@ -51,13 +50,18 @@ DailySunlightTimesPlot <- function(data, selected_year, max_date) {
       x = "", y = "", title = paste0("Sunlight in Madrid - Retiro ", selected_year),
       subtitle = "Sunlight core times",
       caption = paste0(
-        "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"
+        "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter), https://pablocontreras.shinyapps.io/shiny_meteo/"
       )) +
     ggplot2::theme(
       plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),
       plot.subtitle = ggplot2::element_text(hjust = 1, size = 25),
       legend.position = "none"
     )
+  
+  # If year of study is current year then plot vertical line
+  if (selected_year == year(Sys.Date())) {
+    p <- p + ggplot2::geom_vline(xintercept = Sys.Date()) 
+  }
   
   return(list(p, plot_data, "date", "zenith"))
   

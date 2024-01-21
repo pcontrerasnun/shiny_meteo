@@ -97,10 +97,6 @@ DailyTminTmaxPlot <- function(data, data_forecast, selected_year, ref_start_year
     ggplot2::geom_line(aes(y = p50tmin, color = "p50tmin"), linewidth = 0.75, linetype = "longdash", lineend = "round", na.rm = TRUE) +
     ggplot2::geom_line(aes(y = tmax, color = "tmax"), linewidth = 0.75, lineend = "round", na.rm = TRUE) +
     ggplot2::geom_line(aes(y = p50tmax, color = "p50tmax"), linewidth = 0.75, linetype = "longdash", lineend = "round", na.rm = TRUE) +
-    ggplot2::geom_line(data = data_forecast, aes(y = tmax, color = "fcsttmax"), linewidth = 0.75, 
-                       linetype = "dotted", lineend = "round", na.rm = TRUE) +
-    ggplot2::geom_line(data = data_forecast, aes(y = tmin, color = "fcsttmin"), linewidth = 0.75, 
-                       linetype = "dotted", lineend = "round", na.rm = TRUE) +
     ggplot2::annotation_custom(
       gridtext::richtext_grob(
         x = unit(.02, "npc"),
@@ -231,7 +227,7 @@ DailyTminTmaxPlot <- function(data, data_forecast, selected_year, ref_start_year
       x = "", y = "", title = paste0("Temperature in Madrid - Retiro ", selected_year),
       subtitle = paste0(
         "Daily min and max temperatures vs. historical percentiles (", ref_start_year, "-", ref_end_year, ")"),
-      caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)")
+      caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter), https://pablocontreras.shinyapps.io/shiny_meteo/")
     ) +
     ggplot2::theme(
       plot.title = ggplot2::element_text(hjust = 1, face = "bold", family = "sans", size = 35),
@@ -245,9 +241,21 @@ DailyTminTmaxPlot <- function(data, data_forecast, selected_year, ref_start_year
       legend.text.align = 0
     ) +
     ggplot2::guides(color = guide_legend(
-      override.aes = list(linetype = c("dotted", "dotted", "longdash", "longdash", "solid", "solid"),
-                          linewidth = c(0.5, 0.5, 0.5, 0.5, 0.9, 0.9)))
+      override.aes = list(linetype = c("longdash", "longdash", "solid", "solid"),
+                          linewidth = c(0.5, 0.5, 0.9, 0.9)))
     )
+  
+  # If year of study is current year then plot forecast data
+  if (selected_year == year(Sys.Date())) {
+    p <- p + ggplot2::geom_line(data = data_forecast, aes(y = tmin, color = "fcsttmin"), linewidth = 0.75, 
+                                linetype = "dotted", lineend = "round", na.rm = TRUE) +
+      ggplot2::geom_line(data = data_forecast, aes(y = tmax, color = "fcsttmax"), linewidth = 0.75, 
+                         linetype = "dotted", lineend = "round", na.rm = TRUE) +
+      ggplot2::guides(color = guide_legend(
+        override.aes = list(linetype = c("dotted", "dotted", "longdash", "longdash", "solid", "solid"),
+                            linewidth = c(0.5, 0.5, 0.5, 0.5, 0.9, 0.9)))
+      )
+  }
   
   return(list(p, plot_data, "date", "tmax"))
   

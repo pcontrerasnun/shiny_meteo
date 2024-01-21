@@ -95,7 +95,7 @@ MonthlyPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, ma
     ggplot2::labs(
       x = "", y = "", title = paste0("Precipitation in Madrid - Retiro ", selected_year),
       subtitle = paste0("Monthly precipitation vs. historical percentiles (", ref_start_year, "-", ref_end_year, ")"),
-      caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter)"),
+      caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter), https://pablocontreras.shinyapps.io/shiny_meteo/"),
       color = NULL, fill = NULL
     ) +
     ggplot2::theme(
