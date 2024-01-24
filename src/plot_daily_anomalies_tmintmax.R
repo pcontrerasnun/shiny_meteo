@@ -87,9 +87,9 @@ DailyTminTmaxAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_
                           linewidth = 1, na.rm = TRUE) +
     ggplot2::scale_color_gradient2(high = "#ca0020", mid = "white", low = "#0571b0", guide = guide_none()) +
     ggplot2::geom_line(aes(y = tmin, linetype = "tmin"), linewidth = 0.65, lineend = "round", 
-                       na.rm = TRUE, show.legend = FALSE) +
+                       na.rm = TRUE, show.legend = FALSE, color = "black") +
     ggplot2::geom_line(aes(y = tmax, linetype = "tmax"), linewidth = 0.65, lineend = "round", 
-                       na.rm = TRUE, show.legend = FALSE) +
+                       na.rm = TRUE, show.legend = FALSE, color = "black") +
     ggplot2::geom_line(aes(y = p50tmin, linetype = "p50tmin"), lineend = "round", na.rm = TRUE) +
     ggplot2::geom_line(aes(y = p50tmax, linetype = "p50tmax"), lineend = "round", na.rm = TRUE) +
     ggplot2::scale_linetype_manual(
@@ -142,7 +142,7 @@ DailyTminTmaxAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_
       plot.subtitle = ggplot2::element_text(hjust = 1, size = 25),
       legend.background = ggplot2::element_blank(),
       legend.box.background = ggplot2::element_rect(fill = "white", color = "black", linewidth = 0.75),
-      legend.position = c(0.15, 0.85),
+      legend.position = c(0.1335, 0.85),
       legend.spacing = ggplot2::unit(0, "cm"),
       legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
       legend.title = element_blank()

@@ -62,14 +62,9 @@ DailyTminTmaxPlot <- function(data, data_forecast, selected_year, ref_start_year
                     (date >= as.Date(paste0(as.numeric(selected_year), "-01-01")) &
                        date <= as.Date(paste0(as.numeric(selected_year), "-12-31")))) |> # Include year of study
     dplyr::group_by(date) |> 
-    dplyr::summarise(maxtmax = max(tmax, na.rm = TRUE), mintmin = min(tmin, na.rm = TRUE),
-                     mintmax = min(tmax, na.rm = TRUE), maxtmin = max(tmin, na.rm = TRUE)) |> 
+    dplyr::summarise(mintmax = min(tmax, na.rm = TRUE), maxtmin = max(tmin, na.rm = TRUE)) |> 
     dplyr::mutate(year = format(date, "%Y")) |> 
     dplyr::mutate(date = format(date, "%d-%m-%Y")) |> 
-    dplyr::arrange(-maxtmax) |> 
-    dplyr::mutate(ranktmax = rank(-maxtmax, ties.method = "first")) |>
-    dplyr::arrange(mintmin) |> 
-    dplyr::mutate(ranktmin = rank(mintmin, ties.method = "first")) |>
     dplyr::arrange(-maxtmin) |> 
     dplyr::mutate(rankmaxtmin = rank(-maxtmin, ties.method = "first")) |>
     dplyr::arrange(mintmax) |> 
@@ -99,56 +94,8 @@ DailyTminTmaxPlot <- function(data, data_forecast, selected_year, ref_start_year
     ggplot2::geom_line(aes(y = p50tmax, color = "p50tmax"), linewidth = 0.75, linetype = "longdash", lineend = "round", na.rm = TRUE) +
     ggplot2::annotation_custom(
       gridtext::richtext_grob(
-        x = unit(.02, "npc"),
-        y = unit(.99, "npc"),
-        text = paste0("**Ranking** (", ref_start_year, "-", ref_end_year, ")<br>", 
-                      "Max tmax. <br><br>", 
-                      head(ranking_tmax_tmin |> dplyr::arrange(ranktmax), 1)$ranktmax, "º ", 
-                      head(ranking_tmax_tmin |> dplyr::arrange(ranktmax), 1)$date, ": ", 
-                      head(ranking_tmax_tmin |> dplyr::arrange(ranktmax), 1)$maxtmax, "ºC<br>",
-                      head(ranking_tmax_tmin |> dplyr::arrange(ranktmax), 2)[2,]$ranktmax, "º ", 
-                      head(ranking_tmax_tmin |> dplyr::arrange(ranktmax), 2)[2,]$date, ": ", 
-                      head(ranking_tmax_tmin |> dplyr::arrange(ranktmax), 2)[2,]$maxtmax, "ºC<br>",
-                      head(ranking_tmax_tmin |> dplyr::arrange(ranktmax), 3)[3,]$ranktmax, "º ",
-                      head(ranking_tmax_tmin |> dplyr::arrange(ranktmax), 3)[3,]$date, ": ", 
-                      head(ranking_tmax_tmin |> dplyr::arrange(ranktmax), 3)[3,]$maxtmax, "ºC<br>",
-                      "---------------------------<br>",
-                      head(ranking_tmax_tmin |> dplyr::filter(year == selected_year) |> dplyr::arrange(ranktmax), 1)$date, ": ",
-                      head(ranking_tmax_tmin |> dplyr::filter(year == selected_year) |> dplyr::arrange(ranktmax), 1)$maxtmax, "ºC"),
-        hjust = 0, vjust = 1,
-        r = unit(0.15, "lines"),
-        box_gp = grid::gpar(col = "black", lwd = 2),
-        padding = unit(0.5, "lines")
-      )
-    ) +
-    ggplot2::annotation_custom(
-      gridtext::richtext_grob(
-        x = unit(.12, "npc"),
-        y = unit(.99, "npc"),
-        text = paste0("**Ranking** (", ref_start_year, "-", ref_end_year, ")<br>", 
-                      "Min tmin. <br><br>", 
-                      head(ranking_tmax_tmin |> dplyr::arrange(ranktmin), 1)$ranktmin, "º ", 
-                      head(ranking_tmax_tmin |> dplyr::arrange(ranktmin), 1)$date, ": ", 
-                      head(ranking_tmax_tmin |> dplyr::arrange(ranktmin), 1)$mintmin, "ºC<br>",
-                      head(ranking_tmax_tmin |> dplyr::arrange(ranktmin), 2)[2,]$ranktmin, "º ", 
-                      head(ranking_tmax_tmin |> dplyr::arrange(ranktmin), 2)[2,]$date, ": ", 
-                      head(ranking_tmax_tmin |> dplyr::arrange(ranktmin), 2)[2,]$mintmin, "ºC<br>",
-                      head(ranking_tmax_tmin |> dplyr::arrange(ranktmin), 3)[3,]$ranktmin, "º ",
-                      head(ranking_tmax_tmin |> dplyr::arrange(ranktmin), 3)[3,]$date, ": ", 
-                      head(ranking_tmax_tmin |> dplyr::arrange(ranktmin), 3)[3,]$mintmin, "ºC<br>",
-                      "---------------------------<br>",
-                      head(ranking_tmax_tmin |> dplyr::filter(year == selected_year) |> dplyr::arrange(ranktmin), 1)$date, ": ",
-                      head(ranking_tmax_tmin |> dplyr::filter(year == selected_year) |> dplyr::arrange(ranktmin), 1)$mintmin, "ºC"),
-        hjust = 0, vjust = 1,
-        r = unit(0.15, "lines"),
-        box_gp = grid::gpar(col = "black", lwd = 2),
-        padding = unit(0.5, "lines")
-      )
-    ) +
-    ggplot2::annotation_custom(
-      gridtext::richtext_grob(
-        x = unit(.02, "npc"),
-        y = unit(.76, "npc"),
+        x = unit(.745, "npc"),
+        y = unit(.925, "npc"),
         text = paste0("**Ranking** (", ref_start_year, "-", ref_end_year, ")<br>", 
                       "Max tmin. <br><br>", 
                       head(ranking_tmax_tmin |> dplyr::arrange(rankmaxtmin), 1)$rankmaxtmin, "º ", 
@@ -171,8 +118,8 @@ DailyTminTmaxPlot <- function(data, data_forecast, selected_year, ref_start_year
     ) +
     ggplot2::annotation_custom(
       gridtext::richtext_grob(
-        x = unit(.223, "npc"),
-        y = unit(.99, "npc"),
+        x = unit(.855, "npc"),
+        y = unit(.925, "npc"),
         text = paste0("**Ranking** (", ref_start_year, "-", ref_end_year, ")<br>", 
                       "Min tmax <br><br>", 
                       head(ranking_tmax_tmin |> dplyr::arrange(rankmintmax), 1)$rankmintmax, "º ", 
@@ -234,7 +181,7 @@ DailyTminTmaxPlot <- function(data, data_forecast, selected_year, ref_start_year
       plot.subtitle = ggplot2::element_text(hjust = 1, size = 25), 
       legend.background = ggplot2::element_blank(),
       legend.box.background = ggplot2::element_rect(fill = "white", color = "black", linewidth = 0.75),
-      legend.position = c(0.875, 0.8),
+      legend.position = c(0.1335, 0.8),
       legend.spacing = ggplot2::unit(0, "cm"),
       legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
       legend.title = ggplot2::element_blank(),

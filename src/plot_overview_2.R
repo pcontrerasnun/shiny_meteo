@@ -59,10 +59,10 @@ OverviewPcpTempPlot2 <- function(data_temp, data_pcp, ref_start_year, ref_end_ye
       labels = function(x) paste0(x, "ºC"),
       limits = c(-3.5, 3.5), breaks = seq(-4, 4, by = 1)
     ) +
-    ggplot2::annotate(geom = 'label', label = 'Cálido y seco', x = -Inf, y = Inf, hjust = "inward", vjust = 2, size = 4) +
-    ggplot2::annotate(geom = 'label', label = 'Cálido y húmedo', x = Inf, y = Inf, hjust = "inward", vjust = 2, size = 4) +
-    ggplot2::annotate(geom = 'label', label = 'Frio y seco', x = -Inf, y = -Inf, hjust = "inward", vjust = -2, size = 4) +
-    ggplot2::annotate(geom = 'label', label = 'Frio y húmedo', x = Inf, y = -Inf, hjust = "inward", vjust = -2, size = 4) +
+    ggplot2::annotate(geom = 'label', label = 'Hot and dry', x = -Inf, y = Inf, hjust = "inward", vjust = 2, size = 4) +
+    ggplot2::annotate(geom = 'label', label = 'Hot and wet', x = Inf, y = Inf, hjust = "inward", vjust = 2, size = 4) +
+    ggplot2::annotate(geom = 'label', label = 'Cold and dry', x = -Inf, y = -Inf, hjust = "inward", vjust = -2, size = 4) +
+    ggplot2::annotate(geom = 'label', label = 'Cold and wet', x = Inf, y = -Inf, hjust = "inward", vjust = -2, size = 4) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
       x = "Precipitation anomaly", y = "Temperature anomaly", 

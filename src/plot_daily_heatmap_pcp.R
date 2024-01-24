@@ -36,7 +36,7 @@ DailyHeatmapPcpPlot <- function(data, selected_year, ref_start_year, ref_end_yea
   # Draw the plot
   p <- ggplot2::ggplot(plot_data, aes(x = day, y = month, fill = percentile)) +
     ggplot2::geom_tile(color = "white", size = 0.1) +
-    ggplot2::geom_text(aes(label = pcp), vjust = 1, fontface = "bold", na.rm = TRUE) +
+    ggplot2::geom_text(aes(label = pcp), color = "white", vjust = 1, fontface = "bold", na.rm = TRUE) +
     ggplot2::scale_y_discrete(
       limits = rev, # to put labels in reverse order (Jan -> Dec instead of Dec -> Jan)
       labels = rev(c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))

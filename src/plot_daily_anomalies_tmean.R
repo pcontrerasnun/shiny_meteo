@@ -99,7 +99,7 @@ DailyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_end
       plot.subtitle = ggplot2::element_text(hjust = 1, size = 25),
       legend.background = ggplot2::element_blank(),
       legend.box.background = ggplot2::element_rect(fill = "white", color = "black", linewidth = 0.75),
-      legend.position = c(0.15, 0.85),
+      legend.position = c(0.1335, 0.85),
       legend.spacing = ggplot2::unit(0, "cm"),
       legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
       legend.title = element_blank()

@@ -5,16 +5,16 @@
 #' description: Script that gets sun light times
 #' ---
 
-library(climaemet)
-library(dplyr)
-library(suncalc)
-library(lubridate)
-library(readr)
+library(climaemet, warn.conflicts = FALSE, quietly = TRUE)
+library(dplyr, warn.conflicts = FALSE, quietly = TRUE)
+library(suncalc, warn.conflicts = FALSE, quietly = TRUE)
+library(lubridate, warn.conflicts = FALSE, quietly = TRUE)
+library(readr, warn.conflicts = FALSE, quietly = TRUE)
 
 # ************************** WARNING ************************** #
 # ANTES DE AÑADIR ESTACION CREAR SU CARPETA EN LOCAL Y DROPBOX
 # ************************** WARNING ************************** #
-stations <- c("3195")
+stations <- c("3195", "3129")
 ref_start_date <- "1920-01-01" 
 
 aemet_stations <- climaemet::aemet_stations()

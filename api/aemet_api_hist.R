@@ -5,14 +5,14 @@
 #' description: Script that consolidates historical AEMET OpenData API data
 #' ---
 
-library(climaemet)
-library(rdrop2)
-library(readr)
+library(climaemet, warn.conflicts = FALSE, quietly = TRUE)
+library(rdrop2, warn.conflicts = FALSE, quietly = TRUE)
+library(readr, warn.conflicts = FALSE, quietly = TRUE)
 
 # ************************** WARNING ************************** #
 # ANTES DE AÑADIR ESTACION CREAR SU CARPETA EN LOCAL Y DROPBOX
 # ************************** WARNING ************************** #
-stations <- c("3195")
+stations <- c("3195", "3129")
 ref_start_date <- "1920-01-01" 
 ref_end_date <- Sys.Date() # Get current date
 

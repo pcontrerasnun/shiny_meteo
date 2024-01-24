@@ -15,7 +15,13 @@ DailySunlightTimesPlot <- function(data, selected_year, max_date) {
     dplyr::as_tibble()
   
   # Draw the plot
-  p <- ggplot2::ggplot(plot_data, aes(x = date)) + 
+  # If year of study is current year then plot vertical line
+  if (selected_year == year(Sys.Date())) {
+    p <- ggplot2::ggplot(plot_data, aes(x = date)) +
+      ggplot2::geom_vline(xintercept = Sys.Date()) 
+  }
+  
+  p <- p + 
     ggplot2::annotate(
       "rect", ymin = as.POSIXct(-Inf), ymax = as.POSIXct(Inf),
       fill = "gray", alpha = 0.2,
@@ -48,7 +54,7 @@ DailySunlightTimesPlot <- function(data, selected_year, max_date) {
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
       x = "", y = "", title = paste0("Sunlight in Madrid - Retiro ", selected_year),
-      subtitle = "Sunlight core times",
+      subtitle = "Sunlight core times (in local time)",
       caption = paste0(
         "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter), https://pablocontreras.shinyapps.io/shiny_meteo/"
       )) +
@@ -57,11 +63,6 @@ DailySunlightTimesPlot <- function(data, selected_year, max_date) {
       plot.subtitle = ggplot2::element_text(hjust = 1, size = 25),
       legend.position = "none"
     )
-  
-  # If year of study is current year then plot vertical line
-  if (selected_year == year(Sys.Date())) {
-    p <- p + ggplot2::geom_vline(xintercept = Sys.Date()) 
-  }
   
   return(list(p, plot_data, "date", "zenith"))
   

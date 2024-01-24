@@ -63,7 +63,7 @@ TropicalNightsPlot <- function(data, selected_year, ref_start_year, ref_end_year
     ggplot2::geom_line(aes(y = cumsump100tmin20, linetype = "p100"), color = "red", lineend = "round", na.rm = TRUE) +
     ggplot2::annotation_custom(
       gridtext::richtext_grob(
-        x = unit(.08125, "npc"),
+        x = unit(.0413, "npc"),
         y = unit(.75, "npc"),
         text = paste0("**Ranking** (", ref_start_year, "-", ref_end_year, ")<br>", 
                       "Most days with tmin > 20ºC <br><br>", 
@@ -123,7 +123,7 @@ TropicalNightsPlot <- function(data, selected_year, ref_start_year, ref_end_year
       plot.subtitle = ggplot2::element_text(hjust = 1, size = 25),
       legend.background = ggplot2::element_blank(),
       legend.box.background = ggplot2::element_rect(fill = "white", color = "black", linewidth = 0.75),
-      legend.position = c(0.15, 0.85),
+      legend.position = c(0.11, 0.85),
       legend.spacing = ggplot2::unit(0, "cm"),
       legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
       legend.title = element_blank()

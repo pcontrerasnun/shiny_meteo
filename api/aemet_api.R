@@ -5,17 +5,18 @@
 #' description: Script that consolidates AEMET OpenData API data
 #' ---
 
-library(climaemet)
-library(dplyr)
-library(dtplyr)
-library(lubridate)
-library(rdrop2)
-library(readr)
+library(climaemet, warn.conflicts = FALSE, quietly = TRUE)
+library(dplyr, warn.conflicts = FALSE, quietly = TRUE)
+library(dtplyr, warn.conflicts = FALSE, quietly = TRUE)
+library(lubridate, warn.conflicts = FALSE, quietly = TRUE)
+library(rdrop2, warn.conflicts = FALSE, quietly = TRUE)
+library(readr, warn.conflicts = FALSE, quietly = TRUE)
 
 # ************************** WARNING ************************** #
 # ANTES DE AÑADIR ESTACION CREAR SU CARPETA EN LOCAL Y DROPBOX
+# Y GENERAR ANTES HISTORICAL FILE
 # ************************** WARNING ************************** #
-stations <- c("3195")
+stations <- c("3195", "3129")
 ref_start_date <- Sys.Date() - 365 
 ref_end_date <- Sys.Date() # Get current date
 
@@ -146,11 +147,12 @@ for (station in stations) {
     dplyr::arrange(date) |> 
     dplyr::as_tibble()
   
-  # ---------------------------------------
-  # FIX PRECIPITATION DATA FOR AUTUMN 2023
-  # ---------------------------------------
-  if (sum(is.na(final_data[final_data$date >= as.Date("2023-08-31") & final_data$date <= as.Date("2023-11-22"), ]$pcp)) == 84) {
-    print('Fixing precipitation data for autumn 2023')
+  # ------------------------------------------------------------
+  # FIX PRECIPITATION DATA FOR AUTUMN 2023 - ONLY MADRID-RETIRO
+  # ------------------------------------------------------------
+  if ((sum(is.na(final_data[final_data$date >= as.Date("2023-08-31") & final_data$date <= as.Date("2023-11-22"), ]$pcp)) == 84) &
+      station == "3195") {
+    print(paste0('Fixing precipitation data for autumn 2023 for station ', station))
     date <- c("2023-09-02", "2023-09-03", "2023-09-04", "2023-09-05", "2023-09-08", "2023-09-09", 
               "2023-09-10", "2023-09-14", "2023-09-15", "2023-09-16", "2023-09-17", "2023-09-21", 
               "2023-10-13", "2023-10-15", "2023-10-16", "2023-10-17", "2023-10-18", "2023-10-19",

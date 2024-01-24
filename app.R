@@ -21,6 +21,7 @@
 # - reiniciar googleanalytics
 # - info plot tmintmax anomalies, to see data press tmin line, not tmax
 # - que hacer con 29 feb
+# - cajas ranking 
 
 library(shiny, warn.conflicts = FALSE, quietly = TRUE)
 library(shinyjs, warn.conflicts = FALSE, quietly = TRUE)
@@ -67,14 +68,16 @@ plot_choices_tmean <- c(
 plot_choices_tminmax <- c(
   "1. Daily min/max temp. (vs. percentiles)" = "1-tminmax",
   "2. Daily min/max temp. (anomalies)" = "2-tmintmax",
-  "3. Annual number of days with frost" = "3-tmin",
-  "4. Monthly max temp. (historical)" = "4-tmax",
-  "5. Monthly min temp. (historical)" = "5-tmin",
-  "6. Monthly max min temp. (historical)" = "6-tmin",
-  "7. Monthly min max temp. (historical)" = "7-tmax",
-  "8. Number of days with max temp. above 35ºC" = "8-tmax",
-  "9. Number of days with min temp. above 25ºC" = "9-tmin",
-  "10. Number of days with min temp. above 20ºC" = "10-tmin"
+  "3. Daily max temp. (vs. percentiles)" = "1-tmax",
+  "4. Daily min temp. (vs. percentiles)" = "1-tmin",
+  "5. Monthly max temp. (historical)" = "2-tmax",
+  "6. Monthly min temp. (historical)" = "2-tmin", 
+  "7. Monthly max min temp. (historical)" = "3-tmin", 
+  "8. Monthly min max temp. (historical)" = "3-tmax", 
+  "9. Number of days with max temp. above 35ºC" = "4-tmax", 
+  "10. Number of days with min temp. above 25ºC" = "4-tmin", 
+  "11. Number of days with min temp. above 20ºC" = "5-tmin", 
+  "12. Annual number of days with frost" = "6-tmin"
 )
 
 plot_choices_pcp <- c(
@@ -103,30 +106,33 @@ plot_choices_daylight <- c(
 # Load all functions
 # invisible(lapply(list.files(path = here::here("src"), full.names = TRUE), source))
 
+# Load AEMET OpenData API key
+Sys.getenv("AEMET_API_KEY")
+
 # Parameters
-station <- 3195
+station <- 3129
 mun_code <- 28079
 ref_start_year <- 1920
 ref_end_year <- 2023
 selected_year <- 2023
 
 # Get sunlight times from Dropbox
-search <- rdrop2::drop_search("sunlighttimes")
-file <- search$matches[[1]]$metadata$path_lower # Get last historical file
+search <- rdrop2::drop_search(paste0(station, "_sunlighttimes"))
+file <- search$matches[[1]]$metadata$path_lower # Get last sunlight file
 print(paste0("Downloading from Dropbox sunlight data for station ", station, ": ", file))
 data_sunlight <- rdrop2::drop_read_csv(
   file, colClasses = c(date = "Date", sunrise = "POSIXct", sunset = "POSIXct", solarNoon = "POSIXct",
                        dawn = "POSIXct", dusk = "POSIXct"))
 
 # Get historical data from Dropbox
-search <- rdrop2::drop_search("complete")
+search <- rdrop2::drop_search(paste0(station, "_complete"))
 file <- search$matches[[1]]$metadata$path_lower # Get last historical file
 print(paste0("Downloading from Dropbox historical data for station ", station, ": ", file))
 data_clean <- rdrop2::drop_read_csv(
   file, colClasses = c(day = "character", month = "character", date = "Date"))
 
 # Calculate datetime last data based on file name
-max_date <- paste(format(strptime(sub(".*/(\\d{8}_\\d{6}).*", "\\1", file), format = "%Y%m%d_%H%M%S"),
+max_date <- paste(format(floor_date(strptime(sub(".*/(\\d{8}_\\d{6}).*", "\\1", file), format = "%Y%m%d_%H%M%S"), unit = "hours"),
                          "%Y-%m-%d %H:%M"), "UTC")
 
 # Get forecast data
@@ -192,7 +198,7 @@ ui <- shiny::fluidPage(
                 max(lubridate::year(data_clean$date))
               )
             ),
-            selected = "1981-2010"
+            selected = "All available data"
           )
         )
       ),
@@ -311,7 +317,9 @@ server <- function(input, output, session) {
            "1-tminmax" = p("To calculate the percentiles for each day, a time window of +- 15 days (1 month) 
                          is taken with respect to the day in question.", strong("Year of study"), "not 
                          included in percentiles calculation. To see data, click on daily max temperature"),
-           "3-tmin" = "Frost: when minimum temperature of the day is below 0ºC"
+           "3-tmin" = "Frost: when minimum temperature of the day is below 0ºC",
+           "2-tmintmax" = "Red labels refer to max and min anomalies for max temperature. Blue labels refer
+                          to min temperature"
     )
   })
   
@@ -487,19 +495,19 @@ server <- function(input, output, session) {
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "3-tmin" = YearlyFrostDaysPlot(
+      "6-tmin" = YearlyFrostDaysPlot(
         data = data_temp,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "4-tmax" = MonthlyHistoricalTmaxPlot(
+      "2-tmax" = MonthlyHistoricalTmaxPlot(
         data = data_temp,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "8-tmax" = HighTmaxDaysPlot(
+      "4-tmax" = HighTmaxDaysPlot(
         data = data_temp, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
@@ -519,31 +527,31 @@ server <- function(input, output, session) {
         data = data_sunlight, selected_year = input$year,
         max_date = max_date
       ),
-      "9-tmin" = EcuatorialNightsPlot(
+      "4-tmin" = EcuatorialNightsPlot(
         data = data_temp, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "10-tmin" = TropicalNightsPlot(
+      "5-tmin" = TropicalNightsPlot(
         data = data_temp, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "5-tmin" = MonthlyHistoricalTminPlot(
+      "2-tmin" = MonthlyHistoricalTminPlot(
         data = data_temp,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "6-tmin" = MonthlyHistoricalMaxTminPlot(
+      "3-tmin" = MonthlyHistoricalMaxTminPlot(
         data = data_temp,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date
       ),
-      "7-tmax" = MonthlyHistoricalMinTmaxPlot(
+      "3-tmax" = MonthlyHistoricalMinTmaxPlot(
         data = data_temp,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
@@ -551,6 +559,18 @@ server <- function(input, output, session) {
       ),
       "3-pcp" = DailyHeatmapPcpPlot(
         data = data_pcp, selected_year = input$year,
+        ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
+        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+        max_date = max_date
+      ),
+      "1-tmax" = DailyTmaxPlot(
+        data = data_temp, data_forecast = data_forecast, selected_year = input$year,
+        ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
+        ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+        max_date = max_date
+      ),
+      "1-tmin" = DailyTminPlot(
+        data = data_temp, data_forecast = data_forecast, selected_year = input$year,
         ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
         ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
         max_date = max_date

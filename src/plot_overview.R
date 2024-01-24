@@ -52,7 +52,7 @@ OverviewPcpTempPlot <- function(data_temp, data_pcp, selected_year, max_date) {
       plot.subtitle = ggplot2::element_text(hjust = 1, size = 25), 
       legend.background = ggplot2::element_blank(),
       legend.box.background = ggplot2::element_rect(fill = "white", color = "black", linewidth = 0.75),
-      legend.position = c(0.095, 0.75),
+      legend.position = c(0.075, 0.85),
       legend.spacing = ggplot2::unit(0, "cm"),
       legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
       legend.title = element_blank()) +
