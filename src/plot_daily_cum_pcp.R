@@ -11,7 +11,7 @@
 #' @returns A ggplot2 plot
 #' @examples
 #' DailyCumPcpPlot(data, 2023, 1981, 2010, "2023-09-24")
-DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
+DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date, title) {
   # Calculate historical mean for reference period
   reference_mean_pcp <- data |>
     dtplyr::lazy_dt() |>
@@ -162,7 +162,7 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
     ) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "", title = paste0("Precipitation in Madrid - Retiro ", selected_year),
+      x = "", y = "", title = paste0("Precipitation in ", title, " ", selected_year),
       subtitle = paste0(
         "Cumulative daily precipitation vs. historical mean (",
         ref_start_year, "-", ref_end_year, ")"

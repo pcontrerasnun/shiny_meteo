@@ -1,4 +1,4 @@
-DailyTminTmaxAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
+DailyTminTmaxAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date, title) {
   # Calculate percentiles of tmin across every day of the year
   reference_daily_pcts_tmin <- data |> 
     dtplyr::lazy_dt() |>
@@ -131,7 +131,7 @@ DailyTminTmaxAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_
       labels = function(x) paste0(x, "ºC")) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "", title = "Temperature in Madrid - Retiro",
+      x = "", y = "", title = paste0("Temperature in ", title, " ", selected_year),
       subtitle = paste0("Daily min and max temperature anomalies vs. historical medians (", 
                         ref_start_year, "-", ref_end_year, ")"),
       caption = paste0(

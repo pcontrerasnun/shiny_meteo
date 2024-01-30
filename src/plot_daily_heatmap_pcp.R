@@ -1,4 +1,4 @@
-DailyHeatmapPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
+DailyHeatmapPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date, title) {
   # Calculate daily smoothed empirical distribution for each day
   reference_daily_pcts_pcp <- data |> 
     dtplyr::lazy_dt() |>
@@ -55,7 +55,7 @@ DailyHeatmapPcpPlot <- function(data, selected_year, ref_start_year, ref_end_yea
       na.value = "transparent") +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "", title = paste0("Precipitation in Madrid - Retiro ", selected_year),
+      x = "", y = "", title = paste0("Precipitation in ", title, " ", selected_year),
       subtitle = paste0("Daily precipitation vs. empirical distribution (", ref_start_year, "-", ref_end_year, ")"),
       caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter), https://pablocontreras.shinyapps.io/shiny_meteo/"),
       color = NULL, fill = NULL

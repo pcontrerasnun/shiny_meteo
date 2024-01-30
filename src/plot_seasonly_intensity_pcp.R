@@ -12,7 +12,7 @@
 #' @returns A ggplot2 plot
 #' @examples
 #' IntensityPcpPlot(data, 2023, 1981, 2010, "2023-09-24")
-IntensityPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
+IntensityPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date, title) {
   # Calculate precip intensity in seasons of selected year
   selected_year_season_intensity_pcp <- data |>
     dtplyr::lazy_dt() |>
@@ -86,7 +86,7 @@ IntensityPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, 
                                         "Spring", "Summer", "Autumn")) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "", title = paste0("Precipitation in Madrid - Retiro ", selected_year),
+      x = "", y = "", title = paste0("Precipitation in ", title, " ", selected_year),
       subtitle = paste0(
         "Seasonal precipitation intensity vs. historical values (",
         ref_start_year, "-", ref_end_year, ")"

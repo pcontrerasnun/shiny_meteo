@@ -1,4 +1,4 @@
-HighPcpDaysPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
+HighPcpDaysPlot <- function(data, ref_start_year, ref_end_year, max_date, title) {
   # Calculate number of days per season with more than 25mm
   season_25mm_pcp <- data |>
     dtplyr::lazy_dt() |>
@@ -57,7 +57,7 @@ HighPcpDaysPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
     #ggplot2::scale_y_continuous(labels = function(x) paste0(x, "mm")) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "Days", title = paste0("Precipitation in Madrid - Retiro"),
+      x = "", y = "Days", title = paste0("Precipitation in ", title), 
       subtitle = paste0(
         "Annual number of days with more than 25mm of precipitation (", ref_start_year, "-", ref_end_year, ")"),
       caption = paste0(

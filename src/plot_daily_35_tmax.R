@@ -1,4 +1,4 @@
-HighTmaxDaysPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
+HighTmaxDaysPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date, title) {
   # Calculate percentiles in reference period
   reference_cumdays_35tmax <- data |> 
     dtplyr::lazy_dt() |>
@@ -112,7 +112,7 @@ HighTmaxDaysPlot <- function(data, selected_year, ref_start_year, ref_end_year, 
                                            max(plot_data$cumsumtmax35, na.rm = TRUE)) + 3), by = 5) / 5) * 5) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "Days", title = "Temperature in Madrid - Retiro",
+      x = "", y = "Days", title = paste0("Temperature in ", title, " ", selected_year),
       subtitle = paste0("Annual number of days with max temperature above 35ºC (", 
                         ref_start_year, "-", ref_end_year, ")"),
       caption = paste0(

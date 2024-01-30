@@ -1,4 +1,4 @@
-AnnualTmeanAnomaliesPlot <- function(data, ref_start_year, ref_end_year, max_date) {
+AnnualTmeanAnomaliesPlot <- function(data, ref_start_year, ref_end_year, max_date, title) {
   # Calculate median tmean in reference period
   reference_annual_pcts_tmean <- data |>
     dtplyr::lazy_dt() |>
@@ -52,7 +52,7 @@ AnnualTmeanAnomaliesPlot <- function(data, ref_start_year, ref_end_year, max_dat
                                 labels = function(x) paste0(x, "ºC")) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "", title = "Temperature in Madrid - Retiro",
+      x = "", y = "", title = paste0("Temperature in ", title),
       subtitle = paste0(
         "Annual mean temperatures anomalies vs. historical median (",
         ref_start_year, "-", ref_end_year, ")"

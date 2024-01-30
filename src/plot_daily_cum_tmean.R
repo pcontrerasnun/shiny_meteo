@@ -1,4 +1,4 @@
-DailyCumulativeTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
+DailyCumulativeTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date, title) {
   # Calculate mean cumulative temperature percentiles
   reference_daily_cum_tmean <- data |>
     dtplyr::lazy_dt() |>
@@ -119,7 +119,7 @@ DailyCumulativeTmeanPlot <- function(data, selected_year, ref_start_year, ref_en
                                     max(plot_data$cump100tmean, na.rm = TRUE))) + 2, by = 2) / 5) * 5) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "", title = paste0("Temperature in Madrid - Retiro ", selected_year),
+      x = "", y = "", title = paste0("Temperature in ", title, " ", selected_year),
       subtitle = paste0("Cumulative daily mean temperature vs. historical percentiles (",
                         ref_start_year, "-", ref_end_year, ")"),
       caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter), https://pablocontreras.shinyapps.io/shiny_meteo/")) +

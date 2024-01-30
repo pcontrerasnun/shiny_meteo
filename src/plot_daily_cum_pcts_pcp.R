@@ -11,7 +11,7 @@
 #' @returns A ggplot2 plot
 #' @examples
 #' DailyCumPcpPctsPlot(data, 2023, 1981, 2010, "2023-09-24")
-DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
+DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date, title) {
   # Calculate historical percentiles for reference period
   reference_pcts_pcp <- data |>
     dtplyr::lazy_dt() |>
@@ -217,7 +217,7 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
     ) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "", title = paste0("Precipitation in Madrid - Retiro ", selected_year),
+      x = "", y = "", title = paste0("Precipitation in ", title, " ", selected_year),
       subtitle = paste0("Cumulative daily precipitation vs. historical percentiles (",
                         ref_start_year, "-", ref_end_year, ")"),
       caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter), https://pablocontreras.shinyapps.io/shiny_meteo/")) +

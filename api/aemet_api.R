@@ -16,7 +16,7 @@ library(readr, warn.conflicts = FALSE, quietly = TRUE)
 # ANTES DE AÑADIR ESTACION CREAR SU CARPETA EN LOCAL Y DROPBOX
 # Y GENERAR ANTES HISTORICAL FILE
 # ************************** WARNING ************************** #
-stations <- c("3195", "3129")
+stations <- c("3195", "3129", "2462")
 ref_start_date <- Sys.Date() - 365 
 ref_end_date <- Sys.Date() # Get current date
 
@@ -29,10 +29,18 @@ for (station in stations) {
   print(paste0("Getting from AEMET API last 24h of data for station ", station))
   last_24h_data <- climaemet::aemet_last_obs(station = station, verbose = TRUE)
   
+  # Clean last 24h of data
+  if ("geo850" %in% colnames(last_24h_data)) {
+    last_24h_data_clean <- last_24h_data |> 
+      mutate(geo850value = unlist(last_24h_data$geo850$value)) |> 
+      mutate(geo850present = unlist(last_24h_data$geo850$present)) |> 
+      select(-geo850)
+  }
+  
   # Save last 24h of data
   file <- paste0("~/Escritorio/aemet/", station, "/", format(Sys.time(),"%Y%m%d_%H%M%S"), "_", station, "_last24h.csv.gz")
   readr::write_csv(
-    last_24h_data, 
+    last_24h_data_clean, 
     file = file
   )
   print(paste0("Saved in local storage last 24h of data for station ", station, ": ", file))

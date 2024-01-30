@@ -12,7 +12,7 @@
 #' @returns A ggplot2 plot
 #' @examples
 #' MonthlyRankingPcpPlot(data, 2023, 1981, 2010, "2023-09-24")
-MonthlyRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
+MonthlyRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date, title) {
   # Calculate each month's rank
   reference_monthly_rank_pcp <- data |>
     dtplyr::lazy_dt() |>
@@ -93,7 +93,7 @@ MonthlyRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_y
                         plot_data$maxpcp) + 50)) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "", title = paste0("Precipitation in Madrid - Retiro ", selected_year),
+      x = "", y = "", title = paste0("Precipitation in ", title, " ", selected_year),
       subtitle = paste0("Ranking monthly precipitation vs. historical values (",
                         ref_start_year, "-", ref_end_year, ")"),
       caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter), https://pablocontreras.shinyapps.io/shiny_meteo/"),

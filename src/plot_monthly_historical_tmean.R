@@ -1,4 +1,4 @@
-MonthlyHistoricalTmeanPlot <- function(data, ref_start_year, ref_end_year, max_date) {
+MonthlyHistoricalTmeanPlot <- function(data, ref_start_year, ref_end_year, max_date, title) {
   # Calculate normal mean temp of each month in reference period
   reference_monthly_pcts_tmean <- data |>
     dtplyr::lazy_dt() |>
@@ -49,7 +49,7 @@ MonthlyHistoricalTmeanPlot <- function(data, ref_start_year, ref_end_year, max_d
                                            max(plot_data$tmean, na.rm = TRUE) + 2)) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "", title = "Temperature in Madrid - Retiro",
+      x = "", y = "", title = paste0("Temperature in ", title),
       subtitle = paste0("Historical monthly mean temperature (", ref_start_year, "-", ref_end_year, ")"),
       caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter), https://pablocontreras.shinyapps.io/shiny_meteo/"),
       color = NULL, fill = NULL) +

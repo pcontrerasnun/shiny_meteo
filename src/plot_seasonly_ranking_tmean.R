@@ -1,4 +1,4 @@
-SeasonRankingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
+SeasonRankingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date, title) {
   # Calculate cumulative historical tmean percentiles for each season
   reference_season_cumtmean <- data |> 
     dtplyr::lazy_dt() |>
@@ -199,7 +199,7 @@ SeasonRankingTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_
       labels = function(x) paste0(x, "ºC")) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "", title = "Temperature in Madrid - Retiro",
+      x = "", y = "", title = paste0("Temperature in ", title, " ", selected_year),
       subtitle = paste0(
         "Cumulative seasonal mean temperature vs. historical percentiles (",
         ref_start_year, "-", ref_end_year, ")"),

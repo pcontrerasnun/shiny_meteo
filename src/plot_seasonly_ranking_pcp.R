@@ -1,4 +1,4 @@
-SeasonRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
+SeasonRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date, title) {
   # Calculate season precipitation rank
   reference_season_rank_pcp <- data |>
     dtplyr::lazy_dt() |>
@@ -127,7 +127,7 @@ SeasonRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_ye
       limits = c(0, max(max(plot_data$seasoncumsumpcp, na.rm = TRUE), plot_data$cummaxpcp) + 100)) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "", title = paste0("Precipitation in Madrid - Retiro ", selected_year),
+      x = "", y = "", title = paste0("Precipitation in ", title, " ", selected_year),
       subtitle = paste0("Ranking seasonal precipitation vs. historical values (", 
                         ref_start_year, "-", ref_end_year, ")"),
       caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter), https://pablocontreras.shinyapps.io/shiny_meteo/"),

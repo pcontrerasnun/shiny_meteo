@@ -1,4 +1,4 @@
-YearlyFrostDaysPlot <- function(data, ref_start_year, ref_end_year, max_date) {
+YearlyFrostDaysPlot <- function(data, ref_start_year, ref_end_year, max_date, title) {
   # Calculate number of days with frost per year
   plot_data <- data |> 
     dtplyr::lazy_dt() |>
@@ -22,7 +22,7 @@ YearlyFrostDaysPlot <- function(data, ref_start_year, ref_end_year, max_date) {
       breaks = seq(from = min(plot_data$frostdays), to = max(plot_data$frostdays), by = 5)) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "", title = paste0("Temperature in Madrid - Retiro"),
+      x = "", y = "", title = paste0("Temperature in ", title),
       subtitle = paste0(
         "Annual number of days with frost (", ref_start_year, "-", ref_end_year, ")"),
       caption = paste0(

@@ -1,4 +1,4 @@
-DailyDaylightGainedPlot <- function(data, selected_year, max_date) {
+DailyDaylightGainedPlot <- function(data, selected_year, max_date, title) {
   # Calculate gained or lost daylight minutes per day
   plot_data <- data |> 
     dtplyr::lazy_dt() |>
@@ -39,7 +39,7 @@ DailyDaylightGainedPlot <- function(data, selected_year, max_date) {
     ) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "", title = paste0("Sunlight in Madrid - Retiro ", selected_year),
+      x = "", y = "", title = paste0("Sunlight in ", title, " ", selected_year),
       subtitle = "Gained daylight minutes (daily change)",
       caption = paste0(
         "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter), https://pablocontreras.shinyapps.io/shiny_meteo/"

@@ -1,4 +1,4 @@
-AnnualPcpAnomaliesPlot <- function(data, ref_start_year, ref_end_year, max_date) {
+AnnualPcpAnomaliesPlot <- function(data, ref_start_year, ref_end_year, max_date, title) {
   # Calculate median precipitation in reference period
   reference_annual_pcts_pcp <- data |>
     dtplyr::lazy_dt() |>
@@ -51,7 +51,7 @@ AnnualPcpAnomaliesPlot <- function(data, ref_start_year, ref_end_year, max_date)
                                 labels = function(x) paste0(x, "mm")) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "", title = "Precipitation in Madrid - Retiro",
+      x = "", y = "", title = paste0("Precipitation in ", title),
       subtitle = paste0(
         "Annual total precipitation anomalies vs. historical median (",
         ref_start_year, "-", ref_end_year, ")"

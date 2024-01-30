@@ -1,4 +1,4 @@
-AnnualTmeanDistributionPlot <- function(data, max_date) {
+AnnualTmeanDistributionPlot <- function(data, max_date, title, selected_year) {
   # Calculate mean temperature by year
   reference_annual_tmean <- data |>
     dtplyr::lazy_dt() |>
@@ -29,7 +29,7 @@ AnnualTmeanDistributionPlot <- function(data, max_date) {
                                            by = 1), labels = function(x) paste0(x, "ºC")) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "", title = "Temperature in Madrid - Retiro",
+      x = "", y = "", title = paste0("Temperature in ", title),
       subtitle = paste0(
         "Annual mean temperatures distribution (",
         min(plot_data$year), "-", max(plot_data$year), ")"

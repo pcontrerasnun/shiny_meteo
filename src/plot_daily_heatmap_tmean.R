@@ -1,4 +1,4 @@
-DailyHeatmapTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
+DailyHeatmapTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date, title) {
   # Calculate daily smoothed empirical distribution for each day
   reference_daily_pcts_tmean <- data |> 
     dtplyr::lazy_dt() |>
@@ -56,7 +56,7 @@ DailyHeatmapTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_y
       na.value = "transparent") +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "", title = paste0("Temperature in Madrid - Retiro ", selected_year),
+      x = "", y = "", title = paste0("Temperature in ", title, " ", selected_year),
       subtitle = paste0("Daily mean temperature vs. empirical distribution (", ref_start_year, "-", ref_end_year, ")"),
       caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter), https://pablocontreras.shinyapps.io/shiny_meteo/"),
       color = NULL, fill = NULL

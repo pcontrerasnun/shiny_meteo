@@ -13,7 +13,7 @@
 #' @returns A ggplot2 plot
 #' @examples
 #' SeasonPcpPlot(data, 2023, 1981, 2010, "2023-09-24")
-SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
+SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date, title) {
   # Calculate cumulative historical precipitation percentiles for each season
   reference_cumpcts_season_pcp <- data |>
     dtplyr::lazy_dt() |>
@@ -169,7 +169,7 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
       limits = c(0, max(max(plot_data$cump100pcp), max(plot_data$seasoncumsumpcp, na.rm = TRUE)) + 250)) + # expand = c(0, 20, 0, 50)
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "", title = paste0("Precipitation in Madrid - Retiro ", selected_year),
+      x = "", y = "", title = paste0("Precipitation in ", title, " ", selected_year),
       subtitle = paste0(
         "Cumulative seasonal precipitation vs. historical percentiles (",
         ref_start_year, "-", ref_end_year, ")"),

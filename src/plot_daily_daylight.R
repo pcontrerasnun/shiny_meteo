@@ -1,4 +1,4 @@
-DailySunlightTimesPlot <- function(data, selected_year, max_date) {
+DailySunlightTimesPlot <- function(data, selected_year, max_date, title) {
   # Just select data for selected year and round time
   plot_data <- data |> 
     dtplyr::lazy_dt() |>
@@ -53,7 +53,7 @@ DailySunlightTimesPlot <- function(data, selected_year, max_date) {
                  as.numeric(ymd(paste0(as.numeric(selected_year) + 1), "-01-01")))) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "", title = paste0("Sunlight in Madrid - Retiro ", selected_year),
+      x = "", y = "", title = paste0("Sunlight in ", title, " ", selected_year),
       subtitle = "Sunlight core times (in local time)",
       caption = paste0(
         "Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter), https://pablocontreras.shinyapps.io/shiny_meteo/"

@@ -1,4 +1,4 @@
-MonthlyAnomaliesPcpPlot <- function(data, ref_start_year, ref_end_year, max_date) {
+MonthlyAnomaliesPcpPlot <- function(data, ref_start_year, ref_end_year, max_date, title) {
   # Calculate percentiles of total precip. per month in reference period
   reference_monthly_pcts_pcp <- data |>
     dtplyr::lazy_dt() |>
@@ -44,7 +44,7 @@ MonthlyAnomaliesPcpPlot <- function(data, ref_start_year, ref_end_year, max_date
     ggplot2::scale_y_continuous(labels = function(x) paste0(x, "mm")) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "", title = "Precipitation in Madrid - Retiro",
+      x = "", y = "", title = paste0("Precipitation in ", title),
       subtitle = paste0("Historical monthly precipitation vs. historical median (",
                         ref_start_year, "-", ref_end_year, ")"),
       caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter), https://pablocontreras.shinyapps.io/shiny_meteo/"),

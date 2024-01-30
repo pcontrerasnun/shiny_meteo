@@ -1,4 +1,4 @@
-OverviewPcpTempPlot <- function(data_temp, data_pcp, selected_year, max_date) {
+OverviewPcpTempPlot <- function(data_temp, data_pcp, selected_year, max_date, title) {
   # Precipitation data
   plot_data_pcp <- data_pcp |>     
     dplyr::filter(date >= as.Date(paste0(as.numeric(selected_year), "-01-01")) & 
@@ -44,7 +44,7 @@ OverviewPcpTempPlot <- function(data_temp, data_pcp, selected_year, max_date) {
                  as.numeric(ymd(paste0(selected_year, "-12-31"))))) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "", title = paste0("Precipitation and temperature in Madrid - Retiro ", selected_year),
+      x = "", y = "", title = paste0("Precipitation and temperature in ", title, " ", selected_year),
       subtitle = paste0("Daily precipitation and daily mean temperature"),
       caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter), https://pablocontreras.shinyapps.io/shiny_meteo/")) +
     ggplot2::theme(

@@ -1,4 +1,4 @@
-MonthlyHistoricalMaxTminPlot <- function(data, ref_start_year, ref_end_year, max_date) {
+MonthlyHistoricalMaxTminPlot <- function(data, ref_start_year, ref_end_year, max_date, title) {
   # Calculate max temp for each month and year
   plot_data <- data |> 
     dtplyr::lazy_dt() |>
@@ -52,7 +52,7 @@ MonthlyHistoricalMaxTminPlot <- function(data, ref_start_year, ref_end_year, max
                          to = ceiling(max(plot_data$maxtmin, na.rm = TRUE)) + 2, by = 5) / 5) * 5) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "", title = "Temperature in Madrid - Retiro",
+      x = "", y = "", title = paste0("Temperature in ", title),
       subtitle = paste0("Historical monthly max minimum temperature (", ref_start_year, "-", ref_end_year, ")"),
       caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter), https://pablocontreras.shinyapps.io/shiny_meteo/"),
       color = NULL, fill = NULL) +

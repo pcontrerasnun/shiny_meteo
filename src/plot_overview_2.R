@@ -1,4 +1,4 @@
-OverviewPcpTempPlot2 <- function(data_temp, data_pcp, ref_start_year, ref_end_year, selected_year, max_date) {
+OverviewPcpTempPlot2 <- function(data_temp, data_pcp, ref_start_year, ref_end_year, selected_year, max_date, title) {
   # Calculate median tmean in reference period
   reference_median_tmean <- data_temp |>
     dtplyr::lazy_dt() |>
@@ -66,7 +66,7 @@ OverviewPcpTempPlot2 <- function(data_temp, data_pcp, ref_start_year, ref_end_ye
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
       x = "Precipitation anomaly", y = "Temperature anomaly", 
-      title = paste0("Precipitation and temperature in Madrid - Retiro ", selected_year),
+      title = paste0("Precipitation and temperature in ", title),
       subtitle = paste0("Annual precipitation and annual mean temperature vs. historical medians (", ref_start_year, "-", ref_end_year, ")"),
       caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter), https://pablocontreras.shinyapps.io/shiny_meteo/"),
       color = "Year") +

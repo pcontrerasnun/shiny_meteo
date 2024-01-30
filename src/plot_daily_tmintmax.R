@@ -1,4 +1,4 @@
-DailyTminTmaxPlot <- function(data, data_forecast, selected_year, ref_start_year, ref_end_year, max_date) {
+DailyTminTmaxPlot <- function(data, data_forecast, selected_year, ref_start_year, ref_end_year, max_date, title) {
   # Calculate percentiles of tmax across every day of the year
   reference_daily_pcts_tmax <- data |> 
     dtplyr::lazy_dt() |>
@@ -171,7 +171,7 @@ DailyTminTmaxPlot <- function(data, data_forecast, selected_year, ref_start_year
                  max(max(plot_data$p95tmax) + 4, max(plot_data$tmax, na.rm = TRUE)) + 2)) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "", title = paste0("Temperature in Madrid - Retiro ", selected_year),
+      x = "", y = "", title = paste0("Temperature in ", title, " ", selected_year),
       subtitle = paste0(
         "Daily min and max temperatures vs. historical percentiles (", ref_start_year, "-", ref_end_year, ")"),
       caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter), https://pablocontreras.shinyapps.io/shiny_meteo/")

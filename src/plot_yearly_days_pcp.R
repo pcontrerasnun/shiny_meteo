@@ -1,4 +1,4 @@
-AnnualDaysWithPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date) {
+AnnualDaysWithPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date, title) {
   # Calculate number of days with precip. in each year and total precip. in each year
   plot_data <- data |> 
     dtplyr::lazy_dt() |>
@@ -35,7 +35,7 @@ AnnualDaysWithPcpPlot <- function(data, selected_year, ref_start_year, ref_end_y
     ) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      y = "Annual total precip.", x = "Days with precip.", title = "Precipitation in Madrid - Retiro",
+      y = "Annual total precip.", x = "Days with precip.", title = paste0("Precipitation in ", title, " ", selected_year),
       subtitle = paste0(
         "Annual number of days with precipitation (",
         min(plot_data$year), "-", max(plot_data$year), ")"),

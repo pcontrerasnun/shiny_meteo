@@ -1,4 +1,4 @@
-AnnualPcpDistributionPlot <- function(data, max_date) {
+AnnualPcpDistributionPlot <- function(data, max_date, title) {
   # Calculate total precipitation by year
   reference_anual_total_pcp <- data |>
     dtplyr::lazy_dt() |>
@@ -49,7 +49,7 @@ AnnualPcpDistributionPlot <- function(data, max_date) {
 #                      parse = TRUE, hjust = -0.05, vjust = 0.5, size = 5.5) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "", title = "Precipitation in Madrid - Retiro ",
+      x = "", y = "", title = paste0("Precipitation in ", title),
       subtitle = paste0(
         "Anual total precipitation distribution (",
         min(plot_data$year), "-", max(plot_data$year), ")"

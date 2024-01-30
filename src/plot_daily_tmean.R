@@ -1,4 +1,4 @@
-DailyTmeanPlot <- function(data, data_forecast, selected_year, ref_start_year, ref_end_year, max_date) {
+DailyTmeanPlot <- function(data, data_forecast, selected_year, ref_start_year, ref_end_year, max_date, title) {
   # Calculate percentiles of tmean across every day of the year
   reference_daily_pcts_tmean <- data |> 
     dtplyr::lazy_dt() |>
@@ -173,7 +173,7 @@ DailyTmeanPlot <- function(data, data_forecast, selected_year, ref_start_year, r
     ) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
-      x = "", y = "", title = paste0("Temperature in Madrid - Retiro ", selected_year),
+      x = "", y = "", title = paste0("Temperature in ", title, " ", selected_year),
       subtitle = paste0(
         "Daily mean temperature vs. historical percentiles (", ref_start_year, "-", ref_end_year, ")"),
       caption = paste0("Updated: ", max_date, " | Source: AEMET OpenData | Graph: @Pcontreras95 (Twitter), https://pablocontreras.shinyapps.io/shiny_meteo/")
