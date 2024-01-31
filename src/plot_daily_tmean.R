@@ -29,7 +29,7 @@ DailyTmeanPlot <- function(data, data_forecast, selected_year, ref_start_year, r
     dplyr::ungroup() |> 
     dplyr::mutate(date = as.Date(paste(selected_year, month, day, sep = "-"), format = "%Y-%m-%d")) |> 
     dplyr::filter(!is.na(date))
-  
+
   # Get daily mean temperatures
   selected_year_daily_tmean <- data |>     
     dtplyr::lazy_dt() |>
