@@ -67,11 +67,16 @@ DailyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_end
                  "tmean" = paste0("Daily mean temp. (", selected_year, ")")),
       breaks = c("p95", "p50", "tmean", "p05")) + # To give order
     ggrepel::geom_label_repel(
-      data = if ((sum(!is.na(plot_data$tmean)) <= 30)) { # if less than 30 days of data
+      data = if ((sum(!is.na(plot_data$tmean)) <= 60)) { # if less than 60 days of data
         rbind(head(plot_data, 1), tail(plot_data |> na.omit(), 1)) } # only show 1 label
         else { rbind(head(plot_data, 3), tail(plot_data |> na.omit(), 3)) }, # else show 3 labels
       aes(y = tmean, label = paste0(ifelse(diffmedian > 0, "+", ""), diffmedian, "ºC")),
       na.rm = TRUE) +
+    ggplot2::geom_point(
+      data = if ((sum(!is.na(plot_data$tmean)) <= 60)) { # if less than 60 days of data
+        rbind(head(plot_data, 1), tail(plot_data |> na.omit(), 1)) } # only show 1 label
+      else { rbind(head(plot_data, 3), tail(plot_data |> na.omit(), 3)) }, # else show 3 labels
+      size = 2, stroke = 0.5, fill = NA) +
     ggplot2::scale_x_continuous(
       breaks = as.numeric(seq(ymd(paste0(selected_year, "-01-01")), 
                               ymd(paste0(selected_year, "-12-31")), by = "month")),

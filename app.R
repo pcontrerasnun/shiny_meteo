@@ -25,11 +25,11 @@
 # - pensar politica borrados ficheros maquina y de logs
 # - investigar porque navacerrada tarda 30 min mas que retiro
 # - leyenda grafico cumtmean un poco mas a la derecha, a ppo de año hay mucha dispersion
-# - color max min monthly pcp verde y morado, no rojo y verde cantosos
-# - poner punto en grafico anomalies porque a veces el label no se sabe de que día es
-# - info_messages
-# - withprogress bar plots
 # - cache plots
+# - nuevo grafico temp y pcp doble eje
+# - leyenda en graficos 5 y 6 y 8 y 9 pcp para pto navacerrada
+# - investigar porque tantos decimales en data
+# - meter Izaña
 
 library(shiny, warn.conflicts = FALSE, quietly = TRUE)
 library(shinyjs, warn.conflicts = FALSE, quietly = TRUE)
@@ -57,20 +57,23 @@ library(DT, warn.conflicts = FALSE, quietly = TRUE)
 
 # Code outside 'ui' and 'server' only runs once when app is launched
 # Plot dictionaries
-plot_choices_tmean <- c(
+plot_choices_overview <- c(
   "1. Overview" = "1",
-  "2. Overview (2)" = "2",
-  "3. Daily mean temp. (cumulative)" = "3-tmean",
-  "4. Daily mean temp. (vs. percentiles)" = "4-tmean",
-  "5. Daily mean temp. (anomalies)" = "5-tmean",
-  "6. Daily mean temp. (heatmap) " = "6-tmean",
-  "7. Monthly mean temp. (anomalies)" = "7-tmean",
-  "8. Monthly mean temp. (historical)" = "8-tmean",
-  "9. Monthly mean temp. (ranking)" = "9-tmean",
-  "10. Seasonal mean temp. (ranking)" = "10-tmean",
-  "11. Annual mean temp. (anomalies)" = "11-tmean",
-  "12. Annual mean temp. (distribution)" = "12-tmean",
-  "13. Annual mean temp. (density)" = "13-tmean"
+  "2. Overview (2)" = "2"
+)
+
+plot_choices_tmean <- c(
+  "1. Daily mean temp. (cumulative)" = "1-tmean",
+  "2. Daily mean temp. (vs. percentiles)" = "2-tmean",
+  "3. Daily mean temp. (anomalies)" = "3-tmean",
+  "4. Daily mean temp. (heatmap) " = "4-tmean",
+  "5. Monthly mean temp. (anomalies)" = "5-tmean",
+  "6. Monthly mean temp. (historical)" = "6-tmean",
+  "7. Monthly mean temp. (ranking)" = "7-tmean",
+  "8. Seasonal mean temp. (ranking)" = "8-tmean",
+  "9. Annual mean temp. (anomalies)" = "9-tmean",
+  "10. Annual mean temp. (distribution)" = "10-tmean",
+  "11. Annual mean temp. (density)" = "11-tmean"
 )
 
 plot_choices_tminmax <- c(
@@ -89,21 +92,19 @@ plot_choices_tminmax <- c(
 )
 
 plot_choices_pcp <- c(
-  "1. Overview" = "1",
-  "2. Overview (2)" = "2",
-  "3. Daily precip. (heatmap)" = "3-pcp",
-  "4. Daily cumulative precip. (vs. percentiles)" = "4-pcp",
-  "5. Daily cumulative precip. (vs. mean)" = "5-pcp",
-  "6. Number of days with more than 25mm of precip." = "6-pcp",
-  "7. Monthly precip. (vs. percentiles)" = "7-pcp",
-  "8. Monthly precip. (ranking)" = "8-pcp",
-  "9. Monthly precip. (historical)" = "9-pcp",
-  "10. Seasonal precip. (vs. percentiles)" = "10-pcp",
-  "11. Seasonal precip. (ranking)" = "11-pcp",
-  "12. Seasonal precip. intensity" = "12-pcp",
-  "13. Annual precip. (anomalies)" = "13-pcp",
-  "14. Annual precip. (distribution)" = "14-pcp",
-  "15. Annual precip. (days with precip.)" = "15-pcp"
+  "1. Daily precip. (heatmap)" = "1-pcp",
+  "2. Daily cumulative precip. (vs. percentiles)" = "2-pcp",
+  "3. Daily cumulative precip. (vs. mean)" = "3-pcp",
+  "4. Number of days with more than 25mm of precip." = "4-pcp",
+  "5. Monthly precip. (vs. percentiles)" = "5-pcp",
+  "6. Monthly precip. (ranking)" = "6-pcp",
+  "7. Monthly precip. (historical)" = "7-pcp",
+  "8. Seasonal precip. (vs. percentiles)" = "8-pcp",
+  "9. Seasonal precip. (ranking)" = "9-pcp",
+  "10. Seasonal precip. intensity" = "10-pcp",
+  "11. Annual precip. (anomalies)" = "11-pcp",
+  "12. Annual precip. (distribution)" = "12-pcp",
+  "13. Annual precip. (days with precip.)" = "13-pcp"
 )
 
 plot_choices_daylight <- c(
@@ -112,28 +113,28 @@ plot_choices_daylight <- c(
 )
 
 # Info messages dictionary
-info_messages <- c(
+info_messages <- list(
   "2" = "Anomaly value refers to the difference from the median. It doesn't make sense to look 
                   at this graph at the beginning of a year since the variations will be large, and 
                   possibly the year's data will be outside the chart's limits",
-  "4-tmean" = p("To calculate the percentiles for each day, a time window of +- 15 days (1 month) 
+  "2-tmean" = p("To calculate the percentiles for each day, a time window of +- 15 days (1 month) 
                        is taken with respect to the day in question.", strong("Year of study"), "not 
                        included in percentiles calculation"),
-  "5-tmean" = p("To calculate the percentiles for each day, a time window of +- 15 days (1 month) 
+  "3-tmean" = p("To calculate the percentiles for each day, a time window of +- 15 days (1 month) 
                        is taken with respect to the day in question.", strong("Year of study"), "not 
                        included in percentiles calculation"),
-  "6-tmean" = "Percentiles are calculated using the empirical (observed) distribution, without 
+  "4-tmean" = "Percentiles are calculated using the empirical (observed) distribution, without 
                         fitting the series to a normal distribution",
-  "9-tmean" = p("Ranking is calculated only with years included in", strong("Reference period")),
-  "10-tmean" = p("Ranking is calculated only with years included in ", strong("Reference period."), 
+  "7-tmean" = p("Ranking is calculated only with years included in", strong("Reference period")),
+  "8-tmean" = p("Ranking is calculated only with years included in ", strong("Reference period."), 
                  "Anomaly labels refers to the difference from the median"),
-  "12-tmean" = "Years at the top of a bar are hotter than the ones at the bottom",
-  "8-pcp" = p("Ranking is calculated only with years included in", strong("Reference period")),
-  "11-pcp" = p("Ranking is calculated only with years included in", strong("Reference period")),
-  "12-pcp" = "Intensity is calculated as total precipitation in season divided by total days
+  "10-tmean" = "Years at the top of a bar are hotter than the ones at the bottom",
+  "6-pcp" = p("Ranking is calculated only with years included in", strong("Reference period")),
+  "9-pcp" = p("Ranking is calculated only with years included in", strong("Reference period")),
+  "10-pcp" = "Intensity is calculated as total precipitation in season divided by total days
                       with precipitation in season",
-  "13-pcp" = "Anomaly labels refers to the difference from the median",
-  "14-pcp" = "Years at the top of a bar have more precipitation than the ones at the bottom",
+  "11-pcp" = "Anomaly labels refers to the difference from the median",
+  "12-pcp" = "Years at the top of a bar have more precipitation than the ones at the bottom",
   "No extra info provided",
   "1-tminmax" = p("To calculate the percentiles for each day, a time window of +- 15 days (1 month) 
                          is taken with respect to the day in question.", strong("Year of study"), "not 
@@ -147,68 +148,16 @@ info_messages <- c(
 stations_dict <- list(
   "3195" = list(title = "Madrid - Retiro", mun_code = 28079),
   "3129" = list(title = "Madrid - Aeropuerto", mun_code = 28079),
-  "2462" = list(title = "Madrid - Pto Navacerrada", mun_code = 28093)
+  "2462" = list(title = "Madrid - Pto Navacerrada", mun_code = 28093),
+  "C430E" = list(title = "Sta Cruz de Tenerife - Izaña", mun_code = 38026)
 )
 
 # Load all functions
 invisible(lapply(list.files(path = here::here("src"), full.names = TRUE), source))
 invisible(lapply(list.files(path = here::here("helpers"), full.names = TRUE), source))
 
-# Initialize
-#station <- "3195"
-#data_aemet <- FetchAEMETData(station = station)
-#data_clean <- data_aemet[[1]]
-#max_date <- data_aemet[[2]]
-#data_forecast <- FetchForecastData(mun_code = stations_dict[[station]]$mun_code)
-#data_sunlight <- FetchSunlightData(station = station)
-
 # Load AEMET OpenData API key
 Sys.getenv("AEMET_API_KEY")
-
-# Parameters
-#station <- 3129
-#mun_code <- 28079
-#ref_start_year <- 1920
-#ref_end_year <- 2023
-#selected_year <- 2023
-
-# Get sunlight times from Dropbox
-#search <- rdrop2::drop_search(paste0(station, "_sunlighttimes"))
-#file <- search$matches[[1]]$metadata$path_lower # Get last sunlight file
-#print(paste0("Downloading from Dropbox sunlight data for station ", station, ": ", file))
-#data_sunlight <- rdrop2::drop_read_csv(
-#  file, colClasses = c(date = "Date", sunrise = "POSIXct", sunset = "POSIXct", solarNoon = "POSIXct",
-#                       dawn = "POSIXct", dusk = "POSIXct"))
-#
-## Get historical data from Dropbox
-#search <- rdrop2::drop_search(paste0(station, "_complete"))
-#file <- search$matches[[1]]$metadata$path_lower # Get last historical file
-#print(paste0("Downloading from Dropbox historical data for station ", station, ": ", file))
-#data_clean <- rdrop2::drop_read_csv(
-#  file, colClasses = c(day = "character", month = "character", date = "Date"))
-#
-## Calculate datetime last data based on file name
-#max_date <- paste(format(floor_date(strptime(sub(".*/(\\d{8}_\\d{6}).*", "\\1", file), format = "%Y%m%d_%H%M%S"), unit = "hours"),
-#                         "%Y-%m-%d %H:%M"), "UTC")
-#
-## Get forecast data
-#forecast <- climaemet::aemet_forecast_daily(mun_code)
-#
-## Clean data
-#data_pcp <- data_clean |> # Remove years with more than 50% of pcp values missing
-#  dplyr::group_by(year) |> dplyr::mutate(missing_pcp = mean(is.na(pcp))) |> 
-#  dplyr::ungroup() |> dplyr::filter(missing_pcp < 0.5) |> 
-#  dplyr::select(date, day, month, year, pcp)
-#
-#data_temp <- data_clean |> # Remove years with more than 50% of tmean values missing
-#  dplyr::group_by(year) |> dplyr::mutate(missing_tmean = mean(is.na(tmean))) |> 
-#  dplyr::ungroup() |> dplyr::filter(missing_tmean < 0.5) |> 
-#  dplyr::select(date, day, month, year, tmin, tmax, tmean)
-#
-#data_forecast <- climaemet::aemet_forecast_tidy(forecast, "temperatura") |> 
-#  dplyr::rename(tmax = temperatura_maxima, tmin = temperatura_minima, date = fecha) |> 
-#  dplyr::mutate(tmean = (tmax + tmin)/2) |> 
-#  dplyr::select(date, tmin, tmax, tmean)
 
 # Define UI ----
 # fluidPage creates a display that automatically adjusts to the dimensions of your user’s
@@ -238,7 +187,8 @@ ui <- shiny::fluidPage(
             choices = c(
               "Madrid - Retiro" = "3195",
               "Madrid - Pto Navacerrada" = "2462",
-              "Madrid - Aeropuerto" = "3129"
+              "Madrid - Aeropuerto" = "3129",
+              "Sta Cruz de Tenerife - Izaña" = "C430E"
             ),
             selected = "3195"
           )
@@ -263,7 +213,8 @@ ui <- shiny::fluidPage(
       shiny::selectInput(
         inputId = "variable",
         label = "Variable",
-        choices = c("Mean temperature (00h-24h)", 
+        choices = c("Temperature & precipiation overviews",
+                    "Mean temperature (00h-24h)", 
                     "Min/max temperatures (00h-24h)", 
                     paste0("Precipitation (07h-07h", "\u207A", "\u00B9", ")"),
                     "Sunlight")
@@ -365,6 +316,8 @@ server <- function(input, output, session) {
       plot_choices <- plot_choices_tminmax
     } else if (input$variable == "Sunlight") {
       plot_choices <- plot_choices_daylight
+    } else if (input$variable == "Temperature & precipiation overviews") {
+      plot_choices <- plot_choices_overview
     }
     
     updateSelectInput(session, "plot", choices = plot_choices)
@@ -380,6 +333,8 @@ server <- function(input, output, session) {
       plot_choices <- plot_choices_tminmax
     } else if (input$variable == "Sunlight") {
       plot_choices <- plot_choices_daylight
+    } else if (input$variable == "Temperature & precipiation overviews") {
+      plot_choices <- plot_choices_overview
     }
     current_index <- match(input$plot, plot_choices)
     
@@ -393,7 +348,8 @@ server <- function(input, output, session) {
   
   # Configure "info" message depending on selected plot
   info_message <- shiny::reactive({
-    switch(input$plot, info_messages)
+    #switch(input$plot, info_messages)
+    do.call(switch, c(list(input$plot), info_messages))
   })
   
   # Configure "info" button
@@ -429,127 +385,127 @@ server <- function(input, output, session) {
            data_temp = newData()[[1]], data_pcp = newData()[[2]], selected_year = input$year,
            max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
         ),
-        "4-pcp" = DailyCumPcpPctsPlot(
+        "2-pcp" = DailyCumPcpPctsPlot(
           data = newData()[[2]], selected_year = input$year,
           ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
           ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
           max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
         ),
-        "5-pcp" = DailyCumPcpPlot(
+        "3-pcp" = DailyCumPcpPlot(
           data = newData()[[2]], selected_year = input$year,
           ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
           ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
           max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
         ),
-        "6-pcp" = HighPcpDaysPlot(
+        "4-pcp" = HighPcpDaysPlot(
           data = newData()[[2]],
           ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
           ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
           max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
         ),
-        "10-pcp" = SeasonPcpPlot(
+        "8-pcp" = SeasonPcpPlot(
           data = newData()[[2]], selected_year = input$year,
           ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
           ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
           max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
         ),
-        "11-pcp" = SeasonRankingPcpPlot(
+        "9-pcp" = SeasonRankingPcpPlot(
           data = newData()[[2]], selected_year = input$year,
           ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
           ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
           max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
         ),
-        "7-pcp" = MonthlyPcpPlot(
+        "5-pcp" = MonthlyPcpPlot(
           data = newData()[[2]], selected_year = input$year,
           ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
           ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
           max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
         ),
-        "8-pcp" = MonthlyRankingPcpPlot(
+        "6-pcp" = MonthlyRankingPcpPlot(
           data = newData()[[2]], selected_year = input$year,
           ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
           ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
           max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
         ),
-        "9-pcp" = MonthlyAnomaliesPcpPlot(
+        "7-pcp" = MonthlyAnomaliesPcpPlot(
           data = newData()[[2]],
           ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
           ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
           max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
         ),
-        "12-pcp" = IntensityPcpPlot(
+        "10-pcp" = IntensityPcpPlot(
           data = newData()[[2]], selected_year = input$year,
           ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
           ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
           max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
         ),
-        "14-pcp" = AnnualPcpDistributionPlot(
+        "12-pcp" = AnnualPcpDistributionPlot(
           data = newData()[[2]], max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
         ),
-        "7-tmean" = MonthlyTmeanAnomaliesPlot(
+        "5-tmean" = MonthlyTmeanAnomaliesPlot(
           data = newData()[[1]], selected_year = input$year,
           ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
           ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
           max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
         ),
-        "3-tmean" = DailyCumulativeTmeanPlot(
+        "1-tmean" = DailyCumulativeTmeanPlot(
           data = newData()[[1]], selected_year = input$year,
           ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
           ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
           max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
         ),
-        "11-tmean" = AnnualTmeanAnomaliesPlot(
+        "9-tmean" = AnnualTmeanAnomaliesPlot(
           data = newData()[[1]],
           ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
           ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
           max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
         ),
-        "12-tmean" = AnnualTmeanDistributionPlot(
+        "10-tmean" = AnnualTmeanDistributionPlot(
           data = newData()[[1]], max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
         ),
-        "13-pcp" = AnnualPcpAnomaliesPlot(
+        "11-pcp" = AnnualPcpAnomaliesPlot(
           data = newData()[[2]],
           ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
           ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
           max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
         ),
-        "8-tmean" = MonthlyHistoricalTmeanPlot(
+        "6-tmean" = MonthlyHistoricalTmeanPlot(
           data = newData()[[1]],
           ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
           ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
           max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
         ),
-        "4-tmean" = DailyTmeanPlot(
+        "2-tmean" = DailyTmeanPlot(
           data = newData()[[1]], data_forecast = newData()[[4]], selected_year = input$year,
           ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
           ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
           max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
         ),
-        "5-tmean" = DailyTmeanAnomaliesPlot(
+        "3-tmean" = DailyTmeanAnomaliesPlot(
           data = newData()[[1]], selected_year = input$year,
           ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
           ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
           max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
         ),
-        "15-pcp" = AnnualDaysWithPcpPlot(
+        "13-pcp" = AnnualDaysWithPcpPlot(
           data = newData()[[2]], selected_year = input$year,
           ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
           ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
           max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
         ),
-        "9-tmean" = MonthlyRankingTmeanPlot(
+        "7-tmean" = MonthlyRankingTmeanPlot(
           data = newData()[[1]], selected_year = input$year,
           ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
           ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
           max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
         ),
-        "6-tmean" = DailyHeatmapTmeanPlot(
+        "4-tmean" = DailyHeatmapTmeanPlot(
           data = newData()[[1]], selected_year = input$year,
           ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
           ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
           max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
         ),
-        "10-tmean" = SeasonRankingTmeanPlot(
+        "8-tmean" = SeasonRankingTmeanPlot(
           data = newData()[[1]], selected_year = input$year,
           ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
           ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
@@ -561,7 +517,7 @@ server <- function(input, output, session) {
           ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
           max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
         ),
-        "13-tmean" = DensityTmeanPlot(
+        "11-tmean" = DensityTmeanPlot(
           data = newData()[[1]], selected_year = input$year,
           ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
           ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
@@ -635,7 +591,7 @@ server <- function(input, output, session) {
           ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
           max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
         ),
-        "3-pcp" = DailyHeatmapPcpPlot(
+        "1-pcp" = DailyHeatmapPcpPlot(
           data = newData()[[2]], selected_year = input$year,
           ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
           ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
@@ -658,12 +614,12 @@ server <- function(input, output, session) {
   }) 
 
   # Display plot
-  output$plot <- shiny::renderCachedPlot({
+  output$plot <- shiny::renderPlot({ # renderCachedPlot
       plot()[[1]]
-  },
-  cacheKeyExpr = {
-    list(input$year, input$variable, input$ref_period, input$plot, input$station_id)
-    }
+  } # ,
+#  cacheKeyExpr = {
+#    list(input$year, input$variable, input$ref_period, input$plot, input$station_id)
+#    }
   )
   
   # Display values/data

@@ -100,7 +100,7 @@ DailyTminTmaxAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_
                  "tmax" = paste0("Daily max temp. (", selected_year, ")")),
       breaks = c("tmax", "p50tmax", "tmin", "p50tmin")) + # To give order
     ggrepel::geom_label_repel(
-      data = if ((sum(!is.na(plot_data$tmin)) <= 30)) { # if less than 30 days of data
+      data = if ((sum(!is.na(plot_data$tmin)) <= 60)) { # if less than 60 days of data
         rbind(head(plot_data |> arrange(diffmediantmin), 1), tail(plot_data |> arrange(diffmediantmin) 
                                                                   |> na.omit(), 1)) } # only show 1 label
       else { rbind(head(plot_data |> arrange(diffmediantmin), 3), tail(plot_data |> arrange(diffmediantmin) |> # else show 3 labels
@@ -108,13 +108,27 @@ DailyTminTmaxAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_
       aes(y = tmin, label = paste0(ifelse(diffmediantmin > 0, "+", ""), diffmediantmin, "ºC")),
       fill = '#d1e5f0', na.rm = TRUE) + 
     ggrepel::geom_label_repel(
-      data = if ((sum(!is.na(plot_data$tmax)) <= 30)) { # if less than 30 days of data
+      data = if ((sum(!is.na(plot_data$tmax)) <= 60)) { # if less than 60 days of data
         rbind(head(plot_data |> arrange(diffmediantmax), 1), tail(plot_data |> arrange(diffmediantmax) 
                                                                   |> na.omit(), 1)) } # only show 1 label
       else { rbind(head(plot_data |> arrange(diffmediantmax), 3), tail(plot_data |> arrange(diffmediantmax) |> # else show 3 labels
                                                                          na.omit(), 3)) },
       aes(y = tmax, label = paste0(ifelse(diffmediantmax > 0, "+", ""), diffmediantmax, "ºC")),
       fill = "#fddbc7", na.rm = TRUE) +
+    ggplot2::geom_point(
+      data = if ((sum(!is.na(plot_data$tmin)) <= 60)) { # if less than 60 days of data
+        rbind(head(plot_data |> arrange(diffmediantmin), 1), tail(plot_data |> arrange(diffmediantmin) 
+                                                                  |> na.omit(), 1)) } # only show 1 label
+      else { rbind(head(plot_data |> arrange(diffmediantmin), 3), tail(plot_data |> arrange(diffmediantmin) |> # else show 3 labels
+                                                                         na.omit(), 3)) },
+      aes(y = tmin), size = 2, stroke = 0.5, fill = NA) +
+    ggplot2::geom_point(
+      data = if ((sum(!is.na(plot_data$tmax)) <= 60)) { # if less than 60 days of data
+        rbind(head(plot_data |> arrange(diffmediantmax), 1), tail(plot_data |> arrange(diffmediantmax) 
+                                                                  |> na.omit(), 1)) } # only show 1 label
+      else { rbind(head(plot_data |> arrange(diffmediantmax), 3), tail(plot_data |> arrange(diffmediantmax) |> # else show 3 labels
+                                                                         na.omit(), 3)) },
+      aes(y = tmax), size = 2, stroke = 0.5, fill = NA) +
     ggplot2::scale_x_continuous(
       breaks = as.numeric(seq(ymd(paste0(selected_year, "-01-01")), 
                               ymd(paste0(selected_year, "-12-31")), by = "month")),

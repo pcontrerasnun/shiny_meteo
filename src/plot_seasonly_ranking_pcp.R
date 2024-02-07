@@ -113,7 +113,7 @@ SeasonRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_ye
       paste0("Feb", (as.numeric(selected_year) + 1) %% 100)
     )) +
     ggplot2::scale_color_manual(breaks = c("max", "mean", "min"),
-      values = c("mean" = "black", "max" = "#4daf4a", "min" = "#d7191c"),
+      values = c("mean" = "black", "max" = "#4d004b", "min" = "#bfd3e6"),
       labels = c("mean" = paste0("Cumulative mean seasonal precip. (", ref_start_year, "-", ref_end_year, ")"),
                  "max" = paste0("Cumulative max seasonal precip. (", ref_start_year, "-", ref_end_year, ")"),
                  "min" = paste0("Cumulative min seasonal precip. (", ref_start_year, "-", ref_end_year, ")"))) +

@@ -72,9 +72,9 @@ DailyCumPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, m
   
   annotate_labels <- data.frame(
     label = c(
-      paste0("atop(Precip.~", max(annotate_data$cumsumpcp), "*mm,list(", sign, # Current precip.
-            annotate_data[mlr3misc::which_max(annotate_data$cumsumpcp, ties_method = "last"), ]$diffmean, # absolute diff
-            "*mm,", annotate_data[which.max(annotate_data$date), ]$percentage, "))"), # % diff
+      paste0("atop(Precip.~", head(annotate_data, 1)$cumsumpcp, "*mm,list(", sign, # Current precip.
+             head(annotate_data, 1)$diffmean, # absolute diff
+            "*mm,", head(annotate_data, 1)$percentage, "))"), # % diff
       if (sum(annotate_data$diffmean < 0) > 0) { # Only create label if there has been deficit
       paste(min(annotate_data$diffmean), "*mm~vs.~italic(mean)")},
       if (sum(annotate_data$diffmean > 0) > 0) { # Only create label if there has been superavit

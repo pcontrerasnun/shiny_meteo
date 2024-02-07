@@ -78,7 +78,7 @@ MonthlyRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_y
       limits = c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"),
       labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")) +
     ggplot2::scale_color_manual(breaks = c("max", "mean", "min"),
-      values = c("mean" = "black", "max" = "#4daf4a", "min" = "#d7191c"),      
+      values = c("mean" = "black", "max" = "#4d004b", "min" = "#bfd3e6"),      
       labels = c("mean" = paste0("Monthly mean precip. (", ref_start_year, "-", ref_end_year, ")"),
                  "max" = paste0("Monthly max precip. (", ref_start_year, "-", ref_end_year, ")"),
                  "min" = paste0("Monthly min precip. (", ref_start_year, "-", ref_end_year, ")"))) +
@@ -122,7 +122,7 @@ MonthlyRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_y
         selected_year, " ",
         subset(selected_year_monthly_pcp, month == mes)$sumpcp, "mm"
       ),
-      family = "sans", size = 3.25, hjust = 0.5, vjust = 3
+      family = "sans", size = 3.5, hjust = 0.5, vjust = 3
     )
   }
 
