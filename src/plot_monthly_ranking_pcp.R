@@ -87,10 +87,10 @@ MonthlyRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_y
       labels = c("sumpcp" = paste0("Monthly total precip. (", selected_year, ")"))) +
     ggplot2::scale_y_continuous(
       labels = function(x) paste0(x, "mm"), 
-      breaks = seq(from = 0, to = max(max(plot_data$sumpcp, na.rm = TRUE), 
-                                      plot_data$maxpcp) + 50, by = 25),
-      limits = c(0, max(max(plot_data$sumpcp, na.rm = TRUE), 
-                        plot_data$maxpcp) + 50)) +
+      breaks = seq(from = 0, to = max(max(plot_data$sumpcp, na.rm = TRUE), plot_data$maxpcp)
+                   + max(max(plot_data$sumpcp, na.rm = TRUE), plot_data$maxpcp) * 0.66, by = 50), # add 2/3 of max pcp value for legend
+      limits = c(0, max(max(plot_data$sumpcp, na.rm = TRUE), plot_data$maxpcp)
+                 + max(max(plot_data$sumpcp, na.rm = TRUE), plot_data$maxpcp) * 0.66)) + # add 2/3 of max pcp value for legend
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
       x = "", y = "", title = paste0("Precipitation in ", title, " ", selected_year),

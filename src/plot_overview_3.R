@@ -10,13 +10,15 @@ OverviewPcpTempPlot3 <- function(data_temp, data_pcp, selected_year, max_date, t
                     date <= as.Date(paste0(as.numeric(selected_year), "-12-31")))
   
   plot_data <- dplyr::left_join(plot_data_temp, plot_data_pcp, by = c("date", "day", "month", "year")) |> 
-    dplyr::select(-c(day, month))
+    dplyr::select(-c(day, month, year))
+  
+  scale <- abs((round(seq(from = round(min(plot_data$tmin, na.rm = TRUE) - 5), to = 45, by = 5) / 5) * 5)[1])
   
   ggplot2::ggplot(data = plot_data, aes(x = date)) +
+    ggplot2::geom_col(aes(y = pcp, fill = "pcp"), na.rm = TRUE) +
     ggplot2::geom_line(aes(y = tmean, color = "tmean")) +
     ggplot2::geom_line(aes(y = tmax, color = "tmax")) +
     ggplot2::geom_line(aes(y = tmin, color = "tmin")) +
-    ggplot2::geom_col(aes(y = pcp, fill = "pcp")) +
     ggplot2::scale_fill_manual(
       values = c("pcp" = "#2c7bb6"), 
       label = paste0("Daily pcp."), guide = guide_legend(order = 1)) +
@@ -24,10 +26,16 @@ OverviewPcpTempPlot3 <- function(data_temp, data_pcp, selected_year, max_date, t
       values = c("tmean" = "black", "tmin" = "blue", "tmax" = "red"), 
       label = c("tmean" = "Daily mean temp.", "tmin" = "Daily min temp.", "tmax" = "Daily max temp.")) +
     ggplot2::scale_y_continuous(
-      labels = function(x) paste0(x, "mm"),
-      sec.axis = sec_axis(trans = ~sqrt(.), labels = function(x) paste0(x, "ºC"),
-      breaks = round(seq(from = round(min(plot_data$tmin, na.rm = TRUE) - 4), 
-                         to = round(max(plot_data$tmax, na.rm = TRUE) + 3), by = 5) / 5) * 5)) +
+      labels = function(x) paste0(x, "ºC"),
+      breaks = round(seq(from = round(min(plot_data$tmin, na.rm = TRUE) - 5), to = 45, by = 5) / 5) * 5,
+      limits = c(min(plot_data$tmin, na.rm = TRUE) - 5, 45), 
+      sec.axis = sec_axis(trans = ~. +scale, labels = function(x) paste0(x, "mm")
+#                         breaks = round(seq(from = round(min(plot_data$pcp, na.rm = TRUE) - 4),
+#                                            to = 40, by = 5) / 5) * 5
+                          )
+#      breaks = round(seq(from = round(min(plot_data$tmin, na.rm = TRUE) - 4), 
+#                         to = round(max(plot_data$tmax, na.rm = TRUE) + 3), by = 5) / 5) * 5)
+      ) +
     ggplot2::scale_x_continuous(
       breaks = as.numeric(seq(ymd(paste0(selected_year, "-01-15")), 
                               ymd(paste0(selected_year, "-12-31")), by = "month")),
@@ -49,5 +57,6 @@ OverviewPcpTempPlot3 <- function(data_temp, data_pcp, selected_year, max_date, t
       legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
       legend.title = element_blank())
 
+  return(list(p, plot_data, "date", "tmean"))
 }
   

@@ -165,8 +165,9 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
       labels = function(x) paste0(x, "mm"),
       breaks = seq(
         from = 0, to = max(max(plot_data$cump100pcp), max(plot_data$seasoncumsumpcp, na.rm = TRUE))
-        + 275, by = 50),
-      limits = c(0, max(max(plot_data$cump100pcp), max(plot_data$seasoncumsumpcp, na.rm = TRUE)) + 250)) + # expand = c(0, 20, 0, 50)
+        + max(max(plot_data$cump100pcp), max(plot_data$seasoncumsumpcp, na.rm = TRUE)) * 0.66, by = 50), # add 2/3 of max pcp value for legend
+      limits = c(0, max(max(plot_data$cump100pcp), max(plot_data$seasoncumsumpcp, na.rm = TRUE))
+                 + max(max(plot_data$cump100pcp), max(plot_data$seasoncumsumpcp, na.rm = TRUE)) * 0.66)) + # expand = c(0, 20, 0, 50) # add 2/3 of max pcp value for legend
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
       x = "", y = "", title = paste0("Precipitation in ", title, " ", selected_year),

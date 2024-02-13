@@ -8,11 +8,8 @@
 
 # TODO:
 # - <freq> <stat> <metric>
-# - nombre var plot_datas sin guiones bajos
 # - vignette('ggplot2-specs')   
 # - versiones librerias, rproj?
-# - añadir cabecera doc al archivo app.R
-# - acordarse quitar cargar funciones graficos de la parte de server
 # - docmumentar funciones sin documentar
 # - nuevo grafico cuanto dura invierno
 # - a gráficos anomalias añadir lineas desv tipicas
@@ -24,12 +21,10 @@
 # - doc scripts api, que ficheros generan y como lo hacen, que luego no te acuerdas
 # - pensar politica borrados ficheros maquina y de logs
 # - investigar porque navacerrada tarda 30 min mas que retiro
-# - leyenda grafico cumtmean un poco mas a la derecha, a ppo de año hay mucha dispersion
 # - cache plots
 # - nuevo grafico temp y pcp doble eje
-# - leyenda en graficos 5 y 6 y 8 y 9 pcp para pto navacerrada
 # - investigar porque tantos decimales en data
-# - meter Izaña
+# - nulos en temp retiro 2 feb 2024
 
 library(shiny, warn.conflicts = FALSE, quietly = TRUE)
 library(shinyjs, warn.conflicts = FALSE, quietly = TRUE)
@@ -58,8 +53,9 @@ library(DT, warn.conflicts = FALSE, quietly = TRUE)
 # Code outside 'ui' and 'server' only runs once when app is launched
 # Plot dictionaries
 plot_choices_overview <- c(
-  "1. Overview" = "1",
-  "2. Overview (2)" = "2"
+  "1. Overview" = "3",
+  "2. Overview" = "1",
+  "3. Overview (2)" = "2"
 )
 
 plot_choices_tmean <- c(
@@ -607,6 +603,10 @@ server <- function(input, output, session) {
           data = newData()[[1]], data_forecast = newData()[[4]], selected_year = input$year,
           ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
           ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+          max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
+        ),
+        "3" = OverviewPcpTempPlot3(
+          data_temp = newData()[[1]], data_pcp = newData()[[2]], selected_year = input$year,
           max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
         )
       )

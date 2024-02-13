@@ -12,8 +12,9 @@ library(readr, warn.conflicts = FALSE, quietly = TRUE)
 # ************************** WARNING ************************** #
 # ANTES DE AÑADIR ESTACION CREAR SU CARPETA EN LOCAL Y DROPBOX
 # ************************** WARNING ************************** #
-stations <- c("3195", "3129")
-ref_start_date <- "1920-01-01" 
+#stations <- c("3195", "3129", "C430E")
+stations <- "C430E"
+ref_start_date <- "1900-01-01" 
 ref_end_date <- Sys.Date() # Get current date
 
 for (station in stations) {

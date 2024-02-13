@@ -1,6 +1,6 @@
 DailyCumulativeTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date, title) {
   # Calculate mean cumulative temperature percentiles
-  reference_daily_cum_tmean <- data |>
+  reference_daily_cum_tmean <- data_temp |>
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(ref_start_year, "-01-01")) &
       date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
@@ -23,7 +23,7 @@ DailyCumulativeTmeanPlot <- function(data, selected_year, ref_start_year, ref_en
     dplyr::as_tibble()
 
   # Calculate cumulative mean temperature for selected year
-  selected_year_cum_tmean <- data |>
+  selected_year_cum_tmean <- data_temp |>
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(selected_year, "-01-01")) &
       date <= as.Date(paste0(selected_year, "-12-31"))) |>
@@ -128,7 +128,7 @@ DailyCumulativeTmeanPlot <- function(data, selected_year, ref_start_year, ref_en
       plot.subtitle = ggplot2::element_text(hjust = 1, size = 25),
       legend.background = ggplot2::element_blank(),
       legend.box.background = ggplot2::element_rect(fill = "white", color = "black", linewidth = 0.75),
-      legend.position = c(0.13, 0.825),
+      legend.position = c(0.85, 0.2),
       legend.spacing = ggplot2::unit(0, "cm"),
       legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
       legend.title = element_blank(),

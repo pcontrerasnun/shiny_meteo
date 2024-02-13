@@ -122,9 +122,10 @@ SeasonRankingPcpPlot <- function(data, selected_year, ref_start_year, ref_end_ye
       labels = c("cumsumpcp" = paste0("Cumulative seasonal precip. (", selected_year, ")"))) +
     ggplot2::scale_y_continuous(
       labels = function(x) paste0(x, "mm"),
-      breaks = seq(from = 0, to = max(max(plot_data$seasoncumsumpcp, na.rm = TRUE), 
-                                      plot_data$cummaxpcp) + 125, by = 50),
-      limits = c(0, max(max(plot_data$seasoncumsumpcp, na.rm = TRUE), plot_data$cummaxpcp) + 100)) +
+      breaks = seq(from = 0, to = max(max(plot_data$seasoncumsumpcp, na.rm = TRUE), plot_data$cummaxpcp)
+                   + max(max(plot_data$seasoncumsumpcp, na.rm = TRUE), plot_data$cummaxpcp) * 0.66, by = 50), # add 2/3 of max pcp value for legend
+      limits = c(0, max(max(plot_data$seasoncumsumpcp, na.rm = TRUE), plot_data$cummaxpcp)
+                 + max(max(plot_data$seasoncumsumpcp, na.rm = TRUE), plot_data$cummaxpcp) + 100) * 0.66) + # add 2/3 of max pcp value for legend
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
       x = "", y = "", title = paste0("Precipitation in ", title, " ", selected_year),
