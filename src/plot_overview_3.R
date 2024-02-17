@@ -1,20 +1,49 @@
 OverviewPcpTempPlot3 <- function(data_temp, data_pcp, selected_year, max_date, title) {
+  # Precipitation data
   plot_data_pcp <- data_pcp |>     
     dplyr::filter(date >= as.Date(paste0(as.numeric(selected_year), "-01-01")) & 
                     date <= as.Date(paste0(as.numeric(selected_year), "-12-31"))) |> 
     dplyr::filter(pcp >= 0.1) |> 
     dplyr::arrange(-pcp)
   
+  # Temperature data
+  # Different dataset because in rain dataset we are filtering rows
   plot_data_temp <- data_temp |> 
     dplyr::filter(date >= as.Date(paste0(as.numeric(selected_year), "-01-01")) & 
                     date <= as.Date(paste0(as.numeric(selected_year), "-12-31")))
   
+  # Join data
   plot_data <- dplyr::left_join(plot_data_temp, plot_data_pcp, by = c("date", "day", "month", "year")) |> 
     dplyr::select(-c(day, month, year))
   
-  scale <- abs((round(seq(from = round(min(plot_data$tmin, na.rm = TRUE) - 5), to = 45, by = 5) / 5) * 5)[1])
+  # Set min and max limits for right y-axis (precip)
+  l.y.min <- 0
+  l.y.max <- round((max(plot_data$pcp, na.rm = TRUE) + 10) / 5) * 5
   
-  ggplot2::ggplot(data = plot_data, aes(x = date)) +
+  # Set min and max limits for left y-axis (temp)
+  r.y.min <- round((min(plot_data$tmin, na.rm = TRUE) - 5) / 5) * 5
+  r.y.max <- 45
+  
+  # Create breaks for left and right y-axis, and labels for right y-axis
+  l.y.labels <- paste0(seq(r.y.min, r.y.max, 5), "ºC")
+  l.y.breaks <- seq(l.y.min, l.y.max, length.out = length(l.y.labels))
+  r.y.labels <- paste0(seq(l.y.min, l.y.max, 10), "mm")
+  r.y.breaks <- seq(l.y.min, l.y.max, length.out = length(r.y.labels))
+  
+  # Function to scale right y-axis values (temperature in this case)
+  axis_scaled <- function(x) {
+    y <- ifelse(is.na(x), NA,
+                ((x - r.y.min) / (r.y.max - r.y.min)) * 
+                  (l.y.max - l.y.min) + l.y.min)
+    y <- y[2:(length(y)-1)]
+  }
+  
+  # Create copy of plot_data with scaled temperature values
+  plot_data <- plot_data %>%
+    mutate_at(vars(tmin:tmean), list(~ axis_scaled(c(r.y.min, ., r.y.max))))
+  
+  # Draw the plot
+  p <- ggplot2::ggplot(data = plot_data, aes(x = date)) +
     ggplot2::geom_col(aes(y = pcp, fill = "pcp"), na.rm = TRUE) +
     ggplot2::geom_line(aes(y = tmean, color = "tmean")) +
     ggplot2::geom_line(aes(y = tmax, color = "tmax")) +
@@ -26,15 +55,11 @@ OverviewPcpTempPlot3 <- function(data_temp, data_pcp, selected_year, max_date, t
       values = c("tmean" = "black", "tmin" = "blue", "tmax" = "red"), 
       label = c("tmean" = "Daily mean temp.", "tmin" = "Daily min temp.", "tmax" = "Daily max temp.")) +
     ggplot2::scale_y_continuous(
-      labels = function(x) paste0(x, "ºC"),
-      breaks = round(seq(from = round(min(plot_data$tmin, na.rm = TRUE) - 5), to = 45, by = 5) / 5) * 5,
-      limits = c(min(plot_data$tmin, na.rm = TRUE) - 5, 45), 
-      sec.axis = sec_axis(trans = ~. +scale, labels = function(x) paste0(x, "mm")
-#                         breaks = round(seq(from = round(min(plot_data$pcp, na.rm = TRUE) - 4),
-#                                            to = 40, by = 5) / 5) * 5
-                          )
-#      breaks = round(seq(from = round(min(plot_data$tmin, na.rm = TRUE) - 4), 
-#                         to = round(max(plot_data$tmax, na.rm = TRUE) + 3), by = 5) / 5) * 5)
+      labels = l.y.labels,
+      breaks = seq(l.y.min, l.y.max, length.out = length(l.y.labels)),
+      limits = c(l.y.min, l.y.max), 
+      sec.axis = sec_axis(trans = ~., labels = r.y.labels,
+                          breaks = seq(r.y.min, r.y.max, length.out = length(r.y.labels)))
       ) +
     ggplot2::scale_x_continuous(
       breaks = as.numeric(seq(ymd(paste0(selected_year, "-01-15")), 

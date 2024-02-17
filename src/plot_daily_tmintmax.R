@@ -6,9 +6,11 @@ DailyTminTmaxPlot <- function(data, data_forecast, selected_year, ref_start_year
                     date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
     dplyr::filter((date < as.Date(paste0(selected_year, "-01-01")) | # Not include year of study in calculations
                      date > as.Date(paste0(selected_year, "-12-31")))) |>
+    dplyr::filter(!(month(date) == 2 & day(date) == 29)) |> # Remove 29 Feb data
     dplyr::as_tibble() |> 
     dplyr::reframe(ref_date = seq.Date(date - 15, date + 15, "day"), .by = c(date, tmax)) |>
-    dplyr::left_join(data |> rename(climate_tmax = tmax), join_by(ref_date == date)) |> 
+    dplyr::left_join(data |> filter(!(month(date) == 2 & day(date) == 29)) |> # Remove 29 Feb data
+                       rename(climate_tmax = tmax), join_by(ref_date == date)) |> 
     dplyr::select(-ref_date) |> 
     dplyr::mutate(day = format(date, "%d"), month = format(date, "%m")) |> 
     dplyr::group_by(day, month) |> 
@@ -29,10 +31,12 @@ DailyTminTmaxPlot <- function(data, data_forecast, selected_year, ref_start_year
                     date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
     dplyr::filter((date < as.Date(paste0(selected_year, "-01-01")) | # Not include year of study in calculations
                      date > as.Date(paste0(selected_year, "-12-31")))) |>
+    dplyr::filter(!(month(date) == 2 & day(date) == 29)) |> # Remove 29 Feb data
     dplyr::as_tibble() |> 
     # Get previous and next 15 days
     dplyr::reframe(ref_date = seq.Date(date - 15, date + 15, "day"), .by = c(date, tmin)) |>
-    dplyr::left_join(data |> rename(climate_tmin = tmin), join_by(ref_date == date)) |> 
+    dplyr::left_join(data |> filter(!(month(date) == 2 & day(date) == 29)) |> # Remove 29 Feb data
+                       rename(climate_tmin = tmin), join_by(ref_date == date)) |> 
     dplyr::select(-ref_date) |> 
     dplyr::mutate(day = format(date, "%d"), month = format(date, "%m")) |> 
     dplyr::group_by(day, month) |> 
@@ -51,7 +55,7 @@ DailyTminTmaxPlot <- function(data, data_forecast, selected_year, ref_start_year
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(selected_year, "-01-01")) &
                     date <= as.Date(paste0(selected_year, "-12-31"))) |>
-    dplyr::select(day, month, tmin, tmax) |> 
+    dplyr::select(date, day, month, tmin, tmax) |> 
     dplyr::as_tibble()
   
   # Ranking max tmax and min tmin
@@ -72,10 +76,18 @@ DailyTminTmaxPlot <- function(data, data_forecast, selected_year, ref_start_year
     dplyr::as_tibble()
   
   # Join data
-  plot_data <- dplyr::left_join(reference_daily_pcts_tmin, reference_daily_pcts_tmax,
+  plot_data <- dplyr::full_join(selected_year_daily_tminmax, reference_daily_pcts_tmin,
                                 by = c("day", "month", "date")) |> 
-    dplyr::left_join(selected_year_daily_tminmax, by = c("day", "month")) |> 
-    dplyr::select(date, tmin, tmax, everything(), -c(day, month))
+    dplyr::left_join(reference_daily_pcts_tmax, by = c("date", "day", "month")) |> 
+    dplyr::select(date, tmin, tmax, everything(), -c(day, month)) |> 
+    dplyr::mutate(
+      p05tmin = zoo::na.approx(p05tmin), # This is to fill NA value of 29 Feb with mean of next and previous value (28 Feb and 1st March)
+      p50tmin = zoo::na.approx(p50tmin),
+      p95tmin = zoo::na.approx(p95tmin),
+      p05tmax = zoo::na.approx(p05tmax),
+      p50tmax = zoo::na.approx(p50tmax),
+      p95tmax = zoo::na.approx(p95tmax)
+    )
   
   # Draw the plot
   p <- ggplot2::ggplot(data = plot_data, aes(x = date)) +

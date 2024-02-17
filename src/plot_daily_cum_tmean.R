@@ -1,11 +1,11 @@
 DailyCumulativeTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date, title) {
   # Calculate mean cumulative temperature percentiles
-  reference_daily_cum_tmean <- data_temp |>
+  reference_daily_cum_tmean <- data |>
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(ref_start_year, "-01-01")) &
       date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
     dplyr::filter((date < as.Date(paste0(selected_year, "-01-01")) | # Not include year of study in calculations
-      date > as.Date(paste0(selected_year, "-12-31")))) |>
+      date > as.Date(paste0(selected_year, "-12-31")))) |> 
     dplyr::group_by(year) |>
     dplyr::mutate(cumtmean = round(replace(tmean, complete.cases(tmean), cummean(na.omit(tmean))), 1)) |>
     tidyr::fill(cumtmean) |> 
@@ -23,7 +23,7 @@ DailyCumulativeTmeanPlot <- function(data, selected_year, ref_start_year, ref_en
     dplyr::as_tibble()
 
   # Calculate cumulative mean temperature for selected year
-  selected_year_cum_tmean <- data_temp |>
+  selected_year_cum_tmean <- data |>
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(selected_year, "-01-01")) &
       date <= as.Date(paste0(selected_year, "-12-31"))) |>

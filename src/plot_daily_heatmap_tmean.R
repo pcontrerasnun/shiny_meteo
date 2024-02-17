@@ -15,7 +15,7 @@ DailyHeatmapTmeanPlot <- function(data, selected_year, ref_start_year, ref_end_y
     dplyr::group_by(day, month) |> 
     dplyr::filter(!is.na(day)) |> # Filter NA days so that ecdf() doesn't return Error
     # Calculate empirical distribution
-    dplyr::summarise(ecdf_func = list(ecdf(climate_tmean)), .groups = "keep")
+    dplyr::summarise(ecdf_func = list(stats::ecdf(climate_tmean)), .groups = "keep")
   
   # Get daily mean temperatures for year of study
   selected_year_daily_tmean <- data |>

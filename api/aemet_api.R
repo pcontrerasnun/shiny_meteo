@@ -155,9 +155,9 @@ for (station in stations) {
     dplyr::arrange(date) |> 
     dplyr::as_tibble()
   
-  # ------------------------------------------------------------
-  # FIX PRECIPITATION DATA FOR AUTUMN 2023 - ONLY MADRID-RETIRO
-  # ------------------------------------------------------------
+  # ---------------------------------------------------------------------
+  # FIX MISSING PRECIPITATION DATA FOR AUTUMN 2023 - ONLY MADRID-RETIRO
+  # ---------------------------------------------------------------------
   if ((sum(is.na(final_data[final_data$date >= as.Date("2023-08-31") & final_data$date <= as.Date("2023-11-22"), ]$pcp)) == 84) &
       station == "3195") {
     print(paste0('Fixing precipitation data for autumn 2023 for station ', station))
@@ -170,11 +170,31 @@ for (station in stations) {
     pcp <- c(31.2, 66.5, 9.1, 6.2, 2.8, 3.6, 7.6, 18.2, 13.3, 0.3, 6.3, 0.7, 2.4, 2.9, 0.8, 
              2.4, 6.8, 107.8, 41.2, 2.2, 1.8, 3.9, 2.0, 6.1, 0.3, 1.4, 17.9, 1.0, 1.5, 0.3, 
              0.9, 2.1)
-    fix_data <- data.frame(date = as.Date(date), pcp = pcp)
+    fix_data_pcp <- data.frame(date = as.Date(date), pcp = pcp)
 
     # Fix data
-    positions <- match(fix_data$date, final_data$date)
-    final_data$pcp[positions] <- fix_data$pcp
+    positions <- match(fix_data_pcp$date, final_data$date)
+    final_data$pcp[positions] <- fix_data_pcp$pcp
+  }
+  
+  # -------------------------------
+  # FIX MISSING TEMPERATURE DATA
+  # -------------------------------
+  if ((sum(is.na(final_data[final_data$date == as.Date("2024-02-07"), ]$tmean)) == 1)) {
+    if (station == "3195") {
+      print(paste0('Fixing missing temperature data for station ', station))
+      date <- c("2024-02-07")
+      tmean <- c(8.3)
+      tmin <- c(5.3)
+      tmax <- c(11.3)
+      fix_data_temp <- data.frame(date = as.Date(date), tmin = tmin, tmax = tmax, tmean = tmean)
+      
+      # Fix data
+      positions <- match(fix_data_temp$date, final_data$date)
+      final_data$tmin[positions] <- fix_data_temp$tmin
+      final_data$tmax[positions] <- fix_data_temp$tmax
+      final_data$tmean[positions] <- fix_data_temp$tmean
+    }
   }
   
   # Save data

@@ -35,4 +35,11 @@
       label: $(e.currentTarget).val()
     });
   });
+  
+  $(document).on('change', '#station_id', function(e) {
+    gtag('event', 'select_station', {
+      action: 'select station',
+      label: $(e.currentTarget).val()
+    });
+  });
 </script>

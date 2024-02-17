@@ -6,10 +6,12 @@ DailyTmeanPlot <- function(data, data_forecast, selected_year, ref_start_year, r
                     date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
     dplyr::filter((date < as.Date(paste0(selected_year, "-01-01")) | # Not include year of study in calculations
                      date > as.Date(paste0(selected_year, "-12-31")))) |>
+    dplyr::filter(!(month(date) == 2 & day(date) == 29)) |> # Remove 29 Feb data
     dplyr::as_tibble() |> 
     # Get previous and next 15 days
     dplyr::reframe(ref_date = seq.Date(date - 15, date + 15, "day"), .by = c(date, tmean)) |>
-    dplyr::left_join(data |> rename(climate_tmean = tmean), join_by(ref_date == date)) |> 
+    dplyr::left_join(data |> filter(!(month(date) == 2 & day(date) == 29)) |> # Remove 29 Feb data
+                       rename(climate_tmean = tmean), join_by(ref_date == date)) |>
     dplyr::select(-ref_date) |> 
     dplyr::mutate(day = format(date, "%d"), month = format(date, "%m")) |> 
     dplyr::group_by(day, month) |> 
@@ -35,12 +37,24 @@ DailyTmeanPlot <- function(data, data_forecast, selected_year, ref_start_year, r
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(selected_year, "-01-01")) &
                     date <= as.Date(paste0(selected_year, "-12-31"))) |>
-    dplyr::select(day, month, tmean) |> 
+    dplyr::select(date, day, month, tmean) |> 
     dplyr::as_tibble()
   
   # Join data
-  plot_data <- dplyr::left_join(reference_daily_pcts_tmean, selected_year_daily_tmean, by = c("day", "month")) |> 
-    dplyr::select(date, tmean, everything(), -c(day, month))
+  plot_data <- dplyr::full_join(selected_year_daily_tmean, reference_daily_pcts_tmean, by = c("date", "day", "month")) |> 
+    dplyr::select(date, tmean, everything(), -c(day, month)) |> 
+    dplyr::mutate(
+      p00tmean = zoo::na.approx(p00tmean), # This is to fill NA value of 29 Feb with mean of next and previous value (28 Feb and 1st March)
+      p01tmean = zoo::na.approx(p01tmean),
+      p05tmean = zoo::na.approx(p05tmean),
+      p20tmean = zoo::na.approx(p20tmean),
+      p40tmean = zoo::na.approx(p40tmean),
+      p60tmean = zoo::na.approx(p60tmean),
+      p80tmean = zoo::na.approx(p80tmean),
+      p95tmean = zoo::na.approx(p95tmean),
+      p99tmean = zoo::na.approx(p99tmean),
+      p100tmean = zoo::na.approx(p100tmean)
+    )
 
   # Ranking max tmean and min tmean
   ranking_tmeans <- data |> 
@@ -166,10 +180,10 @@ DailyTmeanPlot <- function(data, data_forecast, selected_year, ref_start_year, r
     ) +
     ggplot2::scale_y_continuous(
       labels = function(x) paste0(x, "ºC"),
-      breaks = round(seq(from = min(min(plot_data$p05tmean) - 4, min(plot_data$tmean, na.rm = TRUE)) - 2, 
-                   to = max(max(plot_data$p95tmean) + 4, max(plot_data$tmean, na.rm = TRUE)) + 2, by = 5) / 5) * 5,
-      limits = c(min(min(plot_data$p05tmean) - 4, min(plot_data$tmean, na.rm = TRUE)) - 2, 
-                 max(max(plot_data$p95tmean) + 4, max(plot_data$tmean, na.rm = TRUE)) + 2)
+      breaks = round(seq(from = min(min(plot_data$p05tmean, na.rm = TRUE) - 4, min(plot_data$tmean, na.rm = TRUE)) - 2, 
+                   to = max(max(plot_data$p95tmean, na.rm = TRUE) + 4, max(plot_data$tmean, na.rm = TRUE)) + 2, by = 5) / 5) * 5,
+      limits = c(min(min(plot_data$p05tmean, na.rm = TRUE) - 4, min(plot_data$tmean, na.rm = TRUE)) - 2, 
+                 max(max(plot_data$p95tmean, na.rm = TRUE) + 4, max(plot_data$tmean, na.rm = TRUE)) + 2)
     ) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(

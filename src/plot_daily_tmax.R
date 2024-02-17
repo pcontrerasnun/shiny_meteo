@@ -6,9 +6,11 @@ DailyTmaxPlot <- function(data, data_forecast, selected_year, ref_start_year, re
                     date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
     dplyr::filter((date < as.Date(paste0(selected_year, "-01-01")) | # Not include year of study in calculations
                      date > as.Date(paste0(selected_year, "-12-31")))) |>
+    dplyr::filter(!(month(date) == 2 & day(date) == 29)) |> # Remove 29 Feb data
     dplyr::as_tibble() |> 
     dplyr::reframe(ref_date = seq.Date(date - 15, date + 15, "day"), .by = c(date, tmax)) |>
-    dplyr::left_join(data |> rename(climate_tmax = tmax), join_by(ref_date == date)) |> 
+    dplyr::left_join(data |> filter(!(month(date) == 2 & day(date) == 29)) |> # Remove 29 Feb data
+                       rename(climate_tmax = tmax), join_by(ref_date == date)) |> 
     dplyr::select(-ref_date) |> 
     dplyr::mutate(day = format(date, "%d"), month = format(date, "%m")) |> 
     dplyr::group_by(day, month) |> 
@@ -34,12 +36,24 @@ DailyTmaxPlot <- function(data, data_forecast, selected_year, ref_start_year, re
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(selected_year, "-01-01")) &
                     date <= as.Date(paste0(selected_year, "-12-31"))) |>
-    dplyr::select(day, month, tmax) |> 
+    dplyr::select(date, day, month, tmax) |> 
     dplyr::as_tibble()
   
   # Join data
-  plot_data <- dplyr::left_join(reference_daily_pcts_tmax, selected_year_daily_tmax, by = c("day", "month")) |> 
-    dplyr::select(date, tmax, everything(), -c(day, month))
+  plot_data <- dplyr::full_join(selected_year_daily_tmax, reference_daily_pcts_tmax, by = c("date", "day", "month")) |> 
+    dplyr::select(date, tmax, everything(), -c(day, month)) |> 
+    dplyr::mutate(
+      p00tmax = zoo::na.approx(p00tmax), # This is to fill NA value of 29 Feb with mean of next and previous value (28 Feb and 1st March)
+      p01tmax = zoo::na.approx(p01tmax),
+      p05tmax = zoo::na.approx(p05tmax),
+      p20tmax = zoo::na.approx(p20tmax),
+      p40tmax = zoo::na.approx(p40tmax),
+      p60tmax = zoo::na.approx(p60tmax),
+      p80tmax = zoo::na.approx(p80tmax),
+      p95tmax = zoo::na.approx(p95tmax),
+      p99tmax = zoo::na.approx(p99tmax),
+      p100tmax = zoo::na.approx(p100tmax)
+    )
   
   # Ranking max tmax and min tmin
   ranking_tmax <- data |> 

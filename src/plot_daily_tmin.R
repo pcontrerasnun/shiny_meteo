@@ -6,9 +6,11 @@ DailyTminPlot <- function(data, data_forecast, selected_year, ref_start_year, re
                     date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
     dplyr::filter((date < as.Date(paste0(selected_year, "-01-01")) | # Not include year of study in calculations
                      date > as.Date(paste0(selected_year, "-12-31")))) |>
+    dplyr::filter(!(month(date) == 2 & day(date) == 29)) |> # Remove 29 Feb data
     dplyr::as_tibble() |> 
     dplyr::reframe(ref_date = seq.Date(date - 15, date + 15, "day"), .by = c(date, tmin)) |>
-    dplyr::left_join(data |> rename(climate_tmin = tmin), join_by(ref_date == date)) |> 
+    dplyr::left_join(data |> filter(!(month(date) == 2 & day(date) == 29)) |> # Remove 29 Feb data
+                       rename(climate_tmin = tmin), join_by(ref_date == date)) |> 
     dplyr::select(-ref_date) |> 
     dplyr::mutate(day = format(date, "%d"), month = format(date, "%m")) |> 
     dplyr::group_by(day, month) |> 
@@ -34,12 +36,24 @@ DailyTminPlot <- function(data, data_forecast, selected_year, ref_start_year, re
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(selected_year, "-01-01")) &
                     date <= as.Date(paste0(selected_year, "-12-31"))) |>
-    dplyr::select(day, month, tmin) |> 
+    dplyr::select(date, day, month, tmin) |> 
     dplyr::as_tibble()
   
   # Join data
-  plot_data <- dplyr::left_join(reference_daily_pcts_tmin, selected_year_daily_tmin, by = c("day", "month")) |> 
-    dplyr::select(date, tmin, everything(), -c(day, month))
+  plot_data <- dplyr::full_join(selected_year_daily_tmin, reference_daily_pcts_tmin, by = c("date", "day", "month")) |> 
+    dplyr::select(date, tmin, everything(), -c(day, month)) |> 
+    dplyr::mutate(
+      p00tmin = zoo::na.approx(p00tmin), # This is to fill NA value of 29 Feb with mean of next and previous value (28 Feb and 1st March)
+      p01tmin = zoo::na.approx(p01tmin),
+      p05tmin = zoo::na.approx(p05tmin),
+      p20tmin = zoo::na.approx(p20tmin),
+      p40tmin = zoo::na.approx(p40tmin),
+      p60tmin = zoo::na.approx(p60tmin),
+      p80tmin = zoo::na.approx(p80tmin),
+      p95tmin = zoo::na.approx(p95tmin),
+      p99tmin = zoo::na.approx(p99tmin),
+      p100tmin = zoo::na.approx(p100tmin)
+    )
   
   # Ranking max tmin and min tmin
   ranking_tmin <- data |> 
