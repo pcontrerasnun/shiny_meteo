@@ -22,7 +22,6 @@
 # - nuevo grafico temp y pcp doble eje
 # - ranking most and less annual total days (no consecutive) with pcp en ultimo grafico pcp
 # - nuevo grafico total lluvia anual con ranking años mas y menos lluviosos
-# - fix graficos
 # - 29 feb cum tmean
 
 library(shiny, warn.conflicts = FALSE, quietly = TRUE)

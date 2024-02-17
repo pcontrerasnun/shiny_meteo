@@ -33,6 +33,58 @@ AnnualDaysWithPcpPlot <- function(data, selected_year, ref_start_year, ref_end_y
                    to = round(max(plot_data$sumpcp), digits = -1) + 100, by = 100),
       limits = c(min(plot_data$sumpcp), max(plot_data$sumpcp) + 100)
     ) +
+    ggplot2::annotation_custom(
+      gridtext::richtext_grob(
+        x = unit(.048, "npc"),
+        y = unit(.85, "npc"),
+        text = paste0("**Ranking** (", ref_start_year, "-", ref_end_year, ")<br>", 
+                      "Years with most days with precip. <br><br>", 
+                      head(plot_data, 1)$rank, "º ", 
+                      head(plot_data, 1)$year, ": ", 
+                      head(plot_data, 1)$dayspcp, " days<br>",
+                      head(plot_data, 2)[2,]$rank, "º ", 
+                      head(plot_data, 2)[2,]$year, ": ", 
+                      head(plot_data, 2)[2,]$dayspcp, " days<br>",
+                      head(plot_data, 3)[3,]$rank, "º ",
+                      head(plot_data, 3)[3,]$year, ": ", 
+                      head(plot_data, 3)[3,]$dayspcp, " days<br>",
+                      "---------------------------<br>",
+                      subset(plot_data, plot_data$year == selected_year)$rank, "º ",
+                      selected_year, ": ",
+                      subset(plot_data, plot_data$year == selected_year)$dayspcp,
+                      " days"),
+        hjust = 0, vjust = 1,
+        r = unit(0.15, "lines"),
+        box_gp = grid::gpar(col = "black", lwd = 2),
+        padding = unit(0.5, "lines")
+      )
+    ) +
+    ggplot2::annotation_custom(
+      gridtext::richtext_grob(
+        x = unit(.2, "npc"),
+        y = unit(.85, "npc"),
+        text = paste0("**Ranking** (", ref_start_year, "-", ref_end_year, ")<br>", 
+                      "Years with less days with precip. <br><br>", 
+                      "1º ", 
+                      head(plot_data |> dplyr::arrange(dayspcp), 1)$year, ": ", 
+                      head(plot_data |> dplyr::arrange(dayspcp), 1)$dayspcp, " days<br>",
+                      "2º ", 
+                      head(plot_data |> dplyr::arrange(dayspcp), 2)[2,]$year, ": ", 
+                      head(plot_data |> dplyr::arrange(dayspcp), 2)[2,]$dayspcp, " days<br>",
+                      "3º ",
+                      head(plot_data |> dplyr::arrange(dayspcp), 3)[3,]$year, ": ", 
+                      head(plot_data |> dplyr::arrange(dayspcp), 3)[3,]$dayspcp, " days<br>",
+                      "---------------------------<br>",
+                      subset(plot_data |> dplyr::arrange(dayspcp) , plot_data$year == selected_year)$rank, "º ",
+                      selected_year, ": ",
+                      subset(plot_data |> dplyr::arrange(dayspcp), plot_data$year == selected_year)$dayspcp,
+                      " days"),
+        hjust = 0, vjust = 1,
+        r = unit(0.15, "lines"),
+        box_gp = grid::gpar(col = "black", lwd = 2),
+        padding = unit(0.5, "lines")
+      )
+    ) +
     ggthemes::theme_hc(base_size = 15) +
     ggplot2::labs(
       y = "Annual total precip.", x = "Days with precip.", title = paste0("Precipitation in ", title, " ", selected_year),
