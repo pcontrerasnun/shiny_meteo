@@ -38,8 +38,10 @@ MonthlyAnomaliesPcpPlot <- function(data, ref_start_year, ref_end_year, max_date
     ggplot2::scale_color_manual(
       breaks = c("sumpcp", "p50", "trend"),
       values = c("trend" = "blue", "p50" = "black", "sumpcp" = "black"), 
-      labels = c("trend" = paste0("Trend (", ref_start_year, "-", ref_end_year, ")"), "sumpcp" = "Monthly precip.",
-                 "p50" = paste0("Monthly median precip. (", ref_start_year, "-", ref_end_year, ")"))) +
+      labels = c("trend" = paste0("Trend (", ref_start_year, "-", ref_end_year, ")"), 
+                 "sumpcp" = "Monthly precip.",
+                 "p50" = expr(paste("Monthly normal (", italic(P[50]), ") precip. (", !!ref_start_year, "-", !!ref_end_year, ")")))
+      ) +
     ggplot2::scale_x_continuous(breaks = seq(from = min(plot_data$year), to = max(plot_data$year), by = 10)) +
     ggplot2::scale_y_continuous(labels = function(x) paste0(x, "mm")) +
     ggthemes::theme_hc(base_size = 15) +
@@ -57,7 +59,7 @@ MonthlyAnomaliesPcpPlot <- function(data, ref_start_year, ref_end_year, max_date
       legend.position = c(0.61, 0.59),
       legend.spacing = ggplot2::unit(0, "cm"),
       legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
-      legend.text = ggtext::element_markdown(),
+      #legend.text = ggtext::element_markdown(), # With this expr() in labels don't work
       legend.title = element_blank(),
       axis.text.x = element_text(angle = 0, size = 10)
     ) +

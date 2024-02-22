@@ -129,8 +129,8 @@ SeasonPcpPlot <- function(data, selected_year, ref_start_year, ref_end_year, max
                        vjust = -1.5, na.rm = TRUE, size = 3.5) +
     ggplot2::scale_color_manual(
       values = c("cump50pcp" = "#d7191c"),
-      labels = c("cump50pcp" = paste0("Cumulative seasonal median precip. (", ref_start_year, "-", 
-                                      ref_end_year, ")"))) +
+      labels = c("cump50pcp" = expr(paste("Cumulative seasonal normal (", italic(P[50]), ") precip. (", !!ref_start_year, "-", 
+                                      !!ref_end_year, ")")))) +
     ggplot2::scale_fill_manual(
       values = c("seasoncumsumpcp" = "#2c7bb6", ">P100" = "#2166ac", "P100" = "#67a9cf",
                  "P80" = "#d1e5f0", "P60" = "#f7f7f7", "P40" = "#fddbc7", "P20" = "#ef8a62",

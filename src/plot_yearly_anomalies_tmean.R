@@ -39,7 +39,7 @@ AnnualTmeanAnomaliesPlot <- function(data, ref_start_year, ref_end_year, max_dat
     ggplot2::geom_smooth(aes(linetype = "trend"), color = "blue", linewidth = 0.85,
                          method = lm, se = FALSE, na.rm = TRUE, show.legend = FALSE) + 
     ggplot2::scale_linetype_manual(values = c("q50" = "longdash", "trend" = "dotted", "tmean" = "solid"),
-                                   labels = c("q50" = paste0("Annual normal mean temp. (", ref_start_year, "-", ref_end_year, ")"),
+                                   labels = c("q50" = expr(paste("Annual normal (", italic(P[50]), ") mean temp. (", !!ref_start_year, "-", !!ref_end_year, ")")),
                                               "trend" = paste0("Trend (", ref_start_year, "-", ref_end_year, ")"), 
                                               "tmean" = "Annual mean temp."),
                                    breaks = c("tmean", "q50", "trend")) + # to give order

@@ -22,7 +22,7 @@ OverviewPcpTempPlot3 <- function(data_temp, data_pcp, selected_year, max_date, t
   
   # Set min and max limits for left y-axis (temp)
   r.y.min <- round((min(plot_data$tmin, na.rm = TRUE) - 5) / 5) * 5
-  r.y.max <- 45
+  r.y.max <- 50
   
   # Create breaks for left and right y-axis, and labels for right y-axis
   l.y.labels <- paste0(seq(r.y.min, r.y.max, 5), "ºC")
@@ -39,11 +39,13 @@ OverviewPcpTempPlot3 <- function(data_temp, data_pcp, selected_year, max_date, t
   }
   
   # Create copy of plot_data with scaled temperature values
-  plot_data <- plot_data %>%
+  # When name it plot_data1 so that we can use original plot_data in return(),
+  # otherwise user would see transformed data when clicking on the plot
+  plot_data1 <- plot_data %>%
     mutate_at(vars(tmin:tmean), list(~ axis_scaled(c(r.y.min, ., r.y.max))))
   
   # Draw the plot
-  p <- ggplot2::ggplot(data = plot_data, aes(x = date)) +
+  p <- ggplot2::ggplot(data = plot_data1, aes(x = date)) +
     ggplot2::geom_col(aes(y = pcp, fill = "pcp"), na.rm = TRUE) +
     ggplot2::geom_line(aes(y = tmean, color = "tmean")) +
     ggplot2::geom_line(aes(y = tmax, color = "tmax")) +
@@ -56,10 +58,10 @@ OverviewPcpTempPlot3 <- function(data_temp, data_pcp, selected_year, max_date, t
       label = c("tmean" = "Daily mean temp.", "tmin" = "Daily min temp.", "tmax" = "Daily max temp.")) +
     ggplot2::scale_y_continuous(
       labels = l.y.labels,
-      breaks = seq(l.y.min, l.y.max, length.out = length(l.y.labels)),
+      breaks = l.y.breaks,
       limits = c(l.y.min, l.y.max), 
       sec.axis = sec_axis(trans = ~., labels = r.y.labels,
-                          breaks = seq(r.y.min, r.y.max, length.out = length(r.y.labels)))
+                          breaks = r.y.breaks)
       ) +
     ggplot2::scale_x_continuous(
       breaks = as.numeric(seq(ymd(paste0(selected_year, "-01-15")), 
@@ -83,5 +85,6 @@ OverviewPcpTempPlot3 <- function(data_temp, data_pcp, selected_year, max_date, t
       legend.title = element_blank())
 
   return(list(p, plot_data, "date", "tmean"))
+  
 }
   

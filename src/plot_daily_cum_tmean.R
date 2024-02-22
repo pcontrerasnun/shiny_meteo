@@ -6,6 +6,7 @@ DailyCumulativeTmeanPlot <- function(data, selected_year, ref_start_year, ref_en
       date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
     dplyr::filter((date < as.Date(paste0(selected_year, "-01-01")) | # Not include year of study in calculations
       date > as.Date(paste0(selected_year, "-12-31")))) |> 
+    dplyr::filter(!(month(date) == 2 & day(date) == 29)) |> # Remove 29 Feb data
     dplyr::group_by(year) |>
     dplyr::mutate(cumtmean = round(replace(tmean, complete.cases(tmean), cummean(na.omit(tmean))), 1)) |>
     tidyr::fill(cumtmean) |> 
@@ -34,15 +35,22 @@ DailyCumulativeTmeanPlot <- function(data, selected_year, ref_start_year, ref_en
     dplyr::as_tibble()
 
   # Join data
-  plot_data <- left_join(reference_daily_cum_tmean, selected_year_cum_tmean, by = c("day", "month")) |>
+  plot_data <- full_join(reference_daily_cum_tmean, selected_year_cum_tmean, by = c("day", "month")) |>
     dplyr::select(
-      day, month, cumtmean, cump00tmean, cump20tmean, cump40tmean,
+      date, cumtmean, cump00tmean, cump20tmean, cump40tmean,
       cump50tmean, cump60tmean, cump80tmean, cump100tmean
     ) |>
-    dplyr::mutate(diffmedian = round(cumtmean - cump50tmean, 1)) |> 
-    dplyr::mutate(date = as.Date(paste0(day, "-", month, selected_year), format = "%d-%m%Y")) |> 
     dplyr::arrange(date) |> 
-    dplyr::select(date, everything(), -c(day, month))
+    dplyr::mutate(
+      cump00tmean = zoo::na.approx(cump00tmean), # This is to fill NA value of 29 Feb with mean of next and previous value (28 Feb and 1st March)
+      cump20tmean = zoo::na.approx(cump20tmean),
+      cump40tmean = zoo::na.approx(cump40tmean),
+      cump50tmean = zoo::na.approx(cump50tmean),
+      cump60tmean = zoo::na.approx(cump60tmean),
+      cump80tmean = zoo::na.approx(cump80tmean),
+      cump100tmean = zoo::na.approx(cump100tmean)
+    ) |> 
+    dplyr::mutate(diffmedian = round(cumtmean - cump50tmean, 1))
   
   # For labelling anomaly purposes
   if (tail(na.omit(plot_data), 1)$diffmedian < 0){

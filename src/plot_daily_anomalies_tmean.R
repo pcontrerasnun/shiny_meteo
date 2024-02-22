@@ -6,6 +6,7 @@ DailyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_end
                     date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
     dplyr::filter((date < as.Date(paste0(selected_year, "-01-01")) | # Not include year of study in calculations
                      date > as.Date(paste0(selected_year, "-12-31")))) |>
+    dplyr::filter(!(month(date) == 2 & day(date) == 29)) |> # Remove 29 Feb data
     dplyr::as_tibble() |>  # so than reframe works
     # Get previous and next 15 days
     dplyr::reframe(ref_date = seq.Date(date - 15, date + 15, "day"), .by = c(date, tmean)) |>
@@ -28,11 +29,17 @@ DailyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_end
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(selected_year, "-01-01")) &
                     date <= as.Date(paste0(selected_year, "-12-31"))) |>
-    dplyr::select(day, month, tmean) |> 
+    dplyr::select(date, day, month, tmean) |> 
     dplyr::as_tibble()
   
   # Join data and calculate anomalies (diff with median)
-  plot_data <- dplyr::left_join(reference_daily_pcts_tmean, selected_year_daily_tmean, by = c("day", "month")) |> 
+  plot_data <- dplyr::full_join(reference_daily_pcts_tmean, selected_year_daily_tmean, by = c("date", "day", "month")) |> 
+    dplyr::arrange(date) |> 
+    dplyr::mutate(
+      p05tmean = zoo::na.approx(p05tmean), # This is to fill NA value of 29 Feb with mean of next and previous value (28 Feb and 1st March)
+      p50tmean = zoo::na.approx(p50tmean),
+      p95tmean = zoo::na.approx(p95tmean)
+    ) |> 
     dplyr::mutate(diffmedian = round(tmean - p50tmean, 1)) |> 
     dplyr::arrange(-diffmedian) |> 
     dplyr::select(date, tmean, p05tmean, p50tmean, p95tmean, diffmedian)

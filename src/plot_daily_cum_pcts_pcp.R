@@ -19,6 +19,7 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
       date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
     dplyr::filter((date < as.Date(paste0(selected_year, "-01-01")) | # Not include year of study in calculations
       date > as.Date(paste0(selected_year, "-12-31")))) |>
+    dplyr::filter(!(month(date) == 2 & day(date) == 29)) |> # Remove 29 Feb data
     dplyr::group_by(year) |>
     dplyr::mutate(cumsumpcp = cumsum(pcp)) |>
     dplyr::arrange(year, month, day) |>
@@ -47,13 +48,25 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
     dplyr::as_tibble()
 
   # Join previous two datasets and create new columns 'diffmedian' and 'date'
-  plot_data <- left_join(reference_pcts_pcp, selected_year_pcp, by = c("day", "month")) |>
+  plot_data <- full_join(reference_pcts_pcp, selected_year_pcp, by = c("day", "month")) |>
+    dplyr::mutate(date = as.Date(paste0(day, "-", month, selected_year), format = "%d-%m%Y")) |>
+    dplyr::arrange(date) |>
     dplyr::select(
-      day, month, cump00pcp, cump05pcp, cump20pcp, cump40pcp, cump50pcp,
-      cump60pcp, cump80pcp, cump95pcp, cump100pcp, cumsumpcp
+      date, cumsumpcp, cump00pcp, cump05pcp, cump20pcp, cump40pcp, cump50pcp,
+      cump60pcp, cump80pcp, cump95pcp, cump100pcp
     ) |>
-    dplyr::mutate(diffmedian = cumsumpcp - cump50pcp) |>
-    dplyr::mutate(date = as.Date(paste0(day, "-", month, selected_year), format = "%d-%m%Y"))
+    dplyr::mutate(
+      cump00pcp = zoo::na.approx(cump00pcp), # This is to fill NA value of 29 Feb with mean of next and previous value (28 Feb and 1st March)
+      cump05pcp = zoo::na.approx(cump05pcp),
+      cump20pcp = zoo::na.approx(cump20pcp),
+      cump40pcp = zoo::na.approx(cump40pcp),
+      cump50pcp = zoo::na.approx(cump50pcp),
+      cump60pcp = zoo::na.approx(cump60pcp),
+      cump80pcp = zoo::na.approx(cump80pcp),
+      cump95pcp = zoo::na.approx(cump95pcp),
+      cump100pcp = zoo::na.approx(cump100pcp)
+    ) |> 
+    dplyr::mutate(diffmedian = cumsumpcp - cump50pcp)
   
   # For ranking of max consecutive days of precip.
   ranking_max_consec_days_pcp <- data |> 
@@ -270,7 +283,7 @@ DailyCumPcpPctsPlot <- function(data, selected_year, ref_start_year, ref_end_yea
         ), aes(x = x, y = y, label = label), parse = TRUE)
   }
 
-  return(list(p, plot_data |> dplyr::select(date, cumsumpcp, everything(), -c(day, month, cump05pcp, cump95pcp)), 
+  return(list(p, plot_data |> dplyr::select(date, cumsumpcp, everything(), -c(cump05pcp, cump95pcp)), 
               "date", "cumsumpcp"))
   
 }

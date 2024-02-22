@@ -19,10 +19,10 @@
 # - doc scripts api, que ficheros generan y como lo hacen, que luego no te acuerdas
 # - pensar politica borrados ficheros maquina y de logs
 # - investigar porque navacerrada tarda 30 min mas que retiro
-# - nuevo grafico temp y pcp doble eje
-# - ranking most and less annual total days (no consecutive) with pcp en ultimo grafico pcp
-# - nuevo grafico total lluvia anual con ranking años mas y menos lluviosos
-# - 29 feb cum tmean
+# - contar dias con anomalia positiva y anomalia extrema
+# - data quality vs aemet 1981-2010
+# - arreglar grafico cumtmean
+# - supresswarnings in all app
 
 library(shiny, warn.conflicts = FALSE, quietly = TRUE)
 library(shinyjs, warn.conflicts = FALSE, quietly = TRUE)
@@ -95,10 +95,11 @@ plot_choices_pcp <- c(
   "7. Seasonal precip. (vs. percentiles)" = "seasonal-percentiles-pcp",
   "8. Seasonal precip. (ranking)" = "seasonal-ranking-pcp",
   "9. Seasonal precip. intensity" = "seasonal-intensity-pcp",
-  "10. Annual precip. (anomalies)" = "annual-anomalies-pcp",
-  "11. Annual precip. (distribution)" = "annual-histogram-pcp",
-  "12. Annual precip. (days with precip.)" = "annual-dayswpcp-pcp",
-  "13. Annual number of days with more than 25mm of precip." = "annual-daysabove25-pcp"
+  "10. Annual precip. (vs. percentiles)" = "annual-percentiles-pcp",
+  "11. Annual precip. (anomalies)" = "annual-anomalies-pcp",
+  "12. Annual precip. (distribution)" = "annual-histogram-pcp",
+  "13. Annual precip. (days with precip.)" = "annual-dayswpcp-pcp",
+  "14. Annual number of days with more than 25mm of precip." = "annual-daysabove25-pcp"
 )
 
 plot_choices_daylight <- c(
@@ -605,6 +606,12 @@ server <- function(input, output, session) {
         ),
         "climogram-overview" = OverviewPcpTempPlot3(
           data_temp = newData()[[1]], data_pcp = newData()[[2]], selected_year = input$year,
+          max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
+        ),
+        "annual-percentiles-pcp" = AnnualPcpPlot(
+          data = newData()[[2]], selected_year = input$year,
+          ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
+          ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
           max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
         )
       )

@@ -38,8 +38,8 @@ MonthlyHistoricalTmeanPlot <- function(data, ref_start_year, ref_end_year, max_d
     ggplot2::scale_color_manual(values = c("trend" = "blue", "q50" = "black", "tmean" = "black"), 
                                 labels = c("trend" = paste0("Trend (", ref_start_year, "-", ref_end_year, ")"), 
                                            "tmean" = "Monthly mean temp.",
-                                           "q50" = paste0("Monthly median mean temp. (", ref_start_year,
-                                                          "-", ref_end_year, ")")),
+                                           "q50" = expr(paste("Monthly normal (", italic(P[50]), ") mean temp. (", !!ref_start_year,
+                                                          "-", !!ref_end_year, ")"))),
                                 breaks = c("tmean", "q50", "trend")) +
     ggplot2::scale_x_continuous(breaks = seq(from = min(plot_data$year), to = max(plot_data$year), by = 10)) +
     ggplot2::scale_y_continuous(labels = function(x) paste0(x, "ºC"),
@@ -64,7 +64,7 @@ MonthlyHistoricalTmeanPlot <- function(data, ref_start_year, ref_end_year, max_d
       legend.position = c(0.125, 0.925),
       legend.spacing = ggplot2::unit(0, "cm"),
       legend.margin = ggplot2::margin(r = 5, l = 5, b = 5),
-      legend.text = ggtext::element_markdown(),
+      #legend.text = ggtext::element_markdown(), # With this expr() in labels don't work
       legend.title = element_blank(),
       axis.text.x = element_text(angle = 0, size = 10)
     ) +

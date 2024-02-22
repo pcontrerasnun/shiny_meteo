@@ -1,6 +1,6 @@
 MonthlyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date, title) {
   # Calculate mean temperature for each month
-  reference_monthly_tmean <- data |>     
+  reference_monthly_tmean <- data_temp |>     
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(ref_start_year, "-01-01")) &
                     date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
@@ -11,7 +11,7 @@ MonthlyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_e
     dplyr::as_tibble()
   
   # Calculate mean temperature for each month in selected year
-  selected_year_tmean <- data |> 
+  selected_year_tmean <- data_temp |> 
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(selected_year, "-01-01")) &
                     date <= as.Date(paste0(selected_year, "-12-31"))) |>
@@ -26,7 +26,7 @@ MonthlyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_e
     dplyr::mutate(month = as.numeric(month))
   
   # Create a bunch of points to color plot with geom_segment()
-  if (sum(!is.na(plot_data$tmean)) > 0) { # if there is only data for Jan
+  if (sum(!is.na(plot_data$tmean)) == 1) { # if there is only data for Jan
     color_data <- plot_data |> 
       dplyr::mutate(tmean = case_when(month == 2 ~ tmeanmean, TRUE ~ tmean)) |> # add tmean data-point for Feb
       # reframe() needs at least two non-NA values to work
