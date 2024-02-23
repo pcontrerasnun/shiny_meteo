@@ -21,6 +21,7 @@ DailyCumulativeTmeanPlot <- function(data, selected_year, ref_start_year, ref_en
       cump100tmean = round(quantile(cumtmean, probs = 1, na.rm = TRUE), 1),
       .groups = "keep"
     ) |>
+    dplyr::mutate(date = as.Date(paste0(day, "-", month, selected_year), format = "%d-%m%Y")) |> 
     dplyr::as_tibble()
 
   # Calculate cumulative mean temperature for selected year
@@ -35,7 +36,7 @@ DailyCumulativeTmeanPlot <- function(data, selected_year, ref_start_year, ref_en
     dplyr::as_tibble()
 
   # Join data
-  plot_data <- full_join(reference_daily_cum_tmean, selected_year_cum_tmean, by = c("day", "month")) |>
+  plot_data <- full_join(reference_daily_cum_tmean, selected_year_cum_tmean, by = c("date", "day", "month")) |>
     dplyr::select(
       date, cumtmean, cump00tmean, cump20tmean, cump40tmean,
       cump50tmean, cump60tmean, cump80tmean, cump100tmean

@@ -21,8 +21,10 @@
 # - investigar porque navacerrada tarda 30 min mas que retiro
 # - contar dias con anomalia positiva y anomalia extrema
 # - data quality vs aemet 1981-2010
-# - arreglar grafico cumtmean
 # - supresswarnings in all app
+
+# Supress all warnings
+options(warn = -1)
 
 library(shiny, warn.conflicts = FALSE, quietly = TRUE)
 library(shinyjs, warn.conflicts = FALSE, quietly = TRUE)

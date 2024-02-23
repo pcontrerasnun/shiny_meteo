@@ -1,6 +1,6 @@
 MonthlyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_end_year, max_date, title) {
   # Calculate mean temperature for each month
-  reference_monthly_tmean <- data_temp |>     
+  reference_monthly_tmean <- data |>     
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(ref_start_year, "-01-01")) &
                     date <= as.Date(paste0(ref_end_year, "-12-31"))) |>
@@ -11,7 +11,7 @@ MonthlyTmeanAnomaliesPlot <- function(data, selected_year, ref_start_year, ref_e
     dplyr::as_tibble()
   
   # Calculate mean temperature for each month in selected year
-  selected_year_tmean <- data_temp |> 
+  selected_year_tmean <- data |> 
     dtplyr::lazy_dt() |>
     dplyr::filter(date >= as.Date(paste0(selected_year, "-01-01")) &
                     date <= as.Date(paste0(selected_year, "-12-31"))) |>
