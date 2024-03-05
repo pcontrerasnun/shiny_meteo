@@ -9,7 +9,6 @@
 # TODO:
 # - <freq> <stat> <metric>
 # - vignette('ggplot2-specs')   
-# - versiones librerias, rproj?
 # - docmumentar funciones sin documentar
 # - nuevo grafico cuanto dura invierno
 # - a gráficos anomalias añadir lineas desv tipicas
@@ -21,7 +20,7 @@
 # - investigar porque navacerrada tarda 30 min mas que retiro
 # - contar dias con anomalia positiva y anomalia extrema
 # - data quality vs aemet 1981-2010
-# - supresswarnings in all app
+# - sistema que cuente NAs en año en curso en variables y me avise de algun modo
 
 # Supress all warnings
 options(warn = -1)
