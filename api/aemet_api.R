@@ -11,12 +11,14 @@ library(dtplyr, warn.conflicts = FALSE, quietly = TRUE)
 library(lubridate, warn.conflicts = FALSE, quietly = TRUE)
 library(rdrop2, warn.conflicts = FALSE, quietly = TRUE)
 library(readr, warn.conflicts = FALSE, quietly = TRUE)
+library(telegram.bot, warn.conflicts = FALSE, quietly = TRUE)
 
 # ************************** WARNING ************************** #
 # ANTES DE AÑADIR ESTACION CREAR SU CARPETA EN LOCAL Y DROPBOX
 # Y GENERAR ANTES HISTORICAL FILE
 # ************************** WARNING ************************** #
-stations <- c("3195", "3129", "2462")
+#stations <- c("3195", "3129", "2462")
+station <- "3129"
 ref_start_date <- Sys.Date() - 365 
 ref_end_date <- Sys.Date() # Get current date
 
@@ -31,7 +33,7 @@ for (station in stations) {
   
   # Clean last 24h of data
   if ("geo850" %in% colnames(last_24h_data)) {
-    last_24h_data_clean <- last_24h_data |> 
+    last_24h_data <- last_24h_data |> 
       mutate(geo850value = unlist(last_24h_data$geo850$value)) |> 
       mutate(geo850present = unlist(last_24h_data$geo850$present)) |> 
       select(-geo850)
@@ -40,7 +42,7 @@ for (station in stations) {
   # Save last 24h of data
   file <- paste0("~/Escritorio/aemet/", station, "/", format(Sys.time(),"%Y%m%d_%H%M%S"), "_", station, "_last24h.csv.gz")
   readr::write_csv(
-    last_24h_data_clean, 
+    last_24h_data, 
     file = file
   )
   print(paste0("Saved in local storage last 24h of data for station ", station, ": ", file))
@@ -155,26 +157,27 @@ for (station in stations) {
     dplyr::arrange(date) |> 
     dplyr::as_tibble()
   
-  # ---------------------------------------------------------------------
-  # FIX MISSING PRECIPITATION DATA FOR AUTUMN 2023 - ONLY MADRID-RETIRO
-  # ---------------------------------------------------------------------
-  if ((sum(is.na(final_data[final_data$date >= as.Date("2023-08-31") & final_data$date <= as.Date("2023-11-22"), ]$pcp)) == 84) &
-      station == "3195") {
-    print(paste0('Fixing precipitation data for autumn 2023 for station ', station))
-    date <- c("2023-09-02", "2023-09-03", "2023-09-04", "2023-09-05", "2023-09-08", "2023-09-09", 
-              "2023-09-10", "2023-09-14", "2023-09-15", "2023-09-16", "2023-09-17", "2023-09-21", 
-              "2023-10-13", "2023-10-15", "2023-10-16", "2023-10-17", "2023-10-18", "2023-10-19",
-              "2023-10-22", "2023-10-23", "2023-10-24", "2023-10-26", "2023-10-28", "2023-10-29",
-              "2023-10-30", "2023-11-01", "2023-11-02", "2023-11-03", "2023-11-04", "2023-11-07",
-              "2023-11-08", "2023-11-10")
-    pcp <- c(31.2, 66.5, 9.1, 6.2, 2.8, 3.6, 7.6, 18.2, 13.3, 0.3, 6.3, 0.7, 2.4, 2.9, 0.8, 
-             2.4, 6.8, 107.8, 41.2, 2.2, 1.8, 3.9, 2.0, 6.1, 0.3, 1.4, 17.9, 1.0, 1.5, 0.3, 
-             0.9, 2.1)
-    fix_data_pcp <- data.frame(date = as.Date(date), pcp = pcp)
-
-    # Fix data
-    positions <- match(fix_data_pcp$date, final_data$date)
-    final_data$pcp[positions] <- fix_data_pcp$pcp
+  # --------------------------------
+  # FIX MISSING PRECIPITATION DATA 
+  # --------------------------------
+  if ((sum(is.na(final_data[final_data$date >= as.Date("2023-08-31") & final_data$date <= as.Date("2023-11-22"), ]$pcp)) == 84)) {
+    if(station == "3195") {
+      print(paste0('Fixing precipitation data for autumn 2023 for station ', station))
+      date <- c("2023-09-02", "2023-09-03", "2023-09-04", "2023-09-05", "2023-09-08", "2023-09-09", 
+                "2023-09-10", "2023-09-14", "2023-09-15", "2023-09-16", "2023-09-17", "2023-09-21", 
+                "2023-10-13", "2023-10-15", "2023-10-16", "2023-10-17", "2023-10-18", "2023-10-19",
+                "2023-10-22", "2023-10-23", "2023-10-24", "2023-10-26", "2023-10-28", "2023-10-29",
+                "2023-10-30", "2023-11-01", "2023-11-02", "2023-11-03", "2023-11-04", "2023-11-07",
+                "2023-11-08", "2023-11-10")
+      pcp <- c(31.2, 66.5, 9.1, 6.2, 2.8, 3.6, 7.6, 18.2, 13.3, 0.3, 6.3, 0.7, 2.4, 2.9, 0.8, 
+               2.4, 6.8, 107.8, 41.2, 2.2, 1.8, 3.9, 2.0, 6.1, 0.3, 1.4, 17.9, 1.0, 1.5, 0.3, 
+               0.9, 2.1)
+      fix_data_pcp <- data.frame(date = as.Date(date), pcp = pcp)
+  
+      # Fix data
+      positions <- match(fix_data_pcp$date, final_data$date)
+      final_data$pcp[positions] <- fix_data_pcp$pcp
+    }
   }
   
   # -------------------------------
@@ -197,7 +200,31 @@ for (station in stations) {
     }
   }
   
-  # Save data
+  # -----------------------
+  # TELEGRAM NOTIFICATION
+  # -----------------------
+  bot = Bot(token = bot_token('aemetAlertsBot'))
+  if (sum(is.na(subset(final_data, year == lubridate::year(Sys.Date()))$pcp)) -
+      sum(is.na(subset(final_data, date == as.Date("2024-01-19"))$pcp & station == "3129")) > 0) { # For Madrid - Aeropuerto we can't fix that day
+    message <- paste0("Found NA values for pcp in ", lubridate::year(Sys.Date()), " for station ", station)
+    bot$sendMessage(chat_id = '111783899', text = message)
+  }
+  if (sum(is.na(subset(final_data, year == lubridate::year(Sys.Date()))$tmin)) > 0) {
+    message <- paste0("Found NA values for tmin in ", lubridate::year(Sys.Date()), " for station ", station)
+    bot$sendMessage(chat_id = '111783899', text = message)
+  }
+  if (sum(is.na(subset(final_data, year == lubridate::year(Sys.Date()))$tmax)) > 0) {
+    message <- paste0("Found NA values for tmax in ", lubridate::year(Sys.Date()), " for station ", station)
+    bot$sendMessage(chat_id = '111783899', text = message)
+  }
+  if (sum(is.na(subset(final_data, year == lubridate::year(Sys.Date()))$tmean)) > 0) {
+    message <- paste0("Found NA values for tmean in ", lubridate::year(Sys.Date()), " for station ", station)
+    bot$sendMessage(chat_id = '111783899', text = message)
+  }
+  
+  # ------------
+  # SAVE DATA
+  # ------------
   file <- paste0("~/Escritorio/aemet/", station, "/", format(Sys.time(),"%Y%m%d_%H%M%S"), "_", station, "_complete.csv.gz")
   readr::write_csv(
     final_data, 
