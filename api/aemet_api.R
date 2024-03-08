@@ -15,12 +15,19 @@ library(telegram.bot, warn.conflicts = FALSE, quietly = TRUE)
 
 # ************************** WARNING ************************** #
 # ANTES DE AÑADIR ESTACION CREAR SU CARPETA EN LOCAL Y DROPBOX
-# Y GENERAR ANTES HISTORICAL FILE
+# Y GENERAR ANTES HISTORICAL FILE. RELLENAR TBN MISSINGS_DICT
 # ************************** WARNING ************************** #
 #stations <- c("3195", "3129", "2462")
-station <- "3129"
+station <- "C430E"
 ref_start_date <- Sys.Date() - 365 
 ref_end_date <- Sys.Date() # Get current date
+
+missings_dict <- list(
+  "3195" = list(pcp_na = 931, tmin_na = 128, tmax_na = 126, tmean_na = 128),
+  "3129" = list(pcp_na = 435, tmin_na = 3479, tmax_na = 3479, tmean_na = 3479),
+  "2462" = list(pcp_na = 32, tmin_na = 5, tmax_na = 4, tmean_na = 5),
+  "C430E" = list(pcp_na = 28, tmin_na = 427, tmax_na = 408, tmean_na = 432)
+)
 
 # ~/aemet_data/
 for (station in stations) {
@@ -160,8 +167,8 @@ for (station in stations) {
   # --------------------------------
   # FIX MISSING PRECIPITATION DATA 
   # --------------------------------
-  if ((sum(is.na(final_data[final_data$date >= as.Date("2023-08-31") & final_data$date <= as.Date("2023-11-22"), ]$pcp)) == 84)) {
-    if(station == "3195") {
+  if (station == "3195") {
+    if ((sum(is.na(final_data[final_data$date >= as.Date("2023-08-31") & final_data$date <= as.Date("2023-11-22"), ]$pcp)) == 84)) {
       print(paste0('Fixing precipitation data for autumn 2023 for station ', station))
       date <- c("2023-09-02", "2023-09-03", "2023-09-04", "2023-09-05", "2023-09-08", "2023-09-09", 
                 "2023-09-10", "2023-09-14", "2023-09-15", "2023-09-16", "2023-09-17", "2023-09-21", 
@@ -180,11 +187,24 @@ for (station in stations) {
     }
   }
   
+  if (station == "C430E") {
+    if ((sum(is.na(final_data[final_data$date == as.Date("2024-03-04"), ]$pcp)) == 1)) {
+      print(paste0('Fixing precipitation data for station ', station))
+      date <- c("2024-03-04")
+      pcp <- c(0.0)
+      fix_data_pcp <- data.frame(date = as.Date(date), pcp = pcp)
+      
+      # Fix data
+      positions <- match(fix_data_pcp$date, final_data$date)
+      final_data$pcp[positions] <- fix_data_pcp$pcp
+    }
+  }
+  
   # -------------------------------
   # FIX MISSING TEMPERATURE DATA
   # -------------------------------
-  if ((sum(is.na(final_data[final_data$date == as.Date("2024-02-07"), ]$tmean)) == 1)) {
-    if (station == "3195") {
+  if (station == "3195") {
+    if ((sum(is.na(final_data[final_data$date == as.Date("2024-02-07"), ]$tmean)) == 1)) {
       print(paste0('Fixing missing temperature data for station ', station))
       date <- c("2024-02-07")
       tmean <- c(8.3)
@@ -200,25 +220,24 @@ for (station in stations) {
     }
   }
   
-  # -----------------------
-  # TELEGRAM NOTIFICATION
-  # -----------------------
+  # -------------------------------------
+  # TELEGRAM NOTIFICATION - DATA QUALITY
+  # -------------------------------------
   bot = Bot(token = bot_token('aemetAlertsBot'))
-  if (sum(is.na(subset(final_data, year == lubridate::year(Sys.Date()))$pcp)) -
-      sum(is.na(subset(final_data, date == as.Date("2024-01-19"))$pcp & station == "3129")) > 0) { # For Madrid - Aeropuerto we can't fix that day
-    message <- paste0("Found NA values for pcp in ", lubridate::year(Sys.Date()), " for station ", station)
+  if (sum(is.na(final_data$pcp)) > missings_dict[[station]]$pcp_na) {
+    message <- paste0("Found new NA values for pcp for station ", station)
     bot$sendMessage(chat_id = '111783899', text = message)
   }
-  if (sum(is.na(subset(final_data, year == lubridate::year(Sys.Date()))$tmin)) > 0) {
-    message <- paste0("Found NA values for tmin in ", lubridate::year(Sys.Date()), " for station ", station)
+  if (sum(is.na(final_data$tmin)) > missings_dict[[station]]$tmin_na) {
+    message <- paste0("Found new NA values for tmin for station ", station)
     bot$sendMessage(chat_id = '111783899', text = message)
   }
-  if (sum(is.na(subset(final_data, year == lubridate::year(Sys.Date()))$tmax)) > 0) {
-    message <- paste0("Found NA values for tmax in ", lubridate::year(Sys.Date()), " for station ", station)
+  if (sum(is.na(final_data$tmax)) > missings_dict[[station]]$tmax_na) {
+    message <- paste0("Found new NA values for tmax for station ", station)
     bot$sendMessage(chat_id = '111783899', text = message)
   }
-  if (sum(is.na(subset(final_data, year == lubridate::year(Sys.Date()))$tmean)) > 0) {
-    message <- paste0("Found NA values for tmean in ", lubridate::year(Sys.Date()), " for station ", station)
+  if (sum(is.na(final_data$tmean)) > missings_dict[[station]]$tmean_na) {
+    message <- paste0("Found new NA values for tmean for station ", station)
     bot$sendMessage(chat_id = '111783899', text = message)
   }
   

@@ -1510,6 +1510,22 @@
       ],
       "Hash": "90b28393209827327de889f49935140a"
     },
+    "telegram.bot": {
+      "Package": "telegram.bot",
+      "Version": "3.0.0",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "R6",
+        "curl",
+        "httpuv",
+        "httr",
+        "jsonlite",
+        "openssl"
+      ],
+      "Hash": "5ada43cea2e60662b12eae682a5c517b"
+    },
     "tibble": {
       "Package": "tibble",
       "Version": "3.2.1",

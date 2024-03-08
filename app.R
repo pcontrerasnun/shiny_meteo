@@ -20,7 +20,7 @@
 # - investigar porque navacerrada tarda 30 min mas que retiro
 # - contar dias con anomalia positiva y anomalia extrema
 # - data quality vs aemet 1981-2010
-# - sistema que cuente NAs en año en curso en variables y me avise de algun modo
+# - trastear con google analytics
 
 # Supress all warnings
 options(warn = -1)
