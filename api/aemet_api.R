@@ -188,7 +188,7 @@ for (station in stations) {
   }
   
   if (station == "C430E") {
-    if ((sum(is.na(final_data[final_data$date %in% c(as.Date("2024-03-04"), as.Date("2024-03-07")), ]$pcp)) == 1)) {
+    if ((sum(is.na(final_data[final_data$date %in% c(as.Date("2024-03-04"), as.Date("2024-03-07")), ]$pcp)) == 2)) {
       print(paste0('Fixing precipitation data for station ', station))
       date <- c("2024-03-04", "2024-03-07")
       pcp <- c(0.0, 7.6)
@@ -218,7 +218,7 @@ for (station in stations) {
   # -------------------------------
   if (station == "3195") {
     if ((sum(is.na(final_data[final_data$date %in% c(as.Date("2024-02-07"), as.Date("2024-03-06"), 
-                                                     as.Date("2024-03-07")), ]$tmean)) == 1)) {
+                                                     as.Date("2024-03-07")), ]$tmean)) == 3)) {
       print(paste0('Fixing missing temperature data for station ', station))
       date <- c("2024-02-07", "2024-03-06", "2024-03-07")
       tmean <- c(8.3, 6.9, 8.9)
