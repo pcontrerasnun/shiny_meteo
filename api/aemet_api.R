@@ -188,10 +188,23 @@ for (station in stations) {
   }
   
   if (station == "C430E") {
-    if ((sum(is.na(final_data[final_data$date == as.Date("2024-03-04"), ]$pcp)) == 1)) {
+    if ((sum(is.na(final_data[final_data$date %in% c(as.Date("2024-03-04"), as.Date("2024-03-07")), ]$pcp)) == 1)) {
       print(paste0('Fixing precipitation data for station ', station))
-      date <- c("2024-03-04")
-      pcp <- c(0.0)
+      date <- c("2024-03-04", "2024-03-07")
+      pcp <- c(0.0, 7.6)
+      fix_data_pcp <- data.frame(date = as.Date(date), pcp = pcp)
+      
+      # Fix data
+      positions <- match(fix_data_pcp$date, final_data$date)
+      final_data$pcp[positions] <- fix_data_pcp$pcp
+    }
+  }
+  
+  if (station == "2462") {
+    if ((sum(is.na(final_data[final_data$date == as.Date("2024-03-07"), ]$pcp)) == 1)) {
+      print(paste0('Fixing precipitation data for station ', station))
+      date <- c("2024-03-07")
+      pcp <- c(29.4)
       fix_data_pcp <- data.frame(date = as.Date(date), pcp = pcp)
       
       # Fix data
@@ -204,12 +217,13 @@ for (station in stations) {
   # FIX MISSING TEMPERATURE DATA
   # -------------------------------
   if (station == "3195") {
-    if ((sum(is.na(final_data[final_data$date == as.Date("2024-02-07"), ]$tmean)) == 1)) {
+    if ((sum(is.na(final_data[final_data$date %in% c(as.Date("2024-02-07"), as.Date("2024-03-06"), 
+                                                     as.Date("2024-03-07")), ]$tmean)) == 1)) {
       print(paste0('Fixing missing temperature data for station ', station))
-      date <- c("2024-02-07")
-      tmean <- c(8.3)
-      tmin <- c(5.3)
-      tmax <- c(11.3)
+      date <- c("2024-02-07", "2024-03-06", "2024-03-07")
+      tmean <- c(8.3, 6.9, 8.9)
+      tmin <- c(5.3, 3.6, 5.2)
+      tmax <- c(11.3, 10.2, 12.6)
       fix_data_temp <- data.frame(date = as.Date(date), tmin = tmin, tmax = tmax, tmean = tmean)
       
       # Fix data
