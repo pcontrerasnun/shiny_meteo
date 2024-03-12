@@ -188,10 +188,10 @@ for (station in stations) {
   }
   
   if (station == "C430E") {
-    if ((sum(is.na(final_data[final_data$date %in% c(as.Date("2024-03-04"), as.Date("2024-03-07")), ]$pcp)) == 2)) {
+    if ((sum(is.na(final_data[final_data$date %in% c(as.Date("2024-03-07")), ]$pcp)) == 1)) {
       print(paste0('Fixing precipitation data for station ', station))
-      date <- c("2024-03-04", "2024-03-07")
-      pcp <- c(0.0, 7.6)
+      date <- c("2024-03-07")
+      pcp <- c(7.6)
       fix_data_pcp <- data.frame(date = as.Date(date), pcp = pcp)
       
       # Fix data
