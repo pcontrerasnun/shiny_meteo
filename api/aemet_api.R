@@ -26,7 +26,9 @@ missings_dict <- list(
   "3195" = list(pcp_na = 931, tmin_na = 128, tmax_na = 126, tmean_na = 128),
   "3129" = list(pcp_na = 435, tmin_na = 3479, tmax_na = 3479, tmean_na = 3479),
   "2462" = list(pcp_na = 32, tmin_na = 5, tmax_na = 4, tmean_na = 5),
-  "C430E" = list(pcp_na = 28, tmin_na = 427, tmax_na = 408, tmean_na = 432)
+  "C430E" = list(pcp_na = 28, tmin_na = 427, tmax_na = 408, tmean_na = 432),
+  "1208H" = list(pcp_na = 0, tmin_na = 0, tmax_na = 0, tmean_na = 0),
+  "1249X" = list(pcp_na = 2, tmin_na = 3, tmax_na = 3, tmean_na = 3)
 )
 
 # ~/aemet_data/
@@ -188,10 +190,10 @@ for (station in stations) {
   }
   
   if (station == "C430E") {
-    if ((sum(is.na(final_data[final_data$date %in% c(as.Date("2024-03-07"), as.Date("2024-03-11")), ]$pcp)) == 2)) {
+    if ((sum(is.na(final_data[final_data$date %in% c(as.Date("2024-03-11")), ]$pcp)) == 1)) {
       print(paste0('Fixing precipitation data for station ', station))
-      date <- c("2024-03-07", "2024-03-11")
-      pcp <- c(7.6, 0.0)
+      date <- c("2024-03-11")
+      pcp <- c(0.0)
       fix_data_pcp <- data.frame(date = as.Date(date), pcp = pcp)
       
       # Fix data
