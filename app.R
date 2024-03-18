@@ -13,14 +13,15 @@
 # - nuevo grafico cuanto dura invierno
 # - a gráficos anomalias añadir lineas desv tipicas
 # - year of study not included in calculations - info message
-# - reiniciar googleanalytics
 # - info plot tmintmax anomalies, to see data press tmin line, not tmax
 # - doc scripts api, que ficheros generan y como lo hacen, que luego no te acuerdas
 # - pensar politica borrados ficheros maquina y de logs
 # - investigar porque navacerrada tarda 30 min mas que retiro
 # - contar dias con anomalia positiva y anomalia extrema
-# - data quality vs aemet 1981-2010
-# - trastear con google analytics
+# - escribir README por si te pasa algo - How to add new station? How to fix missing values? (basic) How to add new plot? (advanced)
+# - fichero debugging para ver missings o por si se quiere añadir nueva estación
+# - nuevo gráfico num dias superación umbrales
+# - fusión datos estaciones oviedo
 
 # Supress all warnings
 options(warn = -1)
@@ -145,7 +146,9 @@ stations_dict <- list(
   "3195" = list(title = "Madrid - Retiro", mun_code = 28079),
   "3129" = list(title = "Madrid - Aeropuerto", mun_code = 28079),
   "2462" = list(title = "Madrid - Pto Navacerrada", mun_code = 28093),
-  "C430E" = list(title = "Sta Cruz de Tenerife - Izaña", mun_code = 38026)
+  "C430E" = list(title = "Sta Cruz de Tenerife - Izaña", mun_code = 38026),
+  "1208H" = list(title = "Gijón - Puerto", mun_code = 33024),
+  "1249X" = list(title = "Oviedo", mun_code = 33044)
 )
 
 # Load all functions
@@ -184,7 +187,9 @@ ui <- shiny::fluidPage(
               "Madrid - Retiro" = "3195",
               "Madrid - Pto Navacerrada" = "2462",
               "Madrid - Aeropuerto" = "3129",
-              "Sta Cruz de Tenerife - Izaña" = "C430E"
+              "Sta Cruz de Tenerife - Izaña" = "C430E",
+              "Gijón - Puerto" = "1208H",
+              "Oviedo" = "1249X"
             ),
             selected = "3195"
           )
