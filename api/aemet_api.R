@@ -17,10 +17,16 @@ library(telegram.bot, warn.conflicts = FALSE, quietly = TRUE)
 # ANTES DE AÑADIR ESTACION CREAR SU CARPETA EN LOCAL Y DROPBOX
 # Y GENERAR ANTES HISTORICAL FILE. RELLENAR TBN MISSINGS_DICT
 # ************************** WARNING ************************** #
-#stations <- c("3195", "3129", "2462")
-station <- "C430E"
+default_stations <- c("3195", "3129", "2462")
 ref_start_date <- Sys.Date() - 365 
 ref_end_date <- Sys.Date() # Get current date
+
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) > 0) {
+  stations <- args
+} else {
+  stations <- default_stations
+}
 
 missings_dict <- list(
   "3195" = list(pcp_na = 931, tmin_na = 128, tmax_na = 126, tmean_na = 128),

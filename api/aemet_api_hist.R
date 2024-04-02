@@ -13,10 +13,16 @@ library(dplyr, warn.conflicts = FALSE, quietly = TRUE)
 # ************************** WARNING ************************** #
 # ANTES DE AÑADIR ESTACION CREAR SU CARPETA EN LOCAL Y DROPBOX
 # ************************** WARNING ************************** #
-#stations <- c("3195", "3129", "C430E")
-stations <- "C430E"
+deafult_stations <- c("3195", "3129", "C430E")
 ref_start_date <- "1900-01-01" 
 ref_end_date <- Sys.Date() # Get current date
+
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) > 0) {
+  stations <- args
+} else {
+  stations <- default_stations
+}
 
 for (station in stations) {
   print(paste0("Getting from AEMET API historical data (from ", ref_start_date, " up to ", Sys.Date(), ") for station ", station))
