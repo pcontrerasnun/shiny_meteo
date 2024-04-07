@@ -24,29 +24,35 @@ if (length(args) > 0) {
   stations <- default_stations
 }
 
-for (station in stations) {
-  print(paste0("Getting from AEMET API historical data (from ", ref_start_date, " up to ", Sys.Date(), ") for station ", station))
+tryCatch({
+  for (station in stations) {
+    print(paste0("Getting from AEMET API historical data (from ", ref_start_date, " up to ", Sys.Date(), ") for station ", station))
+    
+    if(station == "1249X") {
+      data1 <- climaemet::aemet_daily_clim(
+        station = station, start = ref_start_date, end = ref_end_date, verbose = TRUE)
+      data2 <- climaemet::aemet_daily_clim(
+        station = "1249I", start = ref_start_date, end = ref_end_date, verbose = TRUE)
+      
+      historical_data <- rbind(data1, data2) |> 
+        dplyr::distinct(fecha, .keep_all = TRUE) |> # Remove duplicated rows, keep first
+        dplyr::arrange(fecha)
+      
+    } else {
+      historical_data <- climaemet::aemet_daily_clim(
+        station = station, start = ref_start_date, end = ref_end_date, verbose = TRUE)
+    }
   
-  if(station == "1249X") {
-    data1 <- climaemet::aemet_daily_clim(
-      station = station, start = ref_start_date, end = ref_end_date, verbose = TRUE)
-    data2 <- climaemet::aemet_daily_clim(
-      station = "1249I", start = ref_start_date, end = ref_end_date, verbose = TRUE)
-    
-    historical_data <- rbind(data1, data2) |> 
-      dplyr::distinct(fecha, .keep_all = TRUE) |> # Remove duplicated rows, keep first
-      dplyr::arrange(fecha)
-    
-  } else {
-    historical_data <- climaemet::aemet_daily_clim(
-      station = station, start = ref_start_date, end = ref_end_date, verbose = TRUE)
+    # Save data
+    print(paste0("Saving in local storage historical data (from ", ref_start_date, " up to ", Sys.Date(), ") for station ", station))
+    readr::write_csv(
+      historical_data, 
+      file = paste0("~/aemet_data/", station, "/", format(Sys.time(),"%Y%m%d_%H%M%S"), "_", station, "_historical.csv.gz")
+    )
   }
-
-  # Save data
-  print(paste0("Saving in local storage historical data (from ", ref_start_date, " up to ", Sys.Date(), ") for station ", station))
-  readr::write_csv(
-    historical_data, 
-    file = paste0("~/aemet_data/", station, "/", format(Sys.time(),"%Y%m%d_%H%M%S"), "_", station, "_historical.csv.gz")
-  )
-  
-}
+}, error = function(e) {
+  error_message <- paste0("An error happened in script: ", conditionMessage(e))
+  bot <- Bot(token = bot_token('aemetAlertsBot'))
+  chat_id <- '111783899'
+  bot$sendMessage(chat_id = chat_id, text = error_message)
+})
