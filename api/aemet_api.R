@@ -17,7 +17,7 @@ library(telegram.bot, warn.conflicts = FALSE, quietly = TRUE)
 # ANTES DE AÑADIR ESTACION CREAR SU CARPETA EN LOCAL Y DROPBOX
 # Y GENERAR ANTES HISTORICAL FILE. RELLENAR TBN MISSINGS_DICT
 # ************************** WARNING ************************** #
-default_stations <- c("3195", "3129", "2462")
+default_stations <- c("3195", "3129", "2462", "C430E", "1208H", "1249X")
 ref_start_date <- Sys.Date() - 365 
 ref_end_date <- Sys.Date() # Get current date
 
@@ -37,7 +37,6 @@ missings_dict <- list(
   "1249X" = list(pcp_na = 13, tmin_na = 14, tmax_na = 14, tmean_na = 14)
 )
 
-# ~/aemet_data/
 for (station in stations) {
   # --------------
   # LAST 24 HOURS
@@ -55,7 +54,7 @@ for (station in stations) {
   }
   
   # Save last 24h of data
-  file <- paste0("~/Escritorio/aemet/", station, "/", format(Sys.time(),"%Y%m%d_%H%M%S"), "_", station, "_last24h.csv.gz")
+  file <- paste0("~/aemet_data/", station, "/", format(Sys.time(),"%Y%m%d_%H%M%S"), "_", station, "_last24h.csv.gz")
   readr::write_csv(
     last_24h_data, 
     file = file
@@ -67,7 +66,7 @@ for (station in stations) {
   # --------------
   # Join last 4 days of data that general API doesn"t provide
   print(paste0("Joining last 4 days of data for station ", station))
-  path <- file.path(paste0("~/Escritorio/aemet/", station, "/"))
+  path <- file.path(paste0("~/aemet_data/", station, "/"))
   files <- list.files(path, pattern = "last24h")
   
   # Initialize empty dataframe
@@ -136,7 +135,7 @@ for (station in stations) {
     dplyr::as_tibble()
   
   # Save data
-  file <- paste0("~/Escritorio/aemet/", station, "/", format(Sys.time(),"%Y%m%d_%H%M%S"), "_", station, "_last365days.csv.gz")
+  file <- paste0("~/aemet_data/", station, "/", format(Sys.time(),"%Y%m%d_%H%M%S"), "_", station, "_last365days.csv.gz")
   readr::write_csv(
     last_365days_data_clean, 
     file = file
@@ -196,10 +195,10 @@ for (station in stations) {
   }
   
   if (station == "C430E") {
-    if ((sum(is.na(final_data[final_data$date %in% c(as.Date("2024-03-15")), ]$pcp)) == 1)) {
+    if ((sum(is.na(final_data[final_data$date %in% c(as.Date("2024-03-21")), ]$pcp)) == 1)) {
       print(paste0('Fixing precipitation data for station ', station))
-      date <- c("2024-03-15")
-      pcp <- c(0.0)
+      date <- c("2024-03-21")
+      pcp <- c(10.6)
       fix_data_pcp <- data.frame(date = as.Date(date), pcp = pcp)
       
       # Fix data
@@ -207,11 +206,11 @@ for (station in stations) {
       final_data$pcp[positions] <- fix_data_pcp$pcp
     }
   }
-  
+
   if (station == "2462") {
-    if ((sum(is.na(final_data[final_data$date %in% c(as.Date("2024-03-14")), ]$pcp)) == 1)) {
+    if ((sum(is.na(final_data[final_data$date %in% c(as.Date("2024-03-21")), ]$pcp)) == 1)) {
       print(paste0('Fixing precipitation data for station ', station))
-      date <- c("2024-03-14")
+      date <- c("2024-03-21")
       pcp <- c(0.0)
       fix_data_pcp <- data.frame(date = as.Date(date), pcp = pcp)
       
@@ -220,7 +219,7 @@ for (station in stations) {
       final_data$pcp[positions] <- fix_data_pcp$pcp
     }
   }
-  
+
   # -------------------------------
   # FIX MISSING TEMPERATURE DATA
   # -------------------------------
@@ -266,7 +265,7 @@ for (station in stations) {
   # ------------
   # SAVE DATA
   # ------------
-  file <- paste0("~/Escritorio/aemet/", station, "/", format(Sys.time(),"%Y%m%d_%H%M%S"), "_", station, "_complete.csv.gz")
+  file <- paste0("~/aemet_data/", station, "/", format(Sys.time(),"%Y%m%d_%H%M%S"), "_", station, "_complete.csv.gz")
   readr::write_csv(
     final_data, 
     file = file
@@ -279,16 +278,17 @@ for (station in stations) {
   tryCatch({
     setTimeLimit(5)
     rdrop2::drop_upload(
-      file = paste0("~/Escritorio/aemet/", station, "/", tail(files, 1)),
+      file = paste0("~/aemet_data/", station, "/", tail(files, 1)),
       path = paste0("aemet_data/", station, "/"))
     },
     error = function(e) {
       print(e)
       print(paste("Could not upload file:", tail(files, 1), "Trying again"))
       rdrop2::drop_upload(
-        file = paste0("~/Escritorio/aemet/", station, "/", tail(files, 1)),
+        file = paste0("~/aemet_data/", station, "/", tail(files, 1)),
         path = paste0("aemet_data/", station, "/"))
     })
   
+  # Collect garbage - free RAM
   gc()
 }

@@ -14,8 +14,8 @@ library(readr, warn.conflicts = FALSE, quietly = TRUE)
 # ************************** WARNING ************************** #
 # ANTES DE AÑADIR ESTACION CREAR SU CARPETA EN LOCAL Y DROPBOX
 # ************************** WARNING ************************** #
-default_stations <- c("3195", "3129")
-ref_start_date <- "1920-01-01" 
+default_stations <- c("3195", "3129", "2462", "C430E", "1208H", "1249X")
+ref_start_date <- "1900-01-01" 
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) > 0) {
@@ -47,7 +47,7 @@ for (station in stations) {
     )
   
   # Save to local storage
-  file <- paste0("~/Escritorio/aemet/", station, "/", format(Sys.time(),"%Y%m%d_%H%M%S"), "_", station, "_sunlighttimes.csv.gz")
+  file <- paste0("~/aemet_data/", station, "/", format(Sys.time(),"%Y%m%d_%H%M%S"), "_", station, "_sunlighttimes.csv.gz")
   readr::write_csv(
     sunlighttimes, 
     file = file
@@ -55,20 +55,20 @@ for (station in stations) {
   print(paste0("Saved in local storage sun light times for station ", station, ": ", file))
   
   # Upload to Dropbox
-  path <- file.path(paste0("~/Escritorio/aemet/", station, "/"))
+  path <- file.path(paste0("~/aemet_data/", station, "/"))
   files <- list.files(path, pattern = "sunlighttimes")
   print(paste0("Uploading to Dropbox sun light times data for station ", station, ": ", tail(files, 1)))
   tryCatch({
     setTimeLimit(5)
     rdrop2::drop_upload(
-      file = paste0("~/Escritorio/aemet/", station, "/", tail(files, 1)),
+      file = paste0("~/aemet_data/", station, "/", tail(files, 1)),
       path = paste0("aemet_data/", station, "/"))
   },
   error = function(e) {
     print(e)
     print(paste("Could not upload file:", tail(files, 1), "Trying again"))
     rdrop2::drop_upload(
-      file = paste0("~/Escritorio/aemet/", station, "/", tail(files, 1)),
+      file = paste0("~/aemet_data/", station, "/", tail(files, 1)),
       path = paste0("aemet_data/", station, "/"))
   })
   

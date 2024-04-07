@@ -13,7 +13,7 @@ library(dplyr, warn.conflicts = FALSE, quietly = TRUE)
 # ************************** WARNING ************************** #
 # ANTES DE AÑADIR ESTACION CREAR SU CARPETA EN LOCAL Y DROPBOX
 # ************************** WARNING ************************** #
-deafult_stations <- c("3195", "3129", "C430E")
+default_stations <- c("3195", "3129", "2462", "C430E", "1208H", "1249X")
 ref_start_date <- "1900-01-01" 
 ref_end_date <- Sys.Date() # Get current date
 
@@ -46,7 +46,7 @@ for (station in stations) {
   print(paste0("Saving in local storage historical data (from ", ref_start_date, " up to ", Sys.Date(), ") for station ", station))
   readr::write_csv(
     historical_data, 
-    file = paste0("~/Escritorio/aemet/", station, "/", format(Sys.time(),"%Y%m%d_%H%M%S"), "_", station, "_historical.csv.gz")
+    file = paste0("~/aemet_data/", station, "/", format(Sys.time(),"%Y%m%d_%H%M%S"), "_", station, "_historical.csv.gz")
   )
   
 }

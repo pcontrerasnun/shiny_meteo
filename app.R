@@ -21,7 +21,6 @@
 # - escribir README por si te pasa algo - How to add new station? How to fix missing values? (basic) How to add new plot? (advanced)
 # - fichero debugging para ver missings o por si se quiere añadir nueva estación
 # - nuevo gráfico num dias superación umbrales
-# - hacer que aemet_api y tal puedan recibir por consola la estacion para la que ejecutar el script
 
 # Supress all warnings
 options(warn = -1)
