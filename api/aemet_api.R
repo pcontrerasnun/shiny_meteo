@@ -132,6 +132,7 @@ tryCatch({
       rbind(last_4days_data_clean) |> # Join last 4 days of data
       dtplyr::lazy_dt() |>
       dplyr::mutate(fecha = as.character(fecha)) |> 
+      dplyr::arrange(fecha, desc(prec)) |> # Arrange to put NA values in second place
       dplyr::distinct(fecha, .keep_all = TRUE) |> # Remove duplicated rows, keep first
       dplyr::as_tibble()
     
