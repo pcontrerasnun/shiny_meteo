@@ -159,7 +159,7 @@ tryCatch({
       dplyr::as_tibble() |> 
       rbind(last_365days_data_clean) |> # Join full last year of data
       dtplyr::lazy_dt() |>
-      dplyr::arrange(fecha, desc(pcp)) |> # Arrange to put NA values in second place
+      dplyr::arrange(fecha, desc(prec)) |> # Arrange to put NA values in second place
       dplyr::distinct(fecha, .keep_all = TRUE) |> # Remove duplicated rows, keep first
       dplyr::mutate(day = format(fecha, "%d")) |>
       dplyr::mutate(month = format(fecha, "%m")) |>
