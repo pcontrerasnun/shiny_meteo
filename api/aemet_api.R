@@ -44,7 +44,14 @@ tryCatch({
     # --------------
     # Get last 24h of data
     print(paste0("Getting from AEMET API last 24h of data for station ", station))
-    last_24h_data <- climaemet::aemet_last_obs(station = station, verbose = TRUE)
+    tryCatch({
+      last_24h_data <- climaemet::aemet_last_obs(station = station, verbose = TRUE)
+    },
+    error = function(e) {
+      print(e)
+      print(paste("Could not get last 24h of data for station", station, "from AEMET API. Trying again"))
+      last_24h_data <- climaemet::aemet_last_obs(station = station, verbose = TRUE)
+    })
     
     # Clean last 24h of data
     if ("geo850" %in% colnames(last_24h_data)) {
@@ -73,7 +80,7 @@ tryCatch({
     # Initialize empty dataframe
     last_4days_data <- data.frame()
     
-    for (file in tail(files, 40)) { # Only 40 last files, enough to fill the gap of 4 days
+    for (file in tail(files, 32)) { # Only 32 last files, enough to fill the gap of 4 days
       tmp <- readr::read_csv(paste0(path, file), show_col_types = FALSE)
       last_4days_data <- rbind(last_4days_data, tmp)
     }
@@ -117,8 +124,16 @@ tryCatch({
     # ----------------------------------
     # Get last year data (minus 4 last days)
     print(paste0("Getting from AEMET API last year data (minus 4 last days) for station ", station))
-    last_365days_data <- climaemet::aemet_daily_clim(
-      station = station, start = ref_start_date, end = ref_end_date, verbose = TRUE)
+    tryCatch({
+      last_365days_data <- climaemet::aemet_daily_clim(
+        station = station, start = ref_start_date, end = ref_end_date, verbose = TRUE)
+    },
+    error = function(e) {
+      print(e)
+      print(paste("Could not get last year data (minus 4 last days) for station", station, "from AEMET API. Trying again"))
+      last_365days_data <- climaemet::aemet_daily_clim(
+        station = station, start = ref_start_date, end = ref_end_date, verbose = TRUE)
+    })
     
     # ----------------------------------
     # LAST 365 DAYS (WITH LAST 4 DAYS)
@@ -295,6 +310,8 @@ tryCatch({
     
     # Collect garbage - free RAM
     gc()
+    
+    print("") # empty line to separate stations
   }
 }, error = function(e) {
   error_message <- paste0("An error happened in script: ", conditionMessage(e))
