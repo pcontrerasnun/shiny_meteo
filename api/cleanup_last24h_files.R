@@ -31,6 +31,7 @@ clean_files <- function(station) {
     
     # Si el fichero tiene más de 30 días, borrarlo
     if (file_age > 30) {
+      print(paste0("Deleting file: ", file))
       unlink(file)
     }
     
@@ -43,6 +44,7 @@ clean_files <- function(station) {
       
       # Borrar el fichero si no es el más reciente
       if (file != most_recent) {
+        print(paste0("Deleting file: ", file))
         unlink(file)
       }
     }
