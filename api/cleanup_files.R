@@ -2,10 +2,8 @@
 #' title: Meteo app
 #' author: Pablo Contreras
 #' date: 2024-04-09
-#' description: Script that deletes old "_last24h.csv.gz" files
+#' description: Script that deletes old files
 #' ---
-
-library(lubridate, warn.conflicts = FALSE, quietly = TRUE)
 
 default_stations <- c("3195", "3129", "2462", "C430E", "1208H", "1249X")
 
