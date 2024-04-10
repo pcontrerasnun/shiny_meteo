@@ -16,6 +16,8 @@ if (length(args) > 0) {
   stations <- default_stations
 }
 
+print(stations)
+
 clean_files <- function(station) {
 
   file_path <- paste0("~/aemet_data/", station)
