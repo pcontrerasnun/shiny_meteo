@@ -17,7 +17,7 @@ if (length(args) > 0) {
 clean_files <- function(station) {
 
   file_path <- paste0("~/aemet_data/", station)
-  file_list <- list.files(path = file_path, pattern = "*last24h.csv.gz", full.names = TRUE)
+  file_list <- list.files(path = file_path, pattern = "*(last24h|last365days|complete).csv.gz", full.names = TRUE)
   current_date <- Sys.Date()
   
   for (file in file_list) {
@@ -37,7 +37,8 @@ clean_files <- function(station) {
     # a menos que sea el fichero más reciente del día actual
     else if (file_date < current_date & !file_hour %in% c("00","12")) {
       # Obtener el fichero más reciente para este día
-      todays_files <- list.files(path = file_path, pattern = paste0("^", format(Sys.Date(), "%Y%m%d"), "_\\d{6}_[0-9A-Za-z]{4,5}_last24h\\.csv\\.gz$"), full.names = TRUE)
+      todays_files <- list.files(path = file_path, pattern = paste0("^", format(Sys.Date(), "%Y%m%d"), 
+                                                                    "_\\d{6}_[0-9A-Za-z]{4,5}_(last24h|last365days|complete)\\.csv\\.gz$"), full.names = TRUE)
       most_recent <- todays_files[which.max(file.info(todays_files)$mtime)]
       
       # Borrar el fichero si no es el más reciente
