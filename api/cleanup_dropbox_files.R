@@ -6,6 +6,7 @@
 #' ---
 
 library(rdrop2, warn.conflicts = FALSE, quietly = TRUE)
+library(telegram.bot, warn.conflicts = FALSE, quietly = TRUE)
 
 default_stations <- c("3195", "3129", "2462", "C430E", "1208H", "1249X")
 
@@ -47,6 +48,13 @@ clean_files_dropbox <- function(station) {
 }
 
 # Procesar cada estación
-for (station in stations) {
-  clean_files_dropbox(station)
-}
+tryCatch({
+  for (station in stations) {
+    clean_files_dropbox(station)
+  }
+}, error = function(e) {
+  error_message <- paste0("An error happened in script cleanup_dropbox_files.R: ", conditionMessage(e))
+  bot <- Bot(token = bot_token('aemetAlertsBot'))
+  chat_id <- '111783899'
+  bot$sendMessage(chat_id = chat_id, text = error_message)
+})

@@ -51,7 +51,7 @@ tryCatch({
     )
   }
 }, error = function(e) {
-  error_message <- paste0("An error happened in script: ", conditionMessage(e))
+  error_message <- paste0("An error happened in script aemet_api_hist.R: ", conditionMessage(e))
   bot <- Bot(token = bot_token('aemetAlertsBot'))
   chat_id <- '111783899'
   bot$sendMessage(chat_id = chat_id, text = error_message)

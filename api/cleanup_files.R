@@ -5,6 +5,8 @@
 #' description: Script that deletes old files
 #' ---
 
+library(telegram.bot, warn.conflicts = FALSE, quietly = TRUE)
+
 default_stations <- c("3195", "3129", "2462", "C430E", "1208H", "1249X")
 
 args <- commandArgs(trailingOnly = TRUE)
@@ -51,4 +53,11 @@ clean_files <- function(station) {
 }
 
 # Aplicar la función a cada station
-sapply(stations, clean_files)
+tryCatch({
+  sapply(stations, clean_files)
+}, error = function(e) {
+  error_message <- paste0("An error happened in script cleanup_files.R: ", conditionMessage(e))
+  bot <- Bot(token = bot_token('aemetAlertsBot'))
+  chat_id <- '111783899'
+  bot$sendMessage(chat_id = chat_id, text = error_message)
+})
