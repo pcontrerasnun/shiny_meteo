@@ -311,7 +311,7 @@ tryCatch({
     # Collect garbage - free RAM
     gc()
     
-    print("") # empty line to separate stations
+    cat("\n")
   }
 }, error = function(e) {
   error_message <- paste0("An error happened in script: ", conditionMessage(e))

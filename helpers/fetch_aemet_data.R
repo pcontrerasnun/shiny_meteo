@@ -7,7 +7,7 @@ FetchAEMETData <- function(station) {
     file, colClasses = c(day = "character", month = "character", date = "Date"))
   
   # Calculate datetime last data based on file name
-  max_date <- paste(format(floor_date(strptime(sub(".*/(\\d{8}_\\d{6}).*", "\\1", file), format = "%Y%m%d_%H%M%S"), unit = "hours"),
+  max_date <- paste(format(lubridate::floor_date(strptime(sub(".*/(\\d{8}_\\d{6}).*", "\\1", file), format = "%Y%m%d_%H%M%S"), unit = "hours"),
                            "%Y-%m-%d %H:%M"), "UTC")
   
   return(list(data_clean, max_date))
