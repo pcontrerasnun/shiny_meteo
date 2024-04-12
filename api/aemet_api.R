@@ -118,7 +118,8 @@ tryCatch({
     # Consolidate precipitation and temperature last data
     print(paste0("Consolidating last 4 days of data (temp. + precip.) for station ", station))
     last_4days_data_clean <- dplyr::right_join(last_4days_data_pcp_clean, last_4days_data_temp_clean, by = "fecha") |> 
-      dplyr::mutate(prec = ifelse(fecha == max(fecha) & is.na(prec), 0, prec)) # For 0, 3 and 6am files
+      dplyr::mutate(prec = ifelse(fecha == max(fecha) & is.na(prec), 0, prec)) |> # For 0, 3 and 6am files
+      dplyr::mutate(priority = 3)
     
     # ----------------------------------
     # LAST 365 DAYS (MINUS LAST 4 DAYS)
@@ -144,11 +145,12 @@ tryCatch({
     last_365days_data_clean <- last_365days_data |> 
       dtplyr::lazy_dt() |>
       dplyr::select(fecha, prec, tmin, tmax, tmed) |> 
+      dplyr::mutate(priority = 2) |> 
       dplyr::as_tibble() |> 
       rbind(last_4days_data_clean) |> # Join last 4 days of data
       dtplyr::lazy_dt() |>
       dplyr::mutate(fecha = as.character(fecha)) |> 
-      dplyr::arrange(fecha, desc(prec)) |> # Arrange to put NA values in second place
+      dplyr::arrange(fecha, priority) |> # Arrange by priority
       dplyr::distinct(fecha, .keep_all = TRUE) |> # Remove duplicated rows, keep first
       dplyr::as_tibble()
     
@@ -166,17 +168,18 @@ tryCatch({
     # Get historical data
     files <- list.files(path, pattern = "historical")
     print(paste0("Loading from local storage historical data for station ", station, ": ", tail(files, 1)))
-    historical_data <- readr::read_csv(paste0(path, tail(files, 1)), show_col_types = FALSE)
+    historical_data <- readr::read_csv(paste0(path, tail(files, 1)), show_col_types = FALSE) |> 
+      dplyr::mutate(priority = 1)
     
     # Join full last year data (last365days + last4days) and historical data
     print(paste0('Joining historical data and full last year data for station ', station))
     final_data <- historical_data |> 
       dtplyr::lazy_dt() |>
-      dplyr::select(fecha, prec, tmin, tmax, tmed) |> 
+      dplyr::select(fecha, prec, tmin, tmax, tmed, priority) |> 
       dplyr::as_tibble() |> 
       rbind(last_365days_data_clean) |> # Join full last year of data
       dtplyr::lazy_dt() |>
-      dplyr::arrange(fecha, desc(prec)) |> # Arrange to put NA values in second place
+      dplyr::arrange(fecha, priority) |> # Arrange by priority
       dplyr::distinct(fecha, .keep_all = TRUE) |> # Remove duplicated rows, keep first
       dplyr::mutate(day = format(fecha, "%d")) |>
       dplyr::mutate(month = format(fecha, "%m")) |>
@@ -186,7 +189,7 @@ tryCatch({
       dplyr::mutate(pcp = (ifelse(prec == "Ip", "0,0", prec))) |> # 'Ip' means precipitacion < 0.1mm
       dplyr::mutate(pcp = gsub(",", ".", pcp)) |> # Change commas with dots, necessary for numeric conversion
       dplyr::mutate(pcp = as.numeric(pcp)) |> 
-      dplyr::select(-prec) |> 
+      dplyr::select(-prec, -priority) |> 
       dplyr::arrange(date) |> 
       dplyr::as_tibble()
     
@@ -250,6 +253,40 @@ tryCatch({
         tmean <- c(8.3, 6.9, 8.9)
         tmin <- c(5.3, 3.6, 5.2)
         tmax <- c(11.3, 10.2, 12.6)
+        fix_data_temp <- data.frame(date = as.Date(date), tmin = tmin, tmax = tmax, tmean = tmean)
+        
+        # Fix data
+        positions <- match(fix_data_temp$date, final_data$date)
+        final_data$tmin[positions] <- fix_data_temp$tmin
+        final_data$tmax[positions] <- fix_data_temp$tmax
+        final_data$tmean[positions] <- fix_data_temp$tmean
+      }
+    }
+    
+    if (station == "2462") {
+      if ((sum(is.na(final_data[final_data$date %in% c(as.Date("2024-03-28")), ]$tmean)) == 1)) {
+        print(paste0('Fixing missing temperature data for station ', station))
+        date <- c("2024-03-28")
+        tmean <- c(0.9)
+        tmin <- c(-2.0)
+        tmax <- c(3.8)
+        fix_data_temp <- data.frame(date = as.Date(date), tmin = tmin, tmax = tmax, tmean = tmean)
+        
+        # Fix data
+        positions <- match(fix_data_temp$date, final_data$date)
+        final_data$tmin[positions] <- fix_data_temp$tmin
+        final_data$tmax[positions] <- fix_data_temp$tmax
+        final_data$tmean[positions] <- fix_data_temp$tmean
+      }
+    }
+    
+    if (station == "C430E") {
+      if ((sum(is.na(final_data[final_data$date %in% c(as.Date("2024-03-28")), ]$tmean)) == 1)) {
+        print(paste0('Fixing missing temperature data for station ', station))
+        date <- c("2024-03-28")
+        tmean <- c(5.3)
+        tmin <- c(0.3)
+        tmax <- c(10.3)
         fix_data_temp <- data.frame(date = as.Date(date), tmin = tmin, tmax = tmax, tmean = tmean)
         
         # Fix data
