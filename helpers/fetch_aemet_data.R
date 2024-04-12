@@ -1,7 +1,7 @@
 FetchAEMETData <- function(station) {
   # Get historical data from Dropbox
   search <- rdrop2::drop_search(paste0(station, "_complete"))
-  file <- search$matches[[1]]$metadata$path_lower # Get last historical file
+  file <- search$matches[[1]]$metadata$path_display # Get last historical file
   print(paste0("Downloading from Dropbox historical data for station ", station, ": ", file))
   data_clean <- rdrop2::drop_read_csv(
     file, colClasses = c(day = "character", month = "character", date = "Date"))
