@@ -117,7 +117,8 @@ tryCatch({
     
     # Consolidate precipitation and temperature last data
     print(paste0("Consolidating last 4 days of data (temp. + precip.) for station ", station))
-    last_4days_data_clean <- dplyr::left_join(last_4days_data_pcp_clean, last_4days_data_temp_clean, by = "fecha")
+    last_4days_data_clean <- dplyr::right_join(last_4days_data_pcp_clean, last_4days_data_temp_clean, by = "fecha") |> 
+      dplyr::mutate(prec = ifelse(fecha == max(fecha) & is.na(prec), 0, prec)) # For 0, 3 and 6am files
     
     # ----------------------------------
     # LAST 365 DAYS (MINUS LAST 4 DAYS)
