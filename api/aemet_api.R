@@ -96,7 +96,7 @@ tryCatch({
       dplyr::mutate(fecha = fecha - lubridate::hours(7)) |> # Transform data from 00-24 to 07-07
       dplyr::mutate(fecha = format(fecha, "%Y-%m-%d")) |> 
       dplyr::group_by(fecha) |> 
-      dplyr::summarise(prec = sum(prec)) |> 
+      dplyr::summarise(prec = sum(prec, rm.na = TRUE)) |> 
       dplyr::ungroup() |> 
       dplyr::as_tibble()
     
