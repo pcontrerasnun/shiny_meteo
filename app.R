@@ -284,7 +284,7 @@ server <- function(input, output, session) {
     min_year <- min(newData()[[6]][[1]]$year)
     max_year <- max(newData()[[6]][[1]]$year)
     
-    # ROund min_year and max_year to nearest decena
+    # Round min_year and max_year to nearest decena
     min_year_floor <- floor(min_year / 10) * 10
     max_year_floor <- floor(max_year / 10) * 10
 

@@ -9,6 +9,7 @@ library(climaemet, warn.conflicts = FALSE, quietly = TRUE)
 library(rdrop2, warn.conflicts = FALSE, quietly = TRUE)
 library(readr, warn.conflicts = FALSE, quietly = TRUE)
 library(dplyr, warn.conflicts = FALSE, quietly = TRUE)
+library(telegram.bot, warn.conflicts = FALSE, quietly = TRUE)
 
 # ************************** WARNING ************************** #
 # ANTES DE AÑADIR ESTACION CREAR SU CARPETA EN LOCAL Y DROPBOX
