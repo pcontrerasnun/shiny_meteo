@@ -96,7 +96,7 @@ tryCatch({
       dplyr::mutate(fecha = fecha - lubridate::hours(7)) |> # Transform data from 00-24 to 07-07
       dplyr::mutate(fecha = format(fecha, "%Y-%m-%d")) |> 
       dplyr::group_by(fecha) |> 
-      dplyr::summarise(prec = sum(prec, rm.na = TRUE)) |> 
+      dplyr::summarise(prec = sum(prec, na.rm = TRUE)) |> 
       dplyr::ungroup() |> 
       dplyr::as_tibble()
     
@@ -248,12 +248,13 @@ tryCatch({
     # -------------------------------
     if (station == "3195") {
       if ((sum(is.na(final_data[final_data$date %in% c(as.Date("2024-02-07"), as.Date("2024-03-06"), 
-                                                       as.Date("2024-03-07")), ]$tmean)) == 3)) {
+                                                       as.Date("2024-03-07"), as.Date("2024-04-29"),
+                                                       as.Date("2024-04-30")), ]$tmean)) == 5)) {
         print(paste0('Fixing missing temperature data for station ', station))
-        date <- c("2024-02-07", "2024-03-06", "2024-03-07")
-        tmean <- c(8.3, 6.9, 8.9)
-        tmin <- c(5.3, 3.6, 5.2)
-        tmax <- c(11.3, 10.2, 12.6)
+        date <- c("2024-02-07", "2024-03-06", "2024-03-07", "2024-04-29", "2024-04-30")
+        tmean <- c(8.3, 6.9, 8.9, 12.5, 13.8)
+        tmin <- c(5.3, 3.6, 5.2, 9.1, 9.3)
+        tmax <- c(11.3, 10.2, 12.6, 15.9, 18.2)
         fix_data_temp <- data.frame(date = as.Date(date), tmin = tmin, tmax = tmax, tmean = tmean)
         
         # Fix data
