@@ -20,7 +20,20 @@ library(telegram.bot, warn.conflicts = FALSE, quietly = TRUE)
 default_stations <- c("3195", "3129", "2462", "C430E", "1208H", "1249X")
 ref_start_date <- Sys.Date() - 365 
 ref_end_date <- Sys.Date() # Get current date
+intervals_6m <- seq(from = ref_start_date, to = ref_end_date, by = "6 months") # AEMET API only allows max 6 months per call
+# Add ref_end_date to vector if it is not present already
+if (tail(intervals_6m, 1) != ref_end_date) {
+  intervals_6m <- c(intervals_6m, ref_end_date)
+}
+# Create date pairs
+date_pairs <- list()
+for (i in 1:(length(intervals_6m) - 1)) {
+  date_pairs[[i]] <- list(start = intervals_6m[i], end = intervals_6m[i + 1] - 1)
+}
+# Caso especial para el último par de fechas
+date_pairs[[length(intervals_6m) - 1]]$end <- ref_end_date
 
+# Console arguments
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) > 0) {
   stations <- args
@@ -127,14 +140,22 @@ tryCatch({
     # Get last year data (minus 4 last days)
     print(paste0("Getting from AEMET API last year data (minus 4 last days) for station ", station))
     tryCatch({
-      last_365days_data <- climaemet::aemet_daily_clim(
-        station = station, start = ref_start_date, end = ref_end_date, verbose = TRUE)
+      last_365days_data <- data.frame()
+      for (i in 1:length(date_pairs)) {
+        last_365days_data_tmp <- climaemet::aemet_daily_clim(
+          station = station, start = date_pairs[[i]]$start, end = date_pairs[[i]]$end, verbose = TRUE)
+        last_365days_data <- rbind(last_365days_data, last_365days_data_tmp)
+      }
     },
     error = function(e) {
       print(e)
       print(paste("Could not get last year data (minus 4 last days) for station", station, "from AEMET API. Trying again"))
-      last_365days_data <- climaemet::aemet_daily_clim(
-        station = station, start = ref_start_date, end = ref_end_date, verbose = TRUE)
+      last_365days_data <- data.frame()
+      for (i in 1:length(date_pairs)) {
+        last_365days_data_tmp <- climaemet::aemet_daily_clim(
+          station = station, start = date_pairs[[i]]$start, end = date_pairs[[i]]$end, verbose = TRUE)
+        last_365days_data <- rbind(last_365days_data, last_365days_data_tmp)
+      }
     })
     
     # ----------------------------------
