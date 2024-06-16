@@ -17,7 +17,20 @@ library(telegram.bot, warn.conflicts = FALSE, quietly = TRUE)
 default_stations <- c("3195", "3129", "2462", "C430E", "1208H", "1249X")
 ref_start_date <- "1900-01-01" 
 ref_end_date <- Sys.Date() # Get current date
+intervals_6m <- seq(from = ref_start_date, to = ref_end_date, by = "6 months") # AEMET API only allows max 6 months per call
+# Add ref_end_date to vector if it is not present already
+if (tail(intervals_6m, 1) != ref_end_date) {
+  intervals_6m <- c(intervals_6m, ref_end_date)
+}
+# Create date pairs
+date_pairs <- list()
+for (i in 1:(length(intervals_6m) - 1)) {
+  date_pairs[[i]] <- list(start = intervals_6m[i], end = intervals_6m[i + 1] - 1)
+}
+# Caso especial para el último par de fechas
+date_pairs[[length(intervals_6m) - 1]]$end <- ref_end_date
 
+# Console arguments
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) > 0) {
   stations <- args
@@ -30,18 +43,30 @@ tryCatch({
     print(paste0("Getting from AEMET API historical data (from ", ref_start_date, " up to ", Sys.Date(), ") for station ", station))
     
     if(station == "1249X") {
-      data1 <- climaemet::aemet_daily_clim(
-        station = station, start = ref_start_date, end = ref_end_date, verbose = TRUE)
-      data2 <- climaemet::aemet_daily_clim(
-        station = "1249I", start = ref_start_date, end = ref_end_date, verbose = TRUE)
+      data1 <- data.frame()
+      for (i in 1:length(date_pairs)) {
+        data1_tmp <- climaemet::aemet_daily_clim(
+          station = station, start = date_pairs[[i]]$start, end = date_pairs[[i]]$end, verbose = TRUE)
+        data1 <- rbind(data1, data1_tmp)
+      }
+      data2 <- data.frame()
+      for (i in 1:length(date_pairs)) {
+        data2_tmp <- climaemet::aemet_daily_clim(
+          station = station, start = date_pairs[[i]]$start, end = date_pairs[[i]]$end, verbose = TRUE)
+        data2 <- rbind(data2, data2_tmp)
+      }
       
       historical_data <- rbind(data1, data2) |> 
         dplyr::distinct(fecha, .keep_all = TRUE) |> # Remove duplicated rows, keep first
         dplyr::arrange(fecha)
       
     } else {
-      historical_data <- climaemet::aemet_daily_clim(
-        station = station, start = ref_start_date, end = ref_end_date, verbose = TRUE)
+      historical_data <- data.frame()
+      for (i in 1:length(date_pairs)) {
+        historical_data_tmp <- climaemet::aemet_daily_clim(
+          station = station, start = date_pairs[[i]]$start, end = date_pairs[[i]]$end, verbose = TRUE)
+        historical_data <- rbind(historical_data, historical_data_tmp)
+      }
     }
   
     # Save data
