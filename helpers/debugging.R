@@ -24,4 +24,10 @@
 #
 #data <- readr::read_csv('/home/pablo/Descargas/20240213_185529_C430E_historical.csv.gz', show_col_types = FALSE)
 #data <- readr::read_csv('/home/ubuntu/aemet_data/C430E/20240412_060136_C430E_last24h.csv.gz', show_col_types = FALSE)
-
+#
+#archivos <- list.files('/home/ubuntu/aemet_data/1249X/', full.names = TRUE)
+#archivos_last24 <- archivos[grep("last24", archivos)]
+#for (archivo in archivos_last24) {
+#data <- read.csv(archivo, header = TRUE)
+#cat("Archivo:", basename(archivo), "\tNúmero de columnas:", ncol(data), "\n")
+#}
