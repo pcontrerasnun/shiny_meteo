@@ -144,6 +144,7 @@ tryCatch({
       for (i in 1:length(date_pairs)) {
         last_365days_data_tmp <- climaemet::aemet_daily_clim(
           station = station, start = date_pairs[[i]]$start, end = date_pairs[[i]]$end, verbose = TRUE)
+        last_365days_data_tmp$horatmx <- as.POSIXct(last_365days_data_tmp$horatmx, format="%H:%M:%S")
         last_365days_data <- rbind(last_365days_data, last_365days_data_tmp)
       }
     },
@@ -154,6 +155,7 @@ tryCatch({
       for (i in 1:length(date_pairs)) {
         last_365days_data_tmp <- climaemet::aemet_daily_clim(
           station = station, start = date_pairs[[i]]$start, end = date_pairs[[i]]$end, verbose = TRUE)
+        last_365days_data_tmp$horatmx <- as.POSIXct(last_365days_data_tmp$horatmx, format="%H:%M:%S")
         last_365days_data <- rbind(last_365days_data, last_365days_data_tmp)
       }
     })
