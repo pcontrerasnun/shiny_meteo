@@ -145,7 +145,7 @@ tryCatch({
         last_365days_data_tmp <- climaemet::aemet_daily_clim(
           station = station, start = date_pairs[[i]]$start, end = date_pairs[[i]]$end, verbose = TRUE)
         # Cast time columns to avoid error in rbind
-        time_cols <- c("horatmin", "horatmax", "horaracha", "horaPresMax", "horaPresMin", "horaHrMax", "horaHrMin")
+        time_cols <- c("horatmin", "horatmax", "horaPresMax", "horaPresMin", "horaHrMax", "horaHrMin")
         last_365days_data_tmp[time_cols] <- lapply(last_365days_data_tmp[time_cols], as.character)
         last_365days_data <- rbind(last_365days_data, last_365days_data_tmp)
       }
@@ -158,7 +158,7 @@ tryCatch({
         last_365days_data_tmp <- climaemet::aemet_daily_clim(
           station = station, start = date_pairs[[i]]$start, end = date_pairs[[i]]$end, verbose = TRUE)
         # Cast time columns to avoid error in rbind
-        time_cols <- c("horatmin", "horatmax", "horaracha", "horaPresMax", "horaPresMin", "horaHrMax", "horaHrMin")
+        time_cols <- c("horatmin", "horatmax", "horaPresMax", "horaPresMin", "horaHrMax", "horaHrMin")
         last_365days_data_tmp[time_cols] <- lapply(last_365days_data_tmp[time_cols], as.character)
         last_365days_data <- rbind(last_365days_data, last_365days_data_tmp)
       }
