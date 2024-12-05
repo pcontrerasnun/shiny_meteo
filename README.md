@@ -1,6 +1,6 @@
 ## .httr-oauth
 
-Este fichero es con el que te identificas para conectarte con Dropbox. El bueno está en la maquina de Oracle en /home/ubuntu/.httr-oauth. NO LO PIERDAS. Es el que tienes que copiar dentro de shiny_meteo/. Verás que es un fichero que se autorefresca por lo que si haces un ls -la verás que la fecha del archivo es la última vez que se utilizase (no la fecha de creación del fichero como se podría pensar). En la máquina de Oracle esta fecha será reciente ya que es donde está el cron que se descarga el dato de AEMET y se sube a Dropbox todos los días.
+Este fichero es con el que te identificas para conectarte con Dropbox. El bueno está en la maquina de Oracle en /home/ubuntu/.httr-oauth. NO LO PIERDAS. Es el que tienes que copiar dentro de shiny_meteo/ (y también subirlo a shinyapps.io). Verás que es un fichero que se autorefresca por lo que si haces un `ls -la` verás que la fecha del archivo es la última vez que se utilizase (no la fecha de creación del fichero como se podría pensar). En la máquina de Oracle esta fecha será reciente ya que es donde está el cron que se descarga el dato de AEMET y se sube a Dropbox todos los días.
 
 Te puedes copiar el fichero de la máquina de Oracle a local con: `scp -i ./.ssh/oracle ubuntu@143.47.33.65:/home/ubuntu/.httr-oauth /Users/pcontreras/data/projects/shiny_meteo`
 
