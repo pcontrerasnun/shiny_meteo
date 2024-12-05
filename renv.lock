@@ -1,6 +1,6 @@
 {
   "R": {
-    "Version": "4.2.2",
+    "Version": "4.1.2",
     "Repositories": [
       {
         "Name": "CRAN",
@@ -120,6 +120,16 @@
         "sys"
       ],
       "Hash": "e8a22846fff485f0be3770c2da758713"
+    },
+    "assertthat": {
+      "Package": "assertthat",
+      "Version": "0.2.1",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "tools"
+      ],
+      "Hash": "50c838a310445e954bc13f26f26a6ecf"
     },
     "backports": {
       "Package": "backports",
@@ -1162,16 +1172,17 @@
     },
     "rdrop2": {
       "Package": "rdrop2",
-      "Version": "0.8.2.1",
+      "Version": "0.8.2.2",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "rdrop2",
-      "RemoteUsername": "limnotrack",
+      "RemoteUsername": "karthik",
       "RemoteRef": "HEAD",
-      "RemoteSha": "4067a5227797a7eda57c857da8d5995ee776c6a1",
+      "RemoteSha": "81bedd2f0fbd0ee55dd163230c1a0b26a80162cc",
       "Requirements": [
         "R",
+        "assertthat",
         "digest",
         "dplyr",
         "httr",
@@ -1179,7 +1190,7 @@
         "magrittr",
         "purrr"
       ],
-      "Hash": "607a80907d78f60f06efb5adf86191e0"
+      "Hash": "ce1d19e12e1b719f5885f9a2579d1706"
     },
     "readr": {
       "Package": "readr",
