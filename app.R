@@ -105,7 +105,9 @@ plot_choices_pcp <- c(
 
 plot_choices_daylight <- c(
   "1. Daily gained daylight minutes" = "daily-gained-sunlight",
-  "2. Sunlight times" = "daily-times-sunlight"
+  "2. Sunlight times" = "daily-times-sunlight",
+  "3. Daily gained sunset minutes" = "daily-gained-sunset",
+  "4. Daily gained sunrise minutes" = "daily-gained-sunrise"
 )
 
 # Info messages dictionary
@@ -617,6 +619,14 @@ server <- function(input, output, session) {
           data = newData()[[2]], selected_year = input$year,
           ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
           ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
+          max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
+        ),
+        "daily-gained-sunset" = DailySunsetGainedPlot(
+          data = newData()[[5]], selected_year = input$year,
+          max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
+        ),
+        "daily-gained-sunrise" = DailySunriseGainedPlot(
+          data = newData()[[5]], selected_year = input$year,
           max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
         )
       )
