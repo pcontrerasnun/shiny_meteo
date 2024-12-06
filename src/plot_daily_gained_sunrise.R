@@ -1,5 +1,5 @@
 DailySunriseGainedPlot <- function(data, selected_year, max_date, title) {
-  plot_data <- data_sunlight |> 
+  plot_data <- data |> 
     dtplyr::lazy_dt() |>
     dplyr::mutate(sunrise_time = hms::as_hms(format(sunrise, "%H:%M:%S"))) |> 
     dplyr::mutate(diff_sunrise = difftime(sunrise_time, lag(sunrise_time), units = "mins")) |> 
