@@ -78,6 +78,7 @@ tryCatch({
             station = station, start = date_pairs[[i]]$start, end = date_pairs[[i]]$end, verbose = TRUE)
         },
         error = function(e) { # try again
+          print(paste("Could not get AEMET data for station", station, ". Trying again"))
           historical_data_tmp <- climaemet::aemet_daily_clim(
             station = station, start = date_pairs[[i]]$start, end = date_pairs[[i]]$end, verbose = TRUE)
         })
