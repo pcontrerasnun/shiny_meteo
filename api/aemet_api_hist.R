@@ -64,8 +64,25 @@ tryCatch({
     } else {
       historical_data <- data.frame()
       for (i in 1:length(date_pairs)) {
+        # Some stations dont have same columns across history
+        required_columns <- c("presMax", "horaPresMax", "presMin", "horaPresMin", 
+                              "hrMedia", "hrMax", "horaHrMax", "hrMin", "horaHrMin")
+        column_types <- c("numeric", "character", "numeric", "character", 
+                          "numeric", "numeric", "character", "numeric", "character")
+        
         historical_data_tmp <- climaemet::aemet_daily_clim(
           station = station, start = date_pairs[[i]]$start, end = date_pairs[[i]]$end, verbose = TRUE)
+        
+        missing_columns <- setdiff(required_columns, colnames(historical_data_tmp))
+        for (col in missing_columns) {
+          index <- which(required_columns == col)
+          if (column_types[index] == "numeric") {
+            historical_data_tmp[[col]] <- as.numeric(NA)
+          } else if (column_types[index] == "character") {
+            historical_data_tmp[[col]] <- as.character(NA)
+          }
+        }
+        
         historical_data <- rbind(historical_data, historical_data_tmp)
       }
     }
