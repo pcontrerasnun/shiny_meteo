@@ -72,8 +72,15 @@ tryCatch({
                           "numeric", "character", "numeric", "character", 
                           "numeric", "numeric", "character", "numeric", "character")
         
-        historical_data_tmp <- climaemet::aemet_daily_clim(
-          station = station, start = date_pairs[[i]]$start, end = date_pairs[[i]]$end, verbose = TRUE)
+        tryCatch({
+          setTimeLimit(5)
+          historical_data_tmp <- climaemet::aemet_daily_clim(
+            station = station, start = date_pairs[[i]]$start, end = date_pairs[[i]]$end, verbose = TRUE)
+        },
+        error = function(e) { # try again
+          historical_data_tmp <- climaemet::aemet_daily_clim(
+            station = station, start = date_pairs[[i]]$start, end = date_pairs[[i]]$end, verbose = TRUE)
+        })
         
         missing_columns <- setdiff(required_columns, colnames(historical_data_tmp))
         for (col in missing_columns) {
