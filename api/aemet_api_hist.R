@@ -13,9 +13,10 @@ library(telegram.bot, warn.conflicts = FALSE, quietly = TRUE)
 
 # ************************** WARNING ************************** #
 # ANTES DE AÑADIR ESTACION CREAR SU CARPETA EN LOCAL Y DROPBOX
+# TBN AÑADIR EN SCRIPTS DE SUNLIGHT Y CLEANUP
 # ************************** WARNING ************************** #
-default_stations <- c("3195", "3129", "2462", "C430E", "1208H", "1249X")
-ref_start_date <- "1900-01-01" 
+default_stations <- c("3195", "3129", "2462", "C430E", "1208H", "1249X", "1059X") # indicativo
+ref_start_date <- as.Date("1900-01-01") 
 ref_end_date <- Sys.Date() # Get current date
 intervals_6m <- seq(from = ref_start_date, to = ref_end_date, by = "6 months") # AEMET API only allows max 6 months per call
 # Add ref_end_date to vector if it is not present already
