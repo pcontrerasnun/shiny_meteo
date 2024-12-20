@@ -65,9 +65,11 @@ tryCatch({
       historical_data <- data.frame()
       for (i in 1:length(date_pairs)) {
         # Some stations dont have same columns across history
-        required_columns <- c("presMax", "horaPresMax", "presMin", "horaPresMin", 
+        required_columns <- c("tmed", "tmin", "horatmin", "tmax", "horatmax",
+                              "presMax", "horaPresMax", "presMin", "horaPresMin", 
                               "hrMedia", "hrMax", "horaHrMax", "hrMin", "horaHrMin")
-        column_types <- c("numeric", "character", "numeric", "character", 
+        column_types <- c("numeric", "numeric", "character", "numeric", "character",
+                          "numeric", "character", "numeric", "character", 
                           "numeric", "numeric", "character", "numeric", "character")
         
         historical_data_tmp <- climaemet::aemet_daily_clim(
