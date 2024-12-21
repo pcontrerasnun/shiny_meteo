@@ -7,7 +7,7 @@
 
 library(telegram.bot, warn.conflicts = FALSE, quietly = TRUE)
 
-default_stations <- c("3195", "3129", "2462", "C430E", "1208H", "1249X")
+default_stations <- c("3195", "3129", "2462", "C430E", "1208H", "1249X", "1059X")
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) > 0) {

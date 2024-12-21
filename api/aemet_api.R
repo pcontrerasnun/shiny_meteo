@@ -16,8 +16,9 @@ library(telegram.bot, warn.conflicts = FALSE, quietly = TRUE)
 # ************************** WARNING ************************** #
 # ANTES DE AÑADIR ESTACION CREAR SU CARPETA EN LOCAL Y DROPBOX
 # Y GENERAR ANTES HISTORICAL FILE. RELLENAR TBN MISSINGS_DICT
+# TBN AL STATIONS_DICT DE app.R (aemet_munic())
 # ************************** WARNING ************************** #
-default_stations <- c("3195", "3129", "2462", "C430E", "1208H", "1249X")
+default_stations <- c("3195", "3129", "2462", "C430E", "1208H", "1249X", "1059X")
 ref_start_date <- Sys.Date() - 365 
 ref_end_date <- Sys.Date() # Get current date
 intervals_6m <- seq(from = ref_start_date, to = ref_end_date, by = "6 months") # AEMET API only allows max 6 months per call
@@ -47,7 +48,8 @@ missings_dict <- list(
   "2462" = list(pcp_na = 32, tmin_na = 5, tmax_na = 4, tmean_na = 5),
   "C430E" = list(pcp_na = 28, tmin_na = 427, tmax_na = 408, tmean_na = 432),
   "1208H" = list(pcp_na = 2, tmin_na = 0, tmax_na = 0, tmean_na = 0),
-  "1249X" = list(pcp_na = 13, tmin_na = 14, tmax_na = 14, tmean_na = 14)
+  "1249X" = list(pcp_na = 13, tmin_na = 14, tmax_na = 14, tmean_na = 14),
+  "1059X" = list(pcp_na = 49, tmin_na = 1058, tmax_na = 1058, tmean_na = 1058)
 )
 
 tryCatch({

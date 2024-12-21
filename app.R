@@ -149,7 +149,8 @@ stations_dict <- list(
   "2462" = list(title = "Madrid - Pto Navacerrada", mun_code = 28093),
   "C430E" = list(title = "Sta Cruz de Tenerife - Izaña", mun_code = 38026),
   "1208H" = list(title = "Gijón - Puerto", mun_code = 33024),
-  "1249X" = list(title = "Oviedo", mun_code = 33044)
+  "1249X" = list(title = "Oviedo", mun_code = 33044),
+  "1059X" = list(title = "Punta Galea - Getxo", mun_code = 48044)
 )
 
 # Load all functions

@@ -15,7 +15,7 @@ library(telegram.bot, warn.conflicts = FALSE, quietly = TRUE)
 # ************************** WARNING ************************** #
 # ANTES DE AÑADIR ESTACION CREAR SU CARPETA EN LOCAL Y DROPBOX
 # ************************** WARNING ************************** #
-default_stations <- c("3195", "3129", "2462", "C430E", "1208H", "1249X")
+default_stations <- c("3195", "3129", "2462", "C430E", "1208H", "1249X", "1059X")
 ref_start_date <- "1900-01-01" 
 
 args <- commandArgs(trailingOnly = TRUE)
