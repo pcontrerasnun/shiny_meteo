@@ -191,7 +191,8 @@ ui <- shiny::fluidPage(
               "Madrid - Aeropuerto" = "3129",
               "Sta Cruz de Tenerife - Izaña" = "C430E",
               "Gijón - Puerto" = "1208H",
-              "Oviedo" = "1249X"
+              "Oviedo" = "1249X",
+              "Getxo - Punta Galea" = "1059X"
             ),
             selected = "3195"
           )
