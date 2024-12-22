@@ -4,8 +4,6 @@ Este fichero es con el que te identificas para conectarte con Dropbox. El bueno 
 
 Te puedes copiar el fichero de la máquina de Oracle a local con: `scp -i ./.ssh/oracle ubuntu@143.47.33.65:/home/ubuntu/.httr-oauth /Users/pcontreras/data/projects/shiny_meteo` (si no te consigue identificar prueba a reiniciar RStudio)
 
-En la máquina de Oracle (o en la que se estén ejecutando los scripts automaticamente, también es necesario que este fichero esté en la ruta `shiny_meteo/api/` ya que el script de `sunlighttimes.R` lo necesita
-
 ## .Renviron
 
 Aqui dentro está el API KEY de AEMET para poder usar su API y tambien el token del bot de Telegram para poder recibir las alertas si hay fallos en el cron que se descarga el dato de AEMET y lo guarda en Dropbox. Este fichero también ha de estar dentro de shiny_meteo/ y en shinyapps.io.
