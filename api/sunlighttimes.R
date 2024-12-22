@@ -10,6 +10,7 @@ library(dplyr, warn.conflicts = FALSE, quietly = TRUE)
 library(suncalc, warn.conflicts = FALSE, quietly = TRUE)
 library(lubridate, warn.conflicts = FALSE, quietly = TRUE)
 library(readr, warn.conflicts = FALSE, quietly = TRUE)
+library(rdrop2, warn.conflicts = FALSE, quietly = TRUE)
 library(telegram.bot, warn.conflicts = FALSE, quietly = TRUE)
 
 # ************************** WARNING ************************** #
