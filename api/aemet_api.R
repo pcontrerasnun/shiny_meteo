@@ -216,7 +216,7 @@ tryCatch({
       dplyr::mutate(year = format(fecha, "%Y")) |>
       dplyr::rename(date = fecha) |> 
       dplyr::rename(tmean = tmed) |> 
-      dplyr::mutate(pcp = (ifelse(prec == "Ip", "0,0", prec))) |> # 'Ip' means precipitacion < 0.1mm
+      dplyr::mutate(pcp = (ifelse(prec == "Ip", "0,0", as.character(prec)))) |> # 'Ip' means precipitacion < 0.1mm
       dplyr::mutate(pcp = gsub(",", ".", pcp)) |> # Change commas with dots, necessary for numeric conversion
       dplyr::mutate(pcp = as.numeric(pcp)) |> 
       dplyr::select(-prec, -priority) |> 
