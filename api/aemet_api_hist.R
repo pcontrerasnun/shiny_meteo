@@ -17,7 +17,7 @@ library(telegram.bot, warn.conflicts = FALSE, quietly = TRUE)
 # GENERAR TBN SUNLIGHTTIMES FILE
 # ************************** WARNING ************************** #
 default_stations <- c("3195", "3129", "2462", "C430E", "1208H", "1249X", "1059X") # indicativo
-ref_start_date <- as.Date("1920-01-01") 
+ref_start_date <- as.Date("1900-01-01") 
 ref_end_date <- Sys.Date() # Get current date
 
 # Console arguments
