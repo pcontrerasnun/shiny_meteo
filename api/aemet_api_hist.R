@@ -93,6 +93,8 @@ tryCatch({
             historical_data_tmp[[col]] <- as.numeric(NA)
           } else if (column_types[index] == "character") {
             historical_data_tmp[[col]] <- as.character(NA)
+          } else if (column_types[index] == "hms") {
+            data[[col]] <- hms::as_hms(NA)
           }
         }
         
