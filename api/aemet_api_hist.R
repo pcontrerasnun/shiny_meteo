@@ -17,20 +17,8 @@ library(telegram.bot, warn.conflicts = FALSE, quietly = TRUE)
 # GENERAR TBN SUNLIGHTTIMES FILE
 # ************************** WARNING ************************** #
 default_stations <- c("3195", "3129", "2462", "C430E", "1208H", "1249X", "1059X") # indicativo
-ref_start_date <- as.Date("1900-01-01") 
+ref_start_date <- as.Date("1920-01-01") 
 ref_end_date <- Sys.Date() # Get current date
-intervals_6m <- seq(from = ref_start_date, to = ref_end_date, by = "6 months") # AEMET API only allows max 6 months per call
-# Add ref_end_date to vector if it is not present already
-if (tail(intervals_6m, 1) != ref_end_date) {
-  intervals_6m <- c(intervals_6m, ref_end_date)
-}
-# Create date pairs
-date_pairs <- list()
-for (i in 1:(length(intervals_6m) - 1)) {
-  date_pairs[[i]] <- list(start = intervals_6m[i], end = intervals_6m[i + 1] - 1)
-}
-# Caso especial para el último par de fechas
-date_pairs[[length(intervals_6m) - 1]]$end <- ref_end_date
 
 # Console arguments
 args <- commandArgs(trailingOnly = TRUE)
@@ -45,61 +33,18 @@ tryCatch({
     print(paste0("Getting from AEMET API historical data (from ", ref_start_date, " up to ", Sys.Date(), ") for station ", station))
     
     if(station == "1249X") {
-      data1 <- data.frame()
-      for (i in 1:length(date_pairs)) {
-        data1_tmp <- climaemet::aemet_daily_clim(
-          station = station, start = date_pairs[[i]]$start, end = date_pairs[[i]]$end, verbose = TRUE)
-        data1 <- rbind(data1, data1_tmp)
-      }
-      data2 <- data.frame()
-      for (i in 1:length(date_pairs)) {
-        data2_tmp <- climaemet::aemet_daily_clim(
-          station = station, start = date_pairs[[i]]$start, end = date_pairs[[i]]$end, verbose = TRUE)
-        data2 <- rbind(data2, data2_tmp)
-      }
+      data1 <- climaemet::aemet_daily_clim(
+        station = station, start = ref_start_date, end = ref_end_date, verbose = TRUE)
+      data2 <- climaemet::aemet_daily_clim(
+        station = "1249I", start = ref_start_date, end = ref_end_date, verbose = TRUE)
       
       historical_data <- rbind(data1, data2) |> 
         dplyr::distinct(fecha, .keep_all = TRUE) |> # Remove duplicated rows, keep first
         dplyr::arrange(fecha)
       
     } else {
-      historical_data <- data.frame()
-      for (i in 1:length(date_pairs)) {
-        # Some stations dont have same columns across history
-        required_columns <- c("tmed", "tmin", "horatmin", "tmax", "horatmax",
-                              "presMax", "horaPresMax", "presMin", "horaPresMin", 
-                              "hrMedia", "hrMax", "horaHrMax", "hrMin", "horaHrMin",
-                              "dir", "velmedia", "racha", "horaracha")
-        column_types <- c("numeric", "numeric", "character", "numeric", "character",
-                          "numeric", "character", "numeric", "character", 
-                          "numeric", "numeric", "character", "numeric", "character",
-                          "character", "numeric", "numeric", "hms")
-        
-        tryCatch({
-          setTimeLimit(5)
-          historical_data_tmp <- climaemet::aemet_daily_clim(
-            station = station, start = date_pairs[[i]]$start, end = date_pairs[[i]]$end, verbose = TRUE)
-        },
-        error = function(e) { # try again
-          print(paste("Could not get AEMET data for station", station, ". Trying again"))
-          historical_data_tmp <- climaemet::aemet_daily_clim(
-            station = station, start = date_pairs[[i]]$start, end = date_pairs[[i]]$end, verbose = TRUE)
-        })
-        
-        missing_columns <- setdiff(required_columns, colnames(historical_data_tmp))
-        for (col in missing_columns) {
-          index <- which(required_columns == col)
-          if (column_types[index] == "numeric") {
-            historical_data_tmp[[col]] <- as.numeric(NA)
-          } else if (column_types[index] == "character") {
-            historical_data_tmp[[col]] <- as.character(NA)
-          } else if (column_types[index] == "hms") {
-            data[[col]] <- hms::as_hms(NA)
-          }
-        }
-        
-        historical_data <- rbind(historical_data, historical_data_tmp)
-      }
+      historical_data <- climaemet::aemet_daily_clim(
+        station = station, start = ref_start_date, end = ref_end_date, verbose = TRUE)
     }
   
     # Save data
@@ -115,3 +60,4 @@ tryCatch({
   chat_id <- '111783899'
   bot$sendMessage(chat_id = chat_id, text = error_message)
 })
+
