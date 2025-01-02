@@ -68,10 +68,12 @@ tryCatch({
         # Some stations dont have same columns across history
         required_columns <- c("tmed", "tmin", "horatmin", "tmax", "horatmax",
                               "presMax", "horaPresMax", "presMin", "horaPresMin", 
-                              "hrMedia", "hrMax", "horaHrMax", "hrMin", "horaHrMin")
+                              "hrMedia", "hrMax", "horaHrMax", "hrMin", "horaHrMin",
+                              "dir", "velmedia", "racha", "horaracha")
         column_types <- c("numeric", "numeric", "character", "numeric", "character",
                           "numeric", "character", "numeric", "character", 
-                          "numeric", "numeric", "character", "numeric", "character")
+                          "numeric", "numeric", "character", "numeric", "character",
+                          "character", "numeric", "numeric", "hms")
         
         tryCatch({
           setTimeLimit(5)
