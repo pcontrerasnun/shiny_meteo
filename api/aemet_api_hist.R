@@ -34,9 +34,9 @@ tryCatch({
     
     if(station == "1249X") {
       data1 <- climaemet::aemet_daily_clim(
-        station = station, start = ref_start_date, end = ref_end_date, verbose = TRUE)
+        station = station, start = ref_start_date, end = ref_end_date)
       data2 <- climaemet::aemet_daily_clim(
-        station = "1249I", start = ref_start_date, end = ref_end_date, verbose = TRUE)
+        station = "1249I", start = ref_start_date, end = ref_end_date)
       
       historical_data <- rbind(data1, data2) |> 
         dplyr::distinct(fecha, .keep_all = TRUE) |> # Remove duplicated rows, keep first
@@ -44,7 +44,7 @@ tryCatch({
       
     } else {
       historical_data <- climaemet::aemet_daily_clim(
-        station = station, start = ref_start_date, end = ref_end_date, verbose = TRUE)
+        station = station, start = ref_start_date, end = ref_end_date)
     }
   
     # Save data

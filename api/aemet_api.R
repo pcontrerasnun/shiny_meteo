@@ -48,12 +48,12 @@ tryCatch({
     # Get last 24h of data
     print(paste0("Getting from AEMET API last 24h of data for station ", station))
     tryCatch({
-      last_24h_data <- climaemet::aemet_last_obs(station = station, verbose = TRUE)
+      last_24h_data <- climaemet::aemet_last_obs(station = station)
     },
     error = function(e) {
       print(e)
       print(paste("Could not get last 24h of data for station", station, "from AEMET API. Trying again"))
-      last_24h_data <- climaemet::aemet_last_obs(station = station, verbose = TRUE)
+      last_24h_data <- climaemet::aemet_last_obs(station = station)
     })
     
     # Clean last 24h of data
@@ -131,13 +131,13 @@ tryCatch({
     print(paste0("Getting from AEMET API last year data (minus 4 last days) for station ", station))
     tryCatch({
       last_365days_data <- climaemet::aemet_daily_clim(
-          station = station, start = ref_start_date, end = ref_end_date, verbose = TRUE)
+          station = station, start = ref_start_date, end = ref_end_date)
     },
     error = function(e) {
       print(e)
       print(paste("Could not get last year data (minus 4 last days) for station", station, "from AEMET API. Trying again"))
       last_365days_data <- climaemet::aemet_daily_clim(
-        station = station, start = ref_start_date, end = ref_end_date, verbose = TRUE)
+        station = station, start = ref_start_date, end = ref_end_date)
     })
     
     # ----------------------------------

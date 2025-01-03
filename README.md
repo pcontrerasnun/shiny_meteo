@@ -17,3 +17,7 @@ renv crea un entorno específico para cada proyecto, almacenando las versiones d
 ## rsconnect::deployApp()
 
 Si vas a desplegar de nuevo la app en shinyapps.io y has cambiado versiones de librerias en el renv.lock lo mejor es que subas la app con otro nombre para probar que todo funciona bien y no sobreescribas la que hay que sabes que funciona.
+
+## AEMET api keys
+
+Si quieres añadir más api keys de AEMET para evitar que los procesos se paren por el límite de peticiones por usuario, tienes que ejecutar `aemet_api_key(c(key1, key2, ..., key n), install=TRUE, overwrite=TRUE)`. Independiemente de que tambien tengas que añadir el API key nuevo al fichero .Renviron para la app de Shiny. Pero lo primero es para que quede instalado en las maquinas que ejecutan los procesos periodicos. De hecho en el fichero .Renviron con una sola valdría, porque la app de Shiny no hace consultas batch muy seguidas al servidor de AEMET
