@@ -15,7 +15,7 @@ library(telegram.bot, warn.conflicts = FALSE, quietly = TRUE)
 
 # ************************** WARNING ************************** #
 # ANTES DE AÑADIR ESTACION CREAR SU CARPETA EN LOCAL Y DROPBOX
-# Y GENERAR ANTES HISTORICAL FILE. RELLENAR TBN MISSINGS_DICT
+# Y GENERAR ANTES HISTORICAL FILE (A MANO). RELLENAR TBN MISSINGS_DICT
 # TBN AL STATIONS_DICT Y CHOICES DE app.R (aemet_munic())
 # ************************** WARNING ************************** #
 default_stations <- c("3195", "3129", "2462", "C430E", "1208H", "1249X", "1059X")

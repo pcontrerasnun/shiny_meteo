@@ -46,40 +46,17 @@ tryCatch({
     
     print(paste0("Getting from AEMET API data (from ", ref_start_date, " up to ", ref_end_date, ") for station ", station))
     
-    if(station == "1249X") {
-      data1 <- climaemet::aemet_daily_clim(
-        station = station, start = ref_start_date, end = ref_end_date) |> 
-        dplyr::mutate(indicativo = as.numeric(indicativo)) |> 
-        dplyr::mutate(prec = as.character(prec)) |> 
-        dplyr::mutate(horatmax = as.character(horatmax)) |> 
-        dplyr::mutate(horaHrMax = as.character(horaHrMax)) |> 
-        dplyr::mutate(horaHrMin = as.character(horaHrMin))
-      
-      data2 <- climaemet::aemet_daily_clim(
-        station = "1249I", start = ref_start_date, end = ref_end_date)  |> 
-        dplyr::mutate(indicativo = as.numeric(indicativo)) |> 
-        dplyr::mutate(prec = as.character(prec)) |> 
-        dplyr::mutate(horatmax = as.character(horatmax)) |> 
-        dplyr::mutate(horaHrMax = as.character(horaHrMax)) |> 
-        dplyr::mutate(horaHrMin = as.character(horaHrMin))
-      
-      historical_data_new <- dplyr::bind_rows(historical_data, data1, data2) |> 
-        dplyr::distinct(fecha, .keep_all = TRUE) |> # Remove duplicated rows, keep first
-        dplyr::arrange(fecha)
-      
-    } else {
-      data1 <- climaemet::aemet_daily_clim(
-        station = station, start = ref_start_date, end = ref_end_date) |> 
-        dplyr::mutate(indicativo = as.numeric(indicativo)) |> 
-        dplyr::mutate(prec = as.character(prec)) |> 
-        dplyr::mutate(horatmax = as.character(horatmax)) |> 
-        dplyr::mutate(horaHrMax = as.character(horaHrMax)) |> 
-        dplyr::mutate(horaHrMin = as.character(horaHrMin))
-      
-      historical_data_new <- dplyr::bind_rows(historical_data, data1) |> 
-        dplyr::distinct(fecha, .keep_all = TRUE) |> # Remove duplicated rows, keep first
-        dplyr::arrange(fecha)
-    }
+    data1 <- climaemet::aemet_daily_clim(
+      station = station, start = ref_start_date, end = ref_end_date) |> 
+      dplyr::mutate(indicativo = as.numeric(indicativo)) |> 
+      dplyr::mutate(prec = as.character(prec)) |> 
+      dplyr::mutate(horatmax = as.character(horatmax)) |> 
+      dplyr::mutate(horaHrMax = as.character(horaHrMax)) |> 
+      dplyr::mutate(horaHrMin = as.character(horaHrMin))
+    
+    historical_data_new <- dplyr::bind_rows(historical_data, data1) |> 
+      dplyr::distinct(fecha, .keep_all = TRUE) |> # Remove duplicated rows, keep first
+      dplyr::arrange(fecha)
   
     # Save data
     print(paste0("Saving in local storage historical data (from ", ref_start_date, " up to ", ref_end_date, ") for station ", station))
