@@ -38,7 +38,8 @@ tryCatch({
     path <- file.path(paste0("~/aemet_data/", station, "/"))
     files <- list.files(path, pattern = "historical")
     print(paste0("Loading from local storage historical data for station ", station, ": ", tail(files, 1)))
-    historical_data <- readr::read_csv(paste0(path, tail(files, 1)), show_col_types = FALSE)
+    historical_data <- readr::read_csv(paste0(path, tail(files, 1)), show_col_types = FALSE) |> 
+      dplyr::mutate(horaHrMax = as.character(horaHrMax))
     
     ref_start_date <- max(historical_data$fecha) # Ultima fecha disponible en el fichero
     ref_end_date <- max(historical_data$fecha) + lubridate::days(182) # Ultima fecha + 6 meses
