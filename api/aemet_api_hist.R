@@ -43,7 +43,7 @@ tryCatch({
     ref_start_date <- max(historical_data$fecha) # Ultima fecha disponible en el fichero
     ref_end_date <- max(historical_data$fecha) + lubridate::month(6) # Ultima fecha + 6 meses
     
-    print(paste0("Getting from AEMET API data (from ", ref_start_date, " up to ", Sys.Date(), ") for station ", station))
+    print(paste0("Getting from AEMET API data (from ", ref_start_date, " up to ", ref_end_date, ") for station ", station))
     
     if(station == "1249X") {
       data1 <- climaemet::aemet_daily_clim(
@@ -51,7 +51,7 @@ tryCatch({
       data2 <- climaemet::aemet_daily_clim(
         station = "1249I", start = ref_start_date, end = ref_end_date)
       
-      historical_data_new <- rbind(historical_data, data1, data2) |> 
+      historical_data_new <- dplyr::bind_rows(historical_data, data1, data2) |> 
         dplyr::distinct(fecha, .keep_all = TRUE) |> # Remove duplicated rows, keep first
         dplyr::arrange(fecha)
       
@@ -59,7 +59,7 @@ tryCatch({
       data1 <- climaemet::aemet_daily_clim(
         station = station, start = ref_start_date, end = ref_end_date)
       
-      historical_data_new <- rbind(historical_data, data1) |> 
+      historical_data_new <- dplyr::bind_rows(historical_data, data1) |> 
         dplyr::distinct(fecha, .keep_all = TRUE) |> # Remove duplicated rows, keep first
         dplyr::arrange(fecha)
     }
