@@ -38,9 +38,7 @@ tryCatch({
     path <- file.path(paste0("~/aemet_data/", station, "/"))
     files <- list.files(path, pattern = "historical")
     print(paste0("Loading from local storage historical data for station ", station, ": ", tail(files, 1)))
-    historical_data <- readr::read_csv(paste0(path, tail(files, 1)), show_col_types = FALSE) |> 
-      dplyr::mutate(horaHrMax = as.character(horaHrMax)) |> 
-      dplyr::mutate(horaHrMin = as.character(horaHrMin))
+    historical_data <- readr::read_csv(paste0(path, tail(files, 1)), show_col_types = FALSE)
     
     ref_start_date <- max(historical_data$fecha) # Ultima fecha disponible en el fichero
     ref_end_date <- max(historical_data$fecha) + lubridate::days(182) # Ultima fecha + 6 meses
@@ -62,7 +60,9 @@ tryCatch({
         station = station, start = ref_start_date, end = ref_end_date) |> 
         dplyr::mutate(indicativo = as.numeric(indicativo)) |> 
         dplyr::mutate(prec = as.character(prec)) |> 
-        dplyr::mutate(horatmax = as.character(horatmax))
+        dplyr::mutate(horatmax = as.character(horatmax)) |> 
+        dplyr::mutate(horaHrMax = as.character(horaHrMax)) |> 
+        dplyr::mutate(horaHrMin = as.character(horaHrMin))
       
       historical_data_new <- dplyr::bind_rows(historical_data, data1) |> 
         dplyr::distinct(fecha, .keep_all = TRUE) |> # Remove duplicated rows, keep first
