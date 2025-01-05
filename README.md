@@ -21,3 +21,11 @@ Si vas a desplegar de nuevo la app en shinyapps.io y has cambiado versiones de l
 ## AEMET api keys
 
 Si quieres añadir más api keys de AEMET para evitar que los procesos se paren por el límite de peticiones por usuario, tienes que ejecutar `aemet_api_key(c(key1, key2, ..., key n), install=TRUE, overwrite=TRUE)`. Independiemente de que tambien tengas que añadir el API key nuevo al fichero .Renviron para la app de Shiny. Pero lo primero es para que quede instalado en las maquinas que ejecutan los procesos periodicos. De hecho en el fichero .Renviron con una sola valdría, porque la app de Shiny no hace consultas batch muy seguidas al servidor de AEMET
+
+## Funcionamiento
+
+Para cada estación existe un fichero con sufijo 'historical' que contiene todo el dato histórico de la estación. Este fichero se actualiza cada 6 meses con el script `aemet_api_hist.R` en un cron, añadiendo al histórico los últimos 6 meses de datos.
+
+Como a veces AEMET modifica/corrige datos a pasado, en el script diario `aemet_api.R` que genera el fichero con el sufijo 'complete' (que es el que usa la app para pintar los gráficos) se juntan los datos de los últimos 4 días con los datos de los ficheros con sufijo 'last24h' + el dato de los últimos 12 meses importados por el API en el momento (por aquello de que AEMET puede corregir datos a pasado) + el dato histórico.
+
+Como un día puede estar repetido al juntar los diferentes ficheros, se da prioridad al dato histórico, luego al dato de los últimos 12 meses y por último el de los últimos 4 días
