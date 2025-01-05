@@ -59,7 +59,8 @@ tryCatch({
       data1 <- climaemet::aemet_daily_clim(
         station = station, start = ref_start_date, end = ref_end_date) |> 
         dplyr::mutate(indicativo = as.numeric(indicativo)) |> 
-        dplyr::mutate(prec = as.character(prec))
+        dplyr::mutate(prec = as.character(prec)) |> 
+        dplyr::mutate(horatmax = as.character(horatmax))
       
       historical_data_new <- dplyr::bind_rows(historical_data, data1) |> 
         dplyr::distinct(fecha, .keep_all = TRUE) |> # Remove duplicated rows, keep first
