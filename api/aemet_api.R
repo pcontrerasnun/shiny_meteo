@@ -57,7 +57,7 @@ tryCatch({
     })
     
     # Clean last 24h of data
-    if ("geo850" %in% colnames(last_24h_data)) {
+    if ("geo850" %in% colnames(last_24h_data) && is.list(last_24h_data$geo850)) {
       last_24h_data <- last_24h_data |> 
         mutate(geo850value = unlist(last_24h_data$geo850$value)) |> 
         mutate(geo850present = unlist(last_24h_data$geo850$present)) |> 
