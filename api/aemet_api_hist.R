@@ -39,16 +39,19 @@ tryCatch({
     files <- list.files(path, pattern = "historical")
     print(paste0("Loading from local storage historical data for station ", station, ": ", tail(files, 1)))
     historical_data <- readr::read_csv(paste0(path, tail(files, 1)), show_col_types = FALSE) |> 
-      dplyr::mutate(indicativo = as.numeric(indicativo)) |> 
-      dplyr::mutate(prec = as.character(prec))
+      dplyr::mutate(indicativo = as.numeric(indicativo)) |>
+      dplyr::mutate(prec = as.character(prec)) |> 
+      dplyr::mutate(horatmax = as.character(horatmax)) |> 
+      dplyr::mutate(horaHrMax = as.character(horaHrMax)) |> 
+      dplyr::mutate(horaHrMin = as.character(horaHrMin))
     
     ref_start_date <- max(historical_data$fecha) # Ultima fecha disponible en el fichero
     ref_end_date <- max(historical_data$fecha) + lubridate::days(182) # Ultima fecha + 6 meses
     
     print(paste0("Getting from AEMET API data (from ", ref_start_date, " up to ", ref_end_date, ") for station ", station))
     
-    data1 <- climaemet::aemet_daily_clim(
-      station = station, start = ref_start_date, end = ref_end_date) |> 
+    data1 <- climaemet::aemet_daily_clim(station = station, start = ref_start_date, 
+                                        end = ref_end_date) |>
       dplyr::mutate(indicativo = as.numeric(indicativo)) |> 
       dplyr::mutate(prec = as.character(prec)) |> 
       dplyr::mutate(horatmax = as.character(horatmax)) |> 
