@@ -59,9 +59,9 @@ tryCatch({
     # Clean last 24h of data
     if ("geo850" %in% colnames(last_24h_data) && is.list(last_24h_data$geo850)) {
       last_24h_data <- last_24h_data |> 
-        mutate(geo850value = unlist(last_24h_data$geo850$value)) |> 
-        mutate(geo850present = unlist(last_24h_data$geo850$present)) |> 
-        select(-geo850)
+        dplyr::mutate(geo850value = unlist(last_24h_data$geo850$value)) |> 
+        dplyr::mutate(geo850present = unlist(last_24h_data$geo850$present)) |> 
+        dplyr::select(-geo850)
     }
     
     # Save last 24h of data
@@ -84,7 +84,8 @@ tryCatch({
     last_4days_data <- data.frame()
     
     for (file in tail(files, 32)) { # Only 32 last files, enough to fill the gap of 4 days
-      tmp <- readr::read_csv(paste0(path, file), show_col_types = FALSE)
+      tmp <- readr::read_csv(paste0(path, file), show_col_types = FALSE) |> 
+        dplyr::select(fint, prec, tamin, ta, tamax)
       last_4days_data <- rbind(last_4days_data, tmp)
     }
     
