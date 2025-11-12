@@ -71,7 +71,17 @@ tryCatch({
       file = file
     )
     print(paste0("Saved in local storage last 24h of data for station ", station, ": ", file))
-    
+  }
+
+}, error = function(e) {
+    error_message <- paste0("An error happened in script aemet_api.R: ", conditionMessage(e))
+    bot <- Bot(token = bot_token('aemetAlertsBot'))
+    chat_id <- '111783899'
+    bot$sendMessage(chat_id = chat_id, text = error_message)
+})
+
+tryCatch({
+  for (station in stations) {
     # --------------
     # LAST 4 DAYS
     # --------------
