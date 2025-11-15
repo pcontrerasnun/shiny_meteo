@@ -40,8 +40,10 @@ missings_dict <- list(
   "1059X" = list(pcp_na = 49, tmin_na = 1058, tmax_na = 1058, tmean_na = 1058)
 )
 
-tryCatch({
-  for (station in stations) {
+
+for (station in stations) {
+  
+  tryCatch({
     # --------------
     # LAST 24 HOURS
     # --------------
@@ -71,17 +73,20 @@ tryCatch({
       file = file
     )
     print(paste0("Saved in local storage last 24h of data for station ", station, ": ", file))
-  }
+  
+    }, error = function(e) {
+      error_message <- paste0("Error processing station ", station, ": ", conditionMessage(e))
+      print(error_message)
+      bot <- Bot(token = bot_token('aemetAlertsBot'))
+      chat_id <- '111783899'
+      bot$sendMessage(chat_id = chat_id, text = error_message)
+    })
 
-}, error = function(e) {
-    error_message <- paste0("An error happened in script aemet_api.R: ", conditionMessage(e))
-    bot <- Bot(token = bot_token('aemetAlertsBot'))
-    chat_id <- '111783899'
-    bot$sendMessage(chat_id = chat_id, text = error_message)
-})
+}
 
-tryCatch({
-  for (station in stations) {
+for (station in stations) {
+  
+  tryCatch({
     # --------------
     # LAST 4 DAYS
     # --------------
@@ -364,12 +369,15 @@ tryCatch({
     
     # Collect garbage - free RAM
     gc()
-    
-    cat("\n")
-  }
-}, error = function(e) {
-  error_message <- paste0("An error happened in script aemet_api.R: ", conditionMessage(e))
-  bot <- Bot(token = bot_token('aemetAlertsBot'))
-  chat_id <- '111783899'
-  bot$sendMessage(chat_id = chat_id, text = error_message)
-})
+  
+  }, error = function(e) {
+    error_message <- paste0("Error processing station ", station, ": ", conditionMessage(e))
+    print(error_message)
+    bot <- Bot(token = bot_token('aemetAlertsBot'))
+    chat_id <- '111783899'
+    bot$sendMessage(chat_id = chat_id, text = error_message)
+  })
+  
+  cat("\n")
+}
+
