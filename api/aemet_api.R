@@ -98,7 +98,7 @@ for (station in stations) {
     # Initialize empty dataframe
     last_4days_data <- data.frame()
     
-    for (file in tail(files, 32)) { # Only 32 last files, enough to fill the gap of 4 days
+    for (file in tail(files, 14)) { # Only 14 last files, enough to fill the gap of 4 days
       tmp <- readr::read_csv(paste0(path, file), show_col_types = FALSE) |> 
         dplyr::select(fint, prec, tamin, ta, tamax)
       last_4days_data <- rbind(last_4days_data, tmp)
