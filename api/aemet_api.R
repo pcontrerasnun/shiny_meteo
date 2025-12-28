@@ -31,13 +31,13 @@ if (length(args) > 0) {
 }
 
 missings_dict <- list(
-  "3195" = list(pcp_na = 931, tmin_na = 131, tmax_na = 129, tmean_na = 131),
-  "3129" = list(pcp_na = 435, tmin_na = 3479, tmax_na = 3479, tmean_na = 3479),
-  "2462" = list(pcp_na = 32, tmin_na = 5, tmax_na = 4, tmean_na = 5),
+  "3195" = list(pcp_na = 931, tmin_na = 218, tmax_na = 216, tmean_na = 218),
+  "3129" = list(pcp_na = 435, tmin_na = 3479, tmax_na = 3480, tmean_na = 3480),
+  "2462" = list(pcp_na = 32, tmin_na = 8, tmax_na = 7, tmean_na = 8),
   "C430E" = list(pcp_na = 28, tmin_na = 427, tmax_na = 408, tmean_na = 432),
-  "1208H" = list(pcp_na = 2, tmin_na = 0, tmax_na = 0, tmean_na = 0),
-  "1249X" = list(pcp_na = 13, tmin_na = 14, tmax_na = 14, tmean_na = 14),
-  "1059X" = list(pcp_na = 49, tmin_na = 1058, tmax_na = 1058, tmean_na = 1058)
+  "1208H" = list(pcp_na = 2, tmin_na = 2, tmax_na = 2, tmean_na = 2),
+  "1249X" = list(pcp_na = 18, tmin_na = 15, tmax_na = 15, tmean_na = 15),
+  "1059X" = list(pcp_na = 49, tmin_na = 1194, tmax_na = 1193, tmean_na = 1194)
 )
 
 
