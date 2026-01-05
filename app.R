@@ -83,7 +83,8 @@ plot_choices_tminmax <- c(
   "9. Annual number of days with max temp. above 35ºC" = "annual-daysabove35-tmax", 
   "10. Annual number of days with min temp. above 25ºC" = "annual-daysabove25-tmin", 
   "11. Annual number of days with min temp. above 20ºC" = "annual-daysabove20-tmin", 
-  "12. Annual number of days with frost" = "annual-frostdays-tmin"
+  "12. Annual number of days with frost" = "annual-frostdays-tmin",
+  "13. Annual number of days with min temp. below 0ºC" = "annual-daysbelow0-tmin"
 )
 
 plot_choices_pcp <- c(
@@ -629,6 +630,12 @@ server <- function(input, output, session) {
         ),
         "daily-gained-sunrise" = DailySunriseGainedPlot(
           data = newData()[[5]], selected_year = input$year,
+          max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
+        ),
+        "annual-daysbelow0-tmin" = FrostDaysPlot(
+          data = newData()[[1]], selected_year = input$year,
+          ref_start_year = as.numeric(strsplit(input$ref_period, "-")[[1]][1]),
+          ref_end_year = as.numeric(strsplit(input$ref_period, "-")[[1]][2]),
           max_date = newData()[[3]], title = stations_dict[[input$station_id]]$title
         )
       )

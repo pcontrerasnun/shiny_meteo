@@ -5,6 +5,7 @@ Este fichero es con el que te identificas para conectarte con Dropbox. El bueno 
 Te puedes copiar el fichero de la máquina de Oracle a local con: `scp -i ./.ssh/oracle ubuntu@143.47.33.65:/home/ubuntu/.httr-oauth /Users/pcontreras/data/projects/shiny_meteo` (si no te consigue identificar prueba a reiniciar RStudio)
 
 ## Debugging
+
 Hay que diferenciar entre las librerias que se usan en la máquina de Oracle a nivel global (climaemet) para coger los datos desde el api de AEMET y las librerias que se usan en shinyapps para pintar los gráficos (ggplot2). Si actualizas por ejemplo climaemet a nivel de proyecto (en `renv`) pero no a nivel de maquina de Oracle no va a servir de nada ya que la libreria de climaemet solo se utiliza en un script que se ejecuta a nivel de maquina y que no se usa en shinyapps
 
 ## .Renviron
@@ -20,6 +21,8 @@ renv crea un entorno específico para cada proyecto, almacenando las versiones d
 ## rsconnect::deployApp()
 
 Si vas a desplegar de nuevo la app en shinyapps.io y has cambiado versiones de librerias en el renv.lock lo mejor es que subas la app con otro nombre para probar que todo funciona bien y no sobreescribas la que hay que sabes que funciona.
+
+Los ficheros .Rprofile, .RData, .Rhistory no hace falta subirlos a shinyapps.io
 
 ## AEMET api keys
 

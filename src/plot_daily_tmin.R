@@ -64,6 +64,7 @@ DailyTminPlot <- function(data, data_forecast, selected_year, ref_start_year, re
                        date <= as.Date(paste0(as.numeric(selected_year), "-12-31")))) |> # Include year of study
     dplyr::group_by(date) |> 
     dplyr::summarise(mintmin = min(tmin, na.rm = TRUE)) |> 
+    dplyr::filter(!is.na(mintmin)) |>
     dplyr::mutate(year = format(date, "%Y")) |> 
     dplyr::mutate(date = format(date, "%d-%m-%Y")) |> 
     dplyr::arrange(-mintmin) |> 
