@@ -22,7 +22,15 @@ renv crea un entorno específico para cada proyecto, almacenando las versiones d
 
 Si vas a desplegar de nuevo la app en shinyapps.io y has cambiado versiones de librerias en el renv.lock lo mejor es que subas la app con otro nombre para probar que todo funciona bien y no sobreescribas la que hay que sabes que funciona.
 
-Los ficheros .Rprofile, .RData, .Rhistory no hace falta subirlos a shinyapps.io
+Los ficheros .RData, .Rhistory no hace falta subirlos a shinyapps.io
+
+```         
+library(rsconnect)
+
+rsconnect::deployApp(
+  appName = "shiny_meteo_2"
+)
+```
 
 ## AEMET api keys
 

@@ -62,13 +62,13 @@ DailyTminPlot <- function(data, data_forecast, selected_year, ref_start_year, re
                      date <= as.Date(paste0(ref_end_year, "-12-31"))) |
                     (date >= as.Date(paste0(as.numeric(selected_year), "-01-01")) &
                        date <= as.Date(paste0(as.numeric(selected_year), "-12-31")))) |> # Include year of study
+    dplyr::filter(!is.na(tmin)) |>
     dplyr::group_by(date) |> 
     dplyr::summarise(mintmin = min(tmin, na.rm = TRUE)) |> 
-    dplyr::filter(!is.na(mintmin)) |>
     dplyr::mutate(year = format(date, "%Y")) |> 
     dplyr::mutate(date = format(date, "%d-%m-%Y")) |> 
-    dplyr::arrange(-mintmin) |> 
-    dplyr::mutate(ranktmin = rank(-mintmin, ties.method = "first")) |>
+    dplyr::arrange(mintmin) |> 
+    dplyr::mutate(ranktmin = rank(mintmin, ties.method = "first")) |>
     dplyr::as_tibble()
   
   # Draw the plot
