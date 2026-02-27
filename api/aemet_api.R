@@ -19,7 +19,7 @@ library(telegram.bot, warn.conflicts = FALSE, quietly = TRUE)
 # TBN AL STATIONS_DICT Y CHOICES DE app.R (aemet_munic())
 # ************************** WARNING ************************** #
 default_stations <- c("3195", "3129", "2462", "C430E", "1208H", "1249X", "1059X")
-ref_start_date <- Sys.Date() - 365 
+ref_start_date <- Sys.Date() - 180 
 ref_end_date <- Sys.Date() # Get current date
 
 # Console arguments
@@ -141,27 +141,27 @@ for (station in stations) {
       dplyr::mutate(priority = 3)
     
     # ----------------------------------
-    # LAST 365 DAYS (MINUS LAST 4 DAYS)
+    # LAST 180 DAYS (MINUS LAST 4 DAYS)
     # ----------------------------------
-    # Get last year data (minus 4 last days)
-    print(paste0("Getting from AEMET API last year data (minus 4 last days) for station ", station))
+    # Get last 6 months data (minus 4 last days)
+    print(paste0("Getting from AEMET API last 6 months data (minus 4 last days) for station ", station))
     tryCatch({
-      last_365days_data <- climaemet::aemet_daily_clim(
+      last_180days_data <- climaemet::aemet_daily_clim(
           station = station, start = ref_start_date, end = ref_end_date)
     },
     error = function(e) {
       print(e)
-      print(paste("Could not get last year data (minus 4 last days) for station", station, "from AEMET API. Trying again"))
-      last_365days_data <- climaemet::aemet_daily_clim(
+      print(paste("Could not get last 6 months data (minus 4 last days) for station", station, "from AEMET API. Trying again"))
+      last_180days_data <- climaemet::aemet_daily_clim(
         station = station, start = ref_start_date, end = ref_end_date)
     })
     
     # ----------------------------------
-    # LAST 365 DAYS (WITH LAST 4 DAYS)
+    # LAST 180 DAYS (WITH LAST 4 DAYS)
     # ----------------------------------
-    # Join last year data with last 4 days data and do some cleaning
+    # Join last 6 months data with last 4 days data and do some cleaning
     print(paste0("Joining last year data and last 4 days data for station ", station))
-    last_365days_data_clean <- last_365days_data |> 
+    last_180days_data_clean <- last_180days_data |> 
       dtplyr::lazy_dt() |>
       dplyr::select(fecha, prec, tmin, tmax, tmed) |> 
       dplyr::slice(if(is.na(prec[n()])) -n() else 1:n()) |> # If value of prec for last date is NA, delete row (it will be filled with 24h data)
@@ -177,10 +177,10 @@ for (station in stations) {
     # Save data
     file <- paste0("~/aemet_data/", station, "/", format(Sys.time(),"%Y%m%d_%H%M%S"), "_", station, "_last365days.csv.gz")
     readr::write_csv(
-      last_365days_data_clean, 
+      last_180days_data_clean, 
       file = file
     )
-    print(paste0("Saved in local storage full last year data for station ", station, ": ", file))
+    print(paste0("Saved in local storage full last 6 months data for station ", station, ": ", file))
     
     # -------------------
     # ALL AVAILABLE DATA
@@ -197,7 +197,7 @@ for (station in stations) {
       dtplyr::lazy_dt() |>
       dplyr::select(fecha, prec, tmin, tmax, tmed, priority) |> 
       dplyr::as_tibble() |> 
-      rbind(last_365days_data_clean) |> # Join full last year of data
+      rbind(last_180days_data_clean) |> # Join full last year of data
       dtplyr::lazy_dt() |>
       dplyr::arrange(fecha, priority) |> # Arrange by priority
       dplyr::distinct(fecha, .keep_all = TRUE) |> # Remove duplicated rows, keep first
