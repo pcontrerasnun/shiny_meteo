@@ -151,7 +151,7 @@ stations_dict <- list(
   "C430E" = list(title = "Sta Cruz de Tenerife - Izaña", mun_code = 38026),
   "1208H" = list(title = "Gijón - Puerto", mun_code = 33024),
   "1249X" = list(title = "Oviedo", mun_code = 33044),
-  "1059X" = list(title = "Punta Galea - Getxo", mun_code = 48044)
+  #"1059X" = list(title = "Punta Galea - Getxo", mun_code = 48044)
 )
 
 # Load all functions
@@ -193,7 +193,7 @@ ui <- shiny::fluidPage(
               "Sta Cruz de Tenerife - Izaña" = "C430E",
               "Gijón - Puerto" = "1208H",
               "Oviedo" = "1249X",
-              "Getxo - Punta Galea" = "1059X"
+              #"Getxo - Punta Galea" = "1059X"
             ),
             selected = "3195"
           )

@@ -21,7 +21,7 @@ library(telegram.bot, warn.conflicts = FALSE, quietly = TRUE)
 # a hacer es coger el ultimo fichero '_historical' de cada estación y pegarle los
 # 6 meses siguientes a la última fecha disponible en el fichero '_historical'
 
-default_stations <- c("3195", "3129", "2462", "C430E", "1208H", "1249X", "1059X") # indicativo
+default_stations <- c("3195", "3129", "2462", "C430E", "1208H", "1249X") # indicativo 1059X
 
 # Console arguments
 args <- commandArgs(trailingOnly = TRUE)

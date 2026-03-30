@@ -18,7 +18,7 @@ library(telegram.bot, warn.conflicts = FALSE, quietly = TRUE)
 # Y GENERAR ANTES HISTORICAL FILE (A MANO). RELLENAR TBN MISSINGS_DICT
 # TBN AL STATIONS_DICT Y CHOICES DE app.R (aemet_munic())
 # ************************** WARNING ************************** #
-default_stations <- c("3195", "3129", "2462", "C430E", "1208H", "1249X", "1059X")
+default_stations <- c("3195", "3129", "2462", "C430E", "1208H", "1249X") # 1059X
 ref_start_date <- Sys.Date() - 180 
 ref_end_date <- Sys.Date() # Get current date
 
@@ -37,7 +37,7 @@ missings_dict <- list(
   "C430E" = list(pcp_na = 28, tmin_na = 427, tmax_na = 408, tmean_na = 432),
   "1208H" = list(pcp_na = 2, tmin_na = 2, tmax_na = 2, tmean_na = 2),
   "1249X" = list(pcp_na = 19, tmin_na = 16, tmax_na = 16, tmean_na = 16),
-  "1059X" = list(pcp_na = 49, tmin_na = 1252, tmax_na = 1251, tmean_na = 1252)
+  #"1059X" = list(pcp_na = 49, tmin_na = 1252, tmax_na = 1251, tmean_na = 1252)
 )
 
 
