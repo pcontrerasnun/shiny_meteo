@@ -34,7 +34,7 @@ missings_dict <- list(
   "3195" = list(pcp_na = 931, tmin_na = 218, tmax_na = 216, tmean_na = 218),
   "3129" = list(pcp_na = 435, tmin_na = 3479, tmax_na = 3480, tmean_na = 3480),
   "2462" = list(pcp_na = 32, tmin_na = 8, tmax_na = 7, tmean_na = 8),
-  "C430E" = list(pcp_na = 28, tmin_na = 427, tmax_na = 408, tmean_na = 432),
+  "C430E" = list(pcp_na = 28, tmin_na = 429, tmax_na = 410, tmean_na = 434),
   "1208H" = list(pcp_na = 2, tmin_na = 2, tmax_na = 2, tmean_na = 2),
   "1249X" = list(pcp_na = 19, tmin_na = 16, tmax_na = 16, tmean_na = 16)
   #"1059X" = list(pcp_na = 49, tmin_na = 1252, tmax_na = 1251, tmean_na = 1252)
