@@ -29,7 +29,11 @@ clean_files_dropbox <- function(station) {
     sorted_files <- files_df[order(files_df$server_modified, decreasing = TRUE), ]
     
     # Obtener los nombres de los archivos a eliminar (todos excepto los últimos 100)
-    files_to_delete <- sorted_files$path_display[101:nrow(sorted_files)]
+    if(length(sorted_files$name) > 100) {
+      files_to_delete <- sorted_files$path_display[101:nrow(sorted_files)]
+    } else {
+      files_to_delete <- NULL
+    }
     
     # Eliminar los archivos seleccionados
     if (length(files_to_delete) > 0) {
