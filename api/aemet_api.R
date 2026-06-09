@@ -32,7 +32,7 @@ if (length(args) > 0) {
 
 missings_dict <- list(
   "3195" = list(pcp_na = 931, tmin_na = 218, tmax_na = 216, tmean_na = 218),
-  "3129" = list(pcp_na = 436, tmin_na = 3479, tmax_na = 3480, tmean_na = 3480),
+  "3129" = list(pcp_na = 436, tmin_na = 3480, tmax_na = 3481, tmean_na = 3481),
   "2462" = list(pcp_na = 32, tmin_na = 8, tmax_na = 7, tmean_na = 8),
   "C430E" = list(pcp_na = 28, tmin_na = 429, tmax_na = 410, tmean_na = 434),
   "1208H" = list(pcp_na = 2, tmin_na = 2, tmax_na = 2, tmean_na = 2),
