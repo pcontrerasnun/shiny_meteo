@@ -41,6 +41,7 @@ tryCatch({
     historical_data <- readr::read_csv(paste0(path, tail(files, 1)), show_col_types = FALSE) |> 
       dplyr::mutate(indicativo = as.numeric(indicativo)) |>
       dplyr::mutate(prec = as.character(prec)) |> 
+      dplyr::mutate(horatmin = as.character(horatmin)) |> 
       dplyr::mutate(horatmax = as.character(horatmax)) |> 
       dplyr::mutate(horaHrMax = as.character(horaHrMax)) |> 
       dplyr::mutate(horaHrMin = as.character(horaHrMin))
@@ -54,6 +55,7 @@ tryCatch({
                                         end = ref_end_date) |>
       dplyr::mutate(indicativo = as.numeric(indicativo)) |> 
       dplyr::mutate(prec = as.character(prec)) |> 
+      dplyr::mutate(horatmin = as.character(horatmin)) |> 
       dplyr::mutate(horatmax = as.character(horatmax)) |> 
       dplyr::mutate(horaHrMax = as.character(horaHrMax)) |> 
       dplyr::mutate(horaHrMin = as.character(horaHrMin))
